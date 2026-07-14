@@ -122,8 +122,11 @@ let state = 'menu'; // menu | playing | over
 
 document.addEventListener('keydown', (e) => {
   keys[e.code] = true;
+  if (e.code === 'Space' || e.code.startsWith('Arrow')) e.preventDefault();
   if (state !== 'playing') return;
-  if (e.code === 'KeyB') toggleBuildMode();
+  if (e.code === 'KeyB' || e.code === 'KeyT') toggleBuildMode();
+  else if (e.code === 'KeyQ') fireRocket();
+  else if (e.code === 'Space' && buildMode) tryPlaceTurret();
 });
 document.addEventListener('keyup', (e) => { keys[e.code] = false; });
 document.addEventListener('contextmenu', (e) => e.preventDefault());
@@ -510,11 +513,13 @@ function updatePlayer(dt) {
   }
   const boost = keys['ShiftLeft'] || keys['ShiftRight'] ? 1.65 : 1;
   const speed = 16 * boost;
+  if (keys['ArrowLeft']) player.yaw += 2.4 * dt;
+  if (keys['ArrowRight']) player.yaw -= 2.4 * dt;
   const fwd = forwardOf(player.yaw).clone();
   const right = new THREE.Vector3(-fwd.z, 0, fwd.x);
   const move = new THREE.Vector3();
-  if (keys['KeyW']) move.add(fwd);
-  if (keys['KeyS']) move.sub(fwd);
+  if (keys['KeyW'] || keys['ArrowUp']) move.add(fwd);
+  if (keys['KeyS'] || keys['ArrowDown']) move.sub(fwd);
   if (keys['KeyA']) move.sub(right);
   if (keys['KeyD']) move.add(right);
 
@@ -540,7 +545,7 @@ function updatePlayer(dt) {
 
   player.gunCool -= dt;
   player.rocketCool -= dt;
-  if (mouseDown && !buildMode) firePlayerGun();
+  if ((mouseDown || keys['Space']) && !buildMode) firePlayerGun();
 
   // slow self-repair after 5s without damage
   if (player.hp < player.maxHp && elapsed - player.lastDamaged > 5) {
@@ -850,8 +855,9 @@ function endGame(victory) {
   boomSfx(0.5, 1.2);
 }
 
-document.getElementById('startBtn').addEventListener('click', () => {
+document.getElementById('startBtn').addEventListener('click', (e) => {
   if (state === 'over') { location.reload(); return; }
+  e.currentTarget.blur();
   audioCtx();
   overlay.classList.add('hidden');
   hud.classList.add('active');
