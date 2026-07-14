@@ -14,9 +14,9 @@
   <div id="hpWrap"><div class="cap"></div><div id="hpFill"></div></div>
   <div id="ammoBar">
     <div class="slot"><span class="ico">🛢️</span><span class="salv" id="salvageVal">150</span></div>
-    <div class="slot active" id="slotGun"><span class="key">1</span><span class="ico">🔫</span><span id="ammoVal">6552</span></div>
-    <div class="slot" id="slotRocket"><span class="key">2</span><span class="ico">🚀</span><span id="rocketVal">30</span></div>
-    <div class="slot"><span class="key">3</span><span class="ico"><svg class="turretIco" viewBox="0 0 32 32" aria-hidden="true"><rect x="7" y="25" width="18" height="4" rx="1.5" fill="#55617a"/><path d="M10 25l2-5h8l2 5z" fill="#7c8aa8"/><circle cx="16" cy="17" r="5.5" fill="#a7b4cc"/><rect x="14.2" y="2.5" width="3.8" height="14" rx="1.6" fill="#93a2bd" transform="rotate(35 16 17)"/><path d="M24.1 2.1l1.1 2.4 2.4 1.1-2.4 1.1-1.1 2.4-1.1-2.4-2.4-1.1 2.4-1.1z" fill="#ffd23c"/></svg></span><span id="turretVal">0</span></div>
+    <div class="slot active" id="slotGun"><span class="key">1</span><span class="ico">🔫</span></div>
+    <div class="slot" id="slotRocket"><span class="key">2</span><span class="ico">🚀</span><span class="cost">🛢️20</span></div>
+    <div class="slot" id="slotTurret"><span class="key">3</span><span class="ico"><svg class="turretIco" viewBox="0 0 32 32" aria-hidden="true"><rect x="7" y="25" width="18" height="4" rx="1.5" fill="#55617a"/><path d="M10 25l2-5h8l2 5z" fill="#7c8aa8"/><circle cx="16" cy="17" r="5.5" fill="#a7b4cc"/><rect x="14.2" y="2.5" width="3.8" height="14" rx="1.6" fill="#93a2bd" transform="rotate(35 16 17)"/><path d="M24.1 2.1l1.1 2.4 2.4 1.1-2.4 1.1-1.1 2.4-1.1-2.4-2.4-1.1 2.4-1.1z" fill="#ffd23c"/></svg></span><span id="turretVal">0</span><span class="cost">🛢️100</span></div>
   </div>
   <div class="baseBar" id="baseBlue">YOUR BASE<div class="track"><div class="fill" id="baseBlueFill"></div></div></div>
   <div class="baseBar" id="baseRed">ENEMY BASE<div class="track"><div class="fill" id="baseRedFill"></div></div></div>
@@ -25,7 +25,7 @@
   <div id="buildHint"></div>
   <div id="respawn">MECH DESTROYED — RESPAWNING</div>
   <div id="touchControls">
-    <button id="btnRocket" aria-label="Fire rocket">🚀</button>
+    <button id="btnRocket" aria-label="Fire rocket">🚀<span class="cost">🛢️20</span></button>
     <button id="btnTurret" aria-label="Build turret"><svg class="turretIco" viewBox="0 0 32 32" aria-hidden="true"><rect x="7" y="25" width="18" height="4" rx="1.5" fill="#55617a"/><path d="M10 25l2-5h8l2 5z" fill="#7c8aa8"/><circle cx="16" cy="17" r="5.5" fill="#a7b4cc"/><rect x="14.2" y="2.5" width="3.8" height="14" rx="1.6" fill="#93a2bd" transform="rotate(35 16 17)"/><path d="M24.1 2.1l1.1 2.4 2.4 1.1-2.4 1.1-1.1 2.4-1.1-2.4-2.4-1.1 2.4-1.1z" fill="#ffd23c"/></svg><span class="cost">🛢️100</span></button>
   </div>
 </div>
@@ -38,8 +38,8 @@
     district before enemy assault mechs destroy <b style="color:#8ab4ff">yours</b>.<br>
     Enemy waves march on your base — build turrets to hold them off.<br><br>
     <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> / <kbd>▲</kbd><kbd>▼</kbd> move &nbsp; <kbd>Mouse</kbd> / <kbd>◀</kbd><kbd>▶</kbd> aim &nbsp; <kbd>Shift</kbd> boost<br>
-    <kbd>LMB</kbd> / <kbd>Space</kbd> fire &nbsp; <kbd>1</kbd> machine guns &nbsp; <kbd>2</kbd> rockets &nbsp; <kbd>3</kbd> / <kbd>T</kbd> build turret in front of you (<span style="color:#ffd23c">🛢️ 100 salvage</span>)<br>
-    <kbd>Q</kbd> / <kbd>RMB</kbd> quick rocket &nbsp; <kbd>B</kbd> aimed turret placement — <kbd>LMB</kbd> place, <kbd>B</kbd> cancel<br>
+    <kbd>LMB</kbd> / <kbd>Space</kbd> fire &nbsp; <kbd>1</kbd> machine guns &nbsp; <kbd>2</kbd> rockets (<span style="color:#ffd23c">🛢️ 20</span>) &nbsp; <kbd>3</kbd> / <kbd>T</kbd> build turret in front of you (<span style="color:#ffd23c">🛢️ 100</span>)<br>
+    <kbd>Q</kbd> / <kbd>RMB</kbd> quick rocket &nbsp; — machine guns are free, rockets &amp; turrets cost salvage<br>
     <kbd>Esc</kbd> release mouse — click canvas to re-engage
   </div>
   <div id="diffRow">

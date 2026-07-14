@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { scene } from '../world/scene.js';
 import { BLUE, entities, makeBar, makeMech, registerEntity } from './entities.js';
-import { game, stats, touch } from '../core/state.js';
+import { game, stats, touch, COSTS } from '../core/state.js';
 import { keys } from '../systems/input.js';
 import { LEVEL, groundHeightAt } from '../world/world.js';
 import { forwardOf, localToWorld, losBlocked, collideCircle, updateVertical, aimYOf } from '../core/helpers.js';
@@ -47,9 +47,9 @@ function findAimTarget(muzzle, yaw) {
 }
 
 export function selectWeapon(n) {
-  if (n === 2 && stats.rockets <= 0) {
+  if (n === 2 && stats.salvage < COSTS.rocket) {
     beep(140, 90, 0.15, 'square', 0.1);
-    showMessage('OUT OF ROCKETS', '#ff8a7a');
+    showMessage(`NEED 🛢️ ${COSTS.rocket} PER ROCKET`, '#ff8a7a');
     return;
   }
   if (game.weapon !== n) beep(700, 1000, 0.05, 'sine', 0.06);
@@ -59,9 +59,8 @@ export function selectWeapon(n) {
 
 let gunSide = 1;
 export function firePlayerGun() {
-  if (player.gunCool > 0 || stats.ammo <= 0) return;
+  if (player.gunCool > 0) return;
   player.gunCool = 0.11;
-  stats.ammo--;
   gunSide = -gunSide;
   const muzzle = localToWorld(player, 2.2 * gunSide, 4.5, 2.7);
   const target = findAimTarget(muzzle, player.yaw);
@@ -78,13 +77,18 @@ export function firePlayerGun() {
 }
 
 export function fireRocket() {
-  if (!player.alive || player.rocketCool > 0 || stats.rockets <= 0 || game.buildMode) return;
-  player.rocketCool = 0.55;
-  stats.rockets--;
-  if (stats.rockets <= 0 && game.weapon === 2) {
-    game.weapon = 1;
-    showMessage('OUT OF ROCKETS — MACHINE GUNS', '#8ab4ff');
+  if (!player.alive || player.rocketCool > 0) return;
+  if (stats.salvage < COSTS.rocket) {
+    if (game.weapon === 2) {
+      game.weapon = 1;
+      showMessage('OUT OF SALVAGE — MACHINE GUNS', '#8ab4ff');
+    }
+    beep(140, 90, 0.15, 'square', 0.1);
+    updateHud();
+    return;
   }
+  player.rocketCool = 0.55;
+  stats.salvage -= COSTS.rocket;
   const muzzle = localToWorld(player, 0, 4.8, 2.2);
   const target = findAimTarget(muzzle, player.yaw);
   const dir = new THREE.Vector3();
@@ -146,7 +150,7 @@ export function updatePlayer(dt) {
 
   player.gunCool -= dt;
   player.rocketCool -= dt;
-  if ((game.mouseDown || keys['Space']) && !game.buildMode) {
+  if (game.mouseDown || keys['Space']) {
     if (game.weapon === 2) fireRocket(); else firePlayerGun();
   }
 

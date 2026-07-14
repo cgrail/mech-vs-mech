@@ -1,8 +1,7 @@
 import * as THREE from 'three';
-import { scene } from '../world/scene.js';
 import { ARENA, groundHeightAt } from '../world/world.js';
-import { BLUE, entities, makeTurretModel, makeTurretEntity } from '../entities/entities.js';
-import { game, stats } from '../core/state.js';
+import { entities, makeTurretEntity } from '../entities/entities.js';
+import { stats, COSTS } from '../core/state.js';
 import { localToWorld, distXZ } from '../core/helpers.js';
 import { spawnSpark } from '../entities/particles.js';
 import { beep } from './audio.js';
@@ -10,32 +9,11 @@ import { player } from '../entities/player.js';
 import { updateHud } from '../ui/hud.js';
 
 /* ============================================================
-   Build mode
+   Turret building — placed directly in front of the player
 ============================================================ */
-const TURRET_COST = 100;
-let ghost = null;
-const ghostOk = new THREE.MeshBasicMaterial({ color: 0x39d353, transparent: true, opacity: 0.45 });
-const ghostBad = new THREE.MeshBasicMaterial({ color: 0xd33939, transparent: true, opacity: 0.45 });
 const buildHintEl = document.getElementById('buildHint');
 
-export function toggleBuildMode() {
-  game.buildMode = !game.buildMode;
-  if (game.buildMode && !player.alive) { game.buildMode = false; return; }
-  if (game.buildMode) {
-    const model = makeTurretModel(BLUE);
-    model.group.traverse((o) => { if (o.isMesh) { o.material = ghostOk; o.castShadow = false; } });
-    ghost = model.group;
-    scene.add(ghost);
-    buildHintEl.style.display = 'block';
-    beep(600, 900, 0.08, 'sine', 0.08);
-  } else {
-    if (ghost) scene.remove(ghost);
-    ghost = null;
-    buildHintEl.style.display = 'none';
-  }
-}
-
-function ghostPos() {
+function buildPos() {
   return localToWorld(player, 0, 0, 9);
 }
 
@@ -54,54 +32,21 @@ function buildPosValid(p) {
   return true;
 }
 
-export function updateGhost() {
-  if (!game.buildMode || !ghost) return;
-  const p = ghostPos();
-  ghost.position.set(p.x, groundHeightAt(p.x, p.z), p.z);
-  const valid = buildPosValid(p);
-  const afford = stats.salvage >= TURRET_COST;
-  const mat = valid && afford ? ghostOk : ghostBad;
-  ghost.traverse((o) => { if (o.isMesh) o.material = mat; });
-  buildHintEl.classList.toggle('bad', !(valid && afford));
-  buildHintEl.textContent = !afford
-    ? `NOT ENOUGH SALVAGE — NEED 🛢️ ${TURRET_COST}`
-    : valid
-      ? `BUILD TURRET HERE — LMB TO CONFIRM (🛢️ ${TURRET_COST})`
-      : 'INVALID POSITION — NEEDS FLAT OPEN GROUND';
-}
-
-function placeTurretAt(p) {
-  stats.salvage -= TURRET_COST;
-  stats.turretsBuilt++;
-  makeTurretEntity('blue', p.x, p.z);
-  spawnSpark(new THREE.Vector3(p.x, groundHeightAt(p.x, p.z) + 2, p.z));
-  beep(500, 1100, 0.15, 'sine', 0.12);
-  updateHud();
-}
-
-export function tryPlaceTurret() {
-  const p = ghostPos();
-  if (!buildPosValid(p) || stats.salvage < TURRET_COST) { beep(140, 90, 0.15, 'square', 0.1); return; }
-  placeTurretAt(p);
-  toggleBuildMode();
-}
-
-/* touch controls: place immediately in front of the player, no ghost preview */
 let hintTimer = 0;
 function flashHint(text) {
   buildHintEl.classList.add('bad');
   buildHintEl.textContent = text;
   buildHintEl.style.display = 'block';
   clearTimeout(hintTimer);
-  hintTimer = setTimeout(() => { if (!game.buildMode) buildHintEl.style.display = 'none'; }, 1400);
+  hintTimer = setTimeout(() => { buildHintEl.style.display = 'none'; }, 1400);
 }
 
 export function placeTurretDirect() {
-  if (!player.alive || game.buildMode) return false;
-  const p = ghostPos();
-  if (stats.salvage < TURRET_COST) {
+  if (!player.alive) return false;
+  const p = buildPos();
+  if (stats.salvage < COSTS.turret) {
     beep(140, 90, 0.15, 'square', 0.1);
-    flashHint(`NOT ENOUGH SALVAGE — NEED 🛢️ ${TURRET_COST}`);
+    flashHint(`NOT ENOUGH SALVAGE — NEED 🛢️ ${COSTS.turret}`);
     return false;
   }
   if (!buildPosValid(p)) {
@@ -109,6 +54,11 @@ export function placeTurretDirect() {
     flashHint('INVALID POSITION — NEEDS FLAT OPEN GROUND');
     return false;
   }
-  placeTurretAt(p);
+  stats.salvage -= COSTS.turret;
+  stats.turretsBuilt++;
+  makeTurretEntity('blue', p.x, p.z);
+  spawnSpark(new THREE.Vector3(p.x, groundHeightAt(p.x, p.z) + 2, p.z));
+  beep(500, 1100, 0.15, 'sine', 0.12);
+  updateHud();
   return true;
 }

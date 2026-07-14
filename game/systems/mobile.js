@@ -72,7 +72,7 @@ if (isTouchDevice) {
     Enemy waves march on your base — build turrets to hold them off.<br><br>
     <kbd>🧭 Turn phone</kbd> rotate mech &nbsp; <kbd>📱 Lean</kbd> forward / back to move<br>
     <kbd>📱 Tilt sideways</kbd> strafe left / right<br>
-    <kbd>👆 Touch screen</kbd> machine guns &nbsp; <kbd>🚀</kbd> rockets<br>
+    <kbd>👆 Touch screen</kbd> machine guns &nbsp; <kbd>🚀</kbd> rockets (<span style="color:#ffd23c">🛢️ 20</span>)<br>
     <kbd><svg class="turretIco" viewBox="0 0 32 32" aria-hidden="true"><rect x="7" y="25" width="18" height="4" rx="1.5" fill="#55617a"/><path d="M10 25l2-5h8l2 5z" fill="#7c8aa8"/><circle cx="16" cy="17" r="5.5" fill="#a7b4cc"/><rect x="14.2" y="2.5" width="3.8" height="14" rx="1.6" fill="#93a2bd" transform="rotate(35 16 17)"/><path d="M24.1 2.1l1.1 2.4 2.4 1.1-2.4 1.1-1.1 2.4-1.1-2.4-2.4-1.1 2.4-1.1z" fill="#ffd23c"/></svg></kbd> build turret in front of you (<span style="color:#ffd23c">🛢️ 100 salvage</span>)`;
 
   /* touching the display fires the machine guns */

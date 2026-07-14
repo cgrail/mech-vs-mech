@@ -7,7 +7,6 @@ import { distXZ } from '../core/helpers.js';
 import { spawnExplosion, spawnSpark } from './particles.js';
 import { boomSfx } from '../systems/audio.js';
 import { player } from './player.js';
-import { toggleBuildMode } from '../systems/build.js';
 import { updateHud } from '../ui/hud.js';
 import { endGame } from '../core/flow.js';
 
@@ -73,8 +72,6 @@ export function killEntity(e) {
     if (e.kind === 'mech') {
       stats.kills++;
       stats.salvage += 40 * difficulty().salvageMult;
-      stats.rockets = Math.min(99, stats.rockets + 6);
-      stats.ammo += 200;
     } else if (e.kind === 'turret') {
       stats.salvage += 80 * difficulty().salvageMult;
     }
@@ -91,7 +88,6 @@ export function killEntity(e) {
     scene.remove(e.group);
     player.respawnAt = game.elapsed + 4;
     document.getElementById('respawn').style.display = 'block';
-    if (game.buildMode) toggleBuildMode();
     return;
   }
 

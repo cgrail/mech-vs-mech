@@ -1,6 +1,6 @@
 import { ARENA, drawTerrainMinimap } from '../world/world.js';
 import { entities, blueBase, redBase } from '../entities/entities.js';
-import { game, stats } from '../core/state.js';
+import { game, stats, COSTS } from '../core/state.js';
 import { player } from '../entities/player.js';
 
 /* ============================================================
@@ -8,11 +8,10 @@ import { player } from '../entities/player.js';
 ============================================================ */
 const hpFill = document.getElementById('hpFill');
 const salvageVal = document.getElementById('salvageVal');
-const ammoVal = document.getElementById('ammoVal');
-const rocketVal = document.getElementById('rocketVal');
 const turretVal = document.getElementById('turretVal');
 const slotGun = document.getElementById('slotGun');
 const slotRocket = document.getElementById('slotRocket');
+const slotTurret = document.getElementById('slotTurret');
 const baseBlueFill = document.getElementById('baseBlueFill');
 const baseRedFill = document.getElementById('baseRedFill');
 const msgEl = document.getElementById('msg');
@@ -21,10 +20,10 @@ let msgTimer = null;
 export function updateHud() {
   hpFill.style.height = `${Math.max(0, player.hp / player.maxHp * 100)}%`;
   salvageVal.textContent = Math.floor(stats.salvage);
-  ammoVal.textContent = Math.max(0, Math.floor(stats.ammo));
-  rocketVal.textContent = stats.rockets;
   slotGun.classList.toggle('active', game.weapon !== 2);
   slotRocket.classList.toggle('active', game.weapon === 2);
+  slotRocket.classList.toggle('dim', stats.salvage < COSTS.rocket);
+  slotTurret.classList.toggle('dim', stats.salvage < COSTS.turret);
   turretVal.textContent = entities.filter(e => e.alive && e.team === 'blue' && e.kind === 'turret').length;
   baseBlueFill.style.width = `${Math.max(0, blueBase.hp / blueBase.maxHp * 100)}%`;
   baseRedFill.style.width = `${Math.max(0, redBase.hp / redBase.maxHp * 100)}%`;

@@ -37,7 +37,6 @@ export const game = {
   state: 'menu',          // menu | playing | over
   elapsed: 0,
   weapon: 1,              // desktop weapon slot: 1 machine gun, 2 rockets
-  buildMode: false,
   mouseDown: false,
   pointerLocked: false,
   difficulty: DIFFICULTIES[saved] ? saved : 'medium',
@@ -52,8 +51,11 @@ export const touch = {
 };
 
 export const stats = {
-  salvage: 150, ammo: 6552, rockets: 30,
+  salvage: 150,
   turretsBuilt: 0, kills: 0, wave: 0,
 };
+
+/* salvage is the only currency: machine guns are free, everything else costs */
+export const COSTS = { rocket: 20, turret: 100 };
 
 export function difficulty() { return DIFFICULTIES[game.difficulty]; }

@@ -7,7 +7,6 @@ import { player, updatePlayer } from './entities/player.js';
 import { separateMechs } from './core/helpers.js';
 import { updateProjectiles } from './entities/projectiles.js';
 import { updateParticles } from './entities/particles.js';
-import { updateGhost } from './systems/build.js';
 import { updateTurret, updateEnemyMech, updateWaves } from './systems/ai.js';
 import { updateHud, drawMinimap } from './ui/hud.js';
 import './systems/input.js';
@@ -57,7 +56,6 @@ function animate() {
     }
     separateMechs();
     updateProjectiles(dt);
-    updateGhost();
 
     // passive salvage income
     salvageTrickle += dt;

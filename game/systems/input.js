@@ -1,6 +1,6 @@
 import { renderer } from '../world/scene.js';
 import { game, touch } from '../core/state.js';
-import { toggleBuildMode, tryPlaceTurret, placeTurretDirect } from './build.js';
+import { placeTurretDirect } from './build.js';
 import { player, fireRocket, selectWeapon } from '../entities/player.js';
 
 /* ============================================================
@@ -12,18 +12,12 @@ document.addEventListener('keydown', (e) => {
   keys[e.code] = true;
   if (e.code === 'Space' || e.code.startsWith('Arrow')) e.preventDefault();
   if (game.state !== 'playing') return;
-  if (e.code === 'KeyB') toggleBuildMode();
-  else if (e.code === 'KeyQ') fireRocket();
-  else if (e.code === 'Digit1' || e.code === 'Numpad1') {
-    if (game.buildMode) toggleBuildMode();
-    selectWeapon(1);
-  } else if (e.code === 'Digit2' || e.code === 'Numpad2') {
-    if (game.buildMode) toggleBuildMode();
-    selectWeapon(2);
-  } else if (e.code === 'Digit3' || e.code === 'Numpad3' || e.code === 'KeyT') {
-    if (game.buildMode) toggleBuildMode();
+  if (e.code === 'KeyQ') fireRocket();
+  else if (e.code === 'Digit1' || e.code === 'Numpad1') selectWeapon(1);
+  else if (e.code === 'Digit2' || e.code === 'Numpad2') selectWeapon(2);
+  else if (e.code === 'Digit3' || e.code === 'Numpad3' || e.code === 'KeyT' || e.code === 'KeyB') {
     if (placeTurretDirect()) selectWeapon(1);
-  } else if (e.code === 'Space' && game.buildMode) tryPlaceTurret();
+  }
 });
 document.addEventListener('keyup', (e) => { keys[e.code] = false; });
 document.addEventListener('contextmenu', (e) => e.preventDefault());
@@ -31,13 +25,8 @@ document.addEventListener('contextmenu', (e) => e.preventDefault());
 renderer.domElement.addEventListener('mousedown', (e) => {
   if (game.state !== 'playing' || touch.active) return;
   if (!game.pointerLocked) { renderer.domElement.requestPointerLock(); return; }
-  if (e.button === 0) {
-    if (game.buildMode) { tryPlaceTurret(); return; }
-    game.mouseDown = true;
-  } else if (e.button === 2) {
-    if (game.buildMode) { toggleBuildMode(); return; }
-    fireRocket();
-  }
+  if (e.button === 0) game.mouseDown = true;
+  else if (e.button === 2) fireRocket();
 });
 document.addEventListener('mouseup', (e) => { if (e.button === 0) game.mouseDown = false; });
 

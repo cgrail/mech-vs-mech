@@ -81,6 +81,8 @@ canvas { display: block; touch-action: none; }
   text-shadow: none;
 }
 #ammoBar .slot.active .key { color: #101820; background: #ffd23c; border-color: #ffd23c; }
+#ammoBar .cost { font-size: 14px; color: #ffd23c; align-self: flex-end; }
+#ammoBar .slot.dim { opacity: .4; }
 @media (max-width: 900px) {
   #ammoBar { gap: 18px; font-size: 20px; }
   #ammoBar .ico { font-size: 22px; }
