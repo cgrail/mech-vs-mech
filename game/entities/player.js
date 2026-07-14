@@ -97,8 +97,8 @@ export function updatePlayer(dt) {
   const move = new THREE.Vector3();
   if (keys['KeyW'] || keys['ArrowUp'] || touch.move > 0) move.add(fwd);
   if (keys['KeyS'] || keys['ArrowDown'] || touch.move < 0) move.sub(fwd);
-  if (keys['KeyA']) move.sub(right);
-  if (keys['KeyD']) move.add(right);
+  if (keys['KeyA'] || touch.strafe < 0) move.sub(right);
+  if (keys['KeyD'] || touch.strafe > 0) move.add(right);
 
   const moving = move.lengthSq() > 0;
   if (moving) {

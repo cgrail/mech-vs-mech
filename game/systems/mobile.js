@@ -7,6 +7,7 @@ import { placeTurretDirect } from './build.js';
    Mobile / touch controls
    - compass (alpha) rotates the mech
    - gyro lean (beta) moves forward / backward
+   - gyro side tilt (gamma) strafes left / right
    - touching the display fires the machine guns
    - on-screen buttons fire rockets and place turrets
 ============================================================ */
@@ -14,10 +15,11 @@ export const isTouchDevice = matchMedia('(pointer: coarse)').matches || 'ontouch
 touch.active = isTouchDevice;
 
 const DEG = Math.PI / 180;
-const LEAN_DEADZONE = 7; // degrees of forward/back tilt before the mech moves
+const LEAN_DEADZONE = 7;   // degrees of forward/back tilt before the mech moves
+const STRAFE_DEADZONE = 9; // degrees of side tilt before the mech strafes
 
 /* ---------- device orientation: compass + gyro lean ---------- */
-let baseAlpha = 0, baseBeta = 0, baseYaw = 0;
+let baseAlpha = 0, baseBeta = 0, baseGamma = 0, baseYaw = 0;
 let needCalibration = true;
 
 function onOrientation(e) {
@@ -26,6 +28,7 @@ function onOrientation(e) {
     // current pose becomes "facing forward, standing still"
     baseAlpha = e.alpha;
     baseBeta = e.beta;
+    baseGamma = e.gamma ?? 0;
     baseYaw = player.yaw;
     needCalibration = false;
   }
@@ -38,6 +41,10 @@ function onOrientation(e) {
   // lean: tilting the top edge away (forward) lowers beta
   const dBeta = e.beta - baseBeta;
   touch.move = dBeta < -LEAN_DEADZONE ? 1 : dBeta > LEAN_DEADZONE ? -1 : 0;
+
+  // side tilt: gamma grows when the right edge dips down
+  const dGamma = (e.gamma ?? baseGamma) - baseGamma;
+  touch.strafe = dGamma > STRAFE_DEADZONE ? 1 : dGamma < -STRAFE_DEADZONE ? -1 : 0;
 }
 
 async function enableOrientation() {
@@ -64,6 +71,7 @@ if (isTouchDevice) {
     district before enemy assault mechs destroy <b style="color:#8ab4ff">yours</b>.<br>
     Enemy waves march on your base — build turrets to hold them off.<br><br>
     <kbd>🧭 Turn phone</kbd> rotate mech &nbsp; <kbd>📱 Lean</kbd> forward / back to move<br>
+    <kbd>📱 Tilt sideways</kbd> strafe left / right<br>
     <kbd>👆 Touch screen</kbd> machine guns &nbsp; <kbd>🚀</kbd> rockets<br>
     <kbd>🗼</kbd> build turret in front of you (<span style="color:#ffd23c">🛢️ 100 salvage</span>)`;
 

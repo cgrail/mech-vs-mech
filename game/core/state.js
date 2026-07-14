@@ -46,6 +46,7 @@ export const game = {
 export const touch = {
   active: false,  // true on touch devices
   move: 0,        // gyro lean: 1 forward, -1 backward, 0 neutral
+  strafe: 0,      // gyro side tilt: 1 right, -1 left, 0 neutral
   yaw: null,      // compass-driven target yaw in radians (null = keyboard/mouse)
 };
 
