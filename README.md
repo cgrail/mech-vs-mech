@@ -92,4 +92,6 @@ game/
 
 ## Credits
 
-An homage to *Future Cop: LAPD* (1998) — the mech, the aim assist, and the base-assault mode are all a loving nod. Built with three.js; sound effects are synthesized live with the Web Audio API, so there are no assets to download.
+An homage to *Future Cop: LAPD* (1998) — the mech, the aim assist, and the base-assault mode are all a loving nod. Built with three.js; sound effects are synthesized live with the Web Audio API.
+
+Background music: ["Rocky Musicloop"](https://opengameart.org/content/rocky-musicloop) by johndekale (CC0 / public domain).

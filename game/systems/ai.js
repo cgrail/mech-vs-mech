@@ -3,7 +3,7 @@ import { entities, blueBase, redBase, makeEnemyMech } from '../entities/entities
 import { game, stats, difficulty } from '../core/state.js';
 import { distXZ, losBlocked, localToWorld, nearestEnemyOf, collideCircle } from '../core/helpers.js';
 import { spawnProjectile } from '../entities/projectiles.js';
-import { beep } from './audio.js';
+import { beep, laserSfx } from './audio.js';
 import { player } from '../entities/player.js';
 import { showMessage } from '../ui/hud.js';
 
@@ -48,8 +48,8 @@ export function updateTurret(e, dt) {
     const az = tp.z + (e.target.velZ || 0) * tof * lead;
     const dir = _v.set(ax, Math.min(3.5, e.target.hitHeight * 0.55), az).sub(muzzle).normalize().clone();
     spawnProjectile({ pos: muzzle, dir, speed: 100, damage: e.damage, team: e.team, life: 1 });
-    if (e.team === 'blue') beep(340, 120, 0.05, 'square', 0.03);
-    else beep(240, 80, 0.05, 'square', 0.03);
+    if (e.team === 'blue') laserSfx(0.03, 2200);
+    else laserSfx(0.03, 1300);
   }
 }
 
@@ -160,7 +160,7 @@ export function updateEnemyMech(e, dt) {
     dir.y = (Math.min(3.5, e.target.hitHeight * 0.5) - muzzle.y) / Math.max(d, 1);
     dir.normalize();
     spawnProjectile({ pos: muzzle, dir, speed: 70, damage: e.damage, team: 'red', life: 1.4 });
-    beep(200, 70, 0.05, 'square', 0.025);
+    laserSfx(0.025, 1100);
   }
 }
 

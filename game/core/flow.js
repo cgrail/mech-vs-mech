@@ -1,7 +1,7 @@
 import { renderer } from '../world/scene.js';
 import { game, stats, difficulty, touch } from './state.js';
 import { entities, redBase } from '../entities/entities.js';
-import { audioCtx, boomSfx } from '../systems/audio.js';
+import { audioCtx, boomSfx, startMusic, duckMusic } from '../systems/audio.js';
 import { updateHud, showMessage } from '../ui/hud.js';
 
 /* ============================================================
@@ -58,12 +58,14 @@ export function endGame(victory) {
   }, 1400);
   showMessage(victory ? 'ENEMY BASE DESTROYED' : 'YOUR BASE HAS FALLEN', victory ? '#7CFF6B' : '#ff5040');
   boomSfx(0.5, 1.2);
+  duckMusic();
 }
 
 document.getElementById('startBtn').addEventListener('click', (e) => {
   if (game.state === 'over') { location.reload(); return; }
   e.currentTarget.blur();
   audioCtx();
+  startMusic();
   applyDifficulty();
   overlay.classList.add('hidden');
   hud.classList.add('active');

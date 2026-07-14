@@ -20,6 +20,63 @@ export function beep(f, f2, dur, type, vol) {
   } catch (e) { /* audio unavailable */ }
 }
 
+/* punchy sci-fi laser zap: two detuned saws swept down through a bandpass */
+export function laserSfx(vol = 0.06, startF = 1800) {
+  try {
+    const a = audioCtx();
+    const t = a.currentTime;
+    const g = a.createGain();
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+    const f = a.createBiquadFilter();
+    f.type = 'bandpass'; f.Q.value = 1.6;
+    f.frequency.setValueAtTime(startF * 1.2, t);
+    f.frequency.exponentialRampToValueAtTime(300, t + 0.12);
+    for (const det of [0, 12]) {
+      const o = a.createOscillator();
+      o.type = 'sawtooth';
+      o.detune.value = det;
+      o.frequency.setValueAtTime(startF, t);
+      o.frequency.exponentialRampToValueAtTime(startF * 0.09, t + 0.11);
+      o.connect(f);
+      o.start(t); o.stop(t + 0.12);
+    }
+    f.connect(g).connect(a.destination);
+  } catch (e) { /* audio unavailable */ }
+}
+
+/* ============================================================
+   Background music — "Rocky Musicloop" by johndekale (CC0)
+   https://opengameart.org/content/rocky-musicloop
+============================================================ */
+let musicBuf = null, musicSrc = null, musicGain = null;
+
+export async function startMusic() {
+  try {
+    const a = audioCtx();
+    if (!musicBuf) {
+      const res = await fetch('assets/rocky-musicloop.mp3');
+      musicBuf = await a.decodeAudioData(await res.arrayBuffer());
+    }
+    if (musicSrc) return;
+    musicGain = a.createGain();
+    musicGain.gain.value = 0.3;
+    musicSrc = a.createBufferSource();
+    musicSrc.buffer = musicBuf;
+    musicSrc.loop = true;
+    musicSrc.connect(musicGain).connect(a.destination);
+    musicSrc.start();
+  } catch (e) { /* audio unavailable */ }
+}
+
+/* fade the music down, e.g. on the end screen */
+export function duckMusic() {
+  if (!musicGain) return;
+  const a = audioCtx();
+  musicGain.gain.setValueAtTime(musicGain.gain.value, a.currentTime);
+  musicGain.gain.linearRampToValueAtTime(0.08, a.currentTime + 1.5);
+}
+
 export function boomSfx(vol, dur) {
   try {
     const a = audioCtx();

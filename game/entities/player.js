@@ -5,7 +5,7 @@ import { game, stats, touch } from '../core/state.js';
 import { keys } from '../systems/input.js';
 import { forwardOf, localToWorld, losBlocked, collideCircle } from '../core/helpers.js';
 import { spawnProjectile } from './projectiles.js';
-import { beep } from '../systems/audio.js';
+import { beep, laserSfx } from '../systems/audio.js';
 import { updateHud, showMessage } from '../ui/hud.js';
 
 /* ============================================================
@@ -57,7 +57,7 @@ export function firePlayerGun() {
     dir.copy(forwardOf(player.yaw));
   }
   spawnProjectile({ pos: muzzle, dir, speed: 130, damage: 9, team: 'blue', life: 1.2 });
-  beep(300, 90, 0.07, 'square', 0.05);
+  laserSfx(0.06, 1800);
   updateHud();
 }
 
