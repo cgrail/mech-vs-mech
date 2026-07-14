@@ -1,5 +1,5 @@
 import { renderer } from '../world/scene.js';
-import { game, stats, difficulty } from './state.js';
+import { game, stats, difficulty, touch } from './state.js';
 import { entities, redBase } from '../entities/entities.js';
 import { audioCtx, boomSfx } from '../systems/audio.js';
 import { updateHud, showMessage } from '../ui/hud.js';
@@ -68,7 +68,7 @@ document.getElementById('startBtn').addEventListener('click', (e) => {
   overlay.classList.add('hidden');
   hud.classList.add('active');
   game.state = 'playing';
-  renderer.domElement.requestPointerLock();
+  if (!touch.active) renderer.domElement.requestPointerLock();
   showMessage('DESTROY THE ENEMY BASE', '#ffd23c');
   updateHud();
 });

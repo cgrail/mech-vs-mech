@@ -1,5 +1,5 @@
 import { renderer } from '../world/scene.js';
-import { game } from '../core/state.js';
+import { game, touch } from '../core/state.js';
 import { toggleBuildMode, tryPlaceTurret } from './build.js';
 import { player, fireRocket } from '../entities/player.js';
 
@@ -20,7 +20,7 @@ document.addEventListener('keyup', (e) => { keys[e.code] = false; });
 document.addEventListener('contextmenu', (e) => e.preventDefault());
 
 renderer.domElement.addEventListener('mousedown', (e) => {
-  if (game.state !== 'playing') return;
+  if (game.state !== 'playing' || touch.active) return;
   if (!game.pointerLocked) { renderer.domElement.requestPointerLock(); return; }
   if (e.button === 0) {
     if (game.buildMode) { tryPlaceTurret(); return; }

@@ -67,14 +67,44 @@ export function updateGhost() {
       : 'INVALID POSITION — TOO CLOSE TO STRUCTURE';
 }
 
-export function tryPlaceTurret() {
-  const p = ghostPos();
-  if (!buildPosValid(p) || stats.salvage < TURRET_COST) { beep(140, 90, 0.15, 'square', 0.1); return; }
+function placeTurretAt(p) {
   stats.salvage -= TURRET_COST;
   stats.turretsBuilt++;
   makeTurretEntity('blue', p.x, p.z);
   spawnSpark(new THREE.Vector3(p.x, 2, p.z));
   beep(500, 1100, 0.15, 'sine', 0.12);
-  toggleBuildMode();
   updateHud();
+}
+
+export function tryPlaceTurret() {
+  const p = ghostPos();
+  if (!buildPosValid(p) || stats.salvage < TURRET_COST) { beep(140, 90, 0.15, 'square', 0.1); return; }
+  placeTurretAt(p);
+  toggleBuildMode();
+}
+
+/* touch controls: place immediately in front of the player, no ghost preview */
+let hintTimer = 0;
+function flashHint(text) {
+  buildHintEl.classList.add('bad');
+  buildHintEl.textContent = text;
+  buildHintEl.style.display = 'block';
+  clearTimeout(hintTimer);
+  hintTimer = setTimeout(() => { if (!game.buildMode) buildHintEl.style.display = 'none'; }, 1400);
+}
+
+export function placeTurretDirect() {
+  if (!player.alive || game.buildMode) return;
+  const p = ghostPos();
+  if (stats.salvage < TURRET_COST) {
+    beep(140, 90, 0.15, 'square', 0.1);
+    flashHint(`NOT ENOUGH SALVAGE — NEED 🛢️ ${TURRET_COST}`);
+    return;
+  }
+  if (!buildPosValid(p)) {
+    beep(140, 90, 0.15, 'square', 0.1);
+    flashHint('INVALID POSITION — TOO CLOSE TO STRUCTURE');
+    return;
+  }
+  placeTurretAt(p);
 }

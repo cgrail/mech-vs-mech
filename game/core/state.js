@@ -42,6 +42,13 @@ export const game = {
   difficulty: DIFFICULTIES[saved] ? saved : 'medium',
 };
 
+/* touch/mobile input, written by systems/mobile.js, read by the player update */
+export const touch = {
+  active: false,  // true on touch devices
+  move: 0,        // gyro lean: 1 forward, -1 backward, 0 neutral
+  yaw: null,      // compass-driven target yaw in radians (null = keyboard/mouse)
+};
+
 export const stats = {
   salvage: 150, ammo: 6552, rockets: 30,
   turretsBuilt: 0, kills: 0, wave: 0,

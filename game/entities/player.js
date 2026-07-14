@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { scene } from '../world/scene.js';
 import { BLUE, entities, makeBar, makeMech, registerEntity } from './entities.js';
-import { game, stats } from '../core/state.js';
+import { game, stats, touch } from '../core/state.js';
 import { keys } from '../systems/input.js';
 import { forwardOf, localToWorld, losBlocked, collideCircle } from '../core/helpers.js';
 import { spawnProjectile } from './projectiles.js';
@@ -87,11 +87,16 @@ export function updatePlayer(dt) {
   const speed = 16 * boost;
   if (keys['ArrowLeft']) player.yaw += 2.4 * dt;
   if (keys['ArrowRight']) player.yaw -= 2.4 * dt;
+  if (touch.yaw !== null) {
+    // ease toward the compass heading along the shortest arc
+    const d = Math.atan2(Math.sin(touch.yaw - player.yaw), Math.cos(touch.yaw - player.yaw));
+    player.yaw += d * Math.min(1, 10 * dt);
+  }
   const fwd = forwardOf(player.yaw).clone();
   const right = new THREE.Vector3(-fwd.z, 0, fwd.x);
   const move = new THREE.Vector3();
-  if (keys['KeyW'] || keys['ArrowUp']) move.add(fwd);
-  if (keys['KeyS'] || keys['ArrowDown']) move.sub(fwd);
+  if (keys['KeyW'] || keys['ArrowUp'] || touch.move > 0) move.add(fwd);
+  if (keys['KeyS'] || keys['ArrowDown'] || touch.move < 0) move.sub(fwd);
   if (keys['KeyA']) move.sub(right);
   if (keys['KeyD']) move.add(right);
 

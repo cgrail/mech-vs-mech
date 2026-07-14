@@ -6,7 +6,7 @@ html, body {
   user-select: none;
 }
 #app { width: 100%; height: 100%; }
-canvas { display: block; }
+canvas { display: block; touch-action: none; }
 
 /* ---------- start / end overlay ---------- */
 #overlay {
@@ -116,6 +116,24 @@ canvas { display: block; }
   font-size: 22px; font-weight: 700; letter-spacing: 3px; color: #ff6a5a;
   text-shadow: 2px 2px 0 #000; display: none;
 }
+
+/* ---------- touch controls (shown on touch devices via body.touch) ---------- */
+#touchControls {
+  position: absolute; right: 16px; bottom: max(24px, env(safe-area-inset-bottom));
+  display: none; flex-direction: column; gap: 16px;
+  pointer-events: auto;
+}
+body.touch #touchControls { display: flex; }
+#touchControls button {
+  width: 76px; height: 76px; border-radius: 50%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font: inherit; font-size: 32px; line-height: 1;
+  color: #eee; background: rgba(14, 18, 32, .72);
+  border: 2px solid #4a5578; box-shadow: 0 0 10px rgba(0,0,0,.6);
+  -webkit-tap-highlight-color: transparent; touch-action: none;
+}
+#touchControls button:active { background: rgba(60, 74, 120, .85); border-color: #8ab4ff; }
+#touchControls .cost { font-size: 11px; color: #ffd23c; margin-top: 2px; }
 
 /* ---------- difficulty picker ---------- */
 #diffRow { display: flex; gap: 10px; }

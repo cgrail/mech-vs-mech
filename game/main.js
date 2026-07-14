@@ -11,6 +11,7 @@ import { updateGhost } from './systems/build.js';
 import { updateTurret, updateEnemyMech, updateWaves } from './systems/ai.js';
 import { updateHud, drawMinimap } from './ui/hud.js';
 import './systems/input.js';
+import './systems/mobile.js';
 import './core/flow.js';
 
 createWorld(scene);
