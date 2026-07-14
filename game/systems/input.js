@@ -12,7 +12,7 @@ document.addEventListener('keydown', (e) => {
   keys[e.code] = true;
   if (e.code === 'Space' || e.code.startsWith('Arrow')) e.preventDefault();
   if (game.state !== 'playing') return;
-  if (e.code === 'KeyB' || e.code === 'KeyT') toggleBuildMode();
+  if (e.code === 'KeyB') toggleBuildMode();
   else if (e.code === 'KeyQ') fireRocket();
   else if (e.code === 'Digit1' || e.code === 'Numpad1') {
     if (game.buildMode) toggleBuildMode();
@@ -20,7 +20,7 @@ document.addEventListener('keydown', (e) => {
   } else if (e.code === 'Digit2' || e.code === 'Numpad2') {
     if (game.buildMode) toggleBuildMode();
     selectWeapon(2);
-  } else if (e.code === 'Digit3' || e.code === 'Numpad3') {
+  } else if (e.code === 'Digit3' || e.code === 'Numpad3' || e.code === 'KeyT') {
     if (game.buildMode) toggleBuildMode();
     if (placeTurretDirect()) selectWeapon(1);
   } else if (e.code === 'Space' && game.buildMode) tryPlaceTurret();
