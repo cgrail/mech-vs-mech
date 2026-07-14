@@ -41,13 +41,18 @@ export function spawnProjectile(opts) {
     mesh, pos: mesh.position,
     vel: opts.dir.clone().multiplyScalar(opts.speed),
     team: opts.team, damage: opts.damage, rocket: !!opts.rocket,
-    life: opts.life || 3,
+    src: opts.src || null, life: opts.life || 3,
   });
 }
 
-export function damageEntity(e, dmg) {
+export function damageEntity(e, dmg, src) {
   if (!e.alive || game.state === 'over') return;
   e.hp -= dmg;
+  // mechs retaliate against whoever shot them, even from outside sight range
+  if (e.kind === 'mech' && src && src.alive && src.team !== e.team) {
+    e.aggro = src;
+    e.aggroT = 4;
+  }
   if (e.bar) e.bar.set(e.hp / e.maxHp);
   if (e === player) {
     player.lastDamaged = game.elapsed;
@@ -95,12 +100,12 @@ export function killEntity(e) {
   if (i >= 0) entities.splice(i, 1);
 }
 
-export function splashDamage(pos, team, radius, maxDmg) {
+export function splashDamage(pos, team, radius, maxDmg, src) {
   for (const e of entities) {
     if (!e.alive || e.team === team) continue;
     const d = distXZ(pos, e.group.position) - e.hitRadius;
     if (d < radius) {
-      damageEntity(e, maxDmg * (1 - Math.max(0, d) / radius));
+      damageEntity(e, maxDmg * (1 - Math.max(0, d) / radius), src);
     }
   }
 }
@@ -131,7 +136,7 @@ export function updateProjectiles(dt) {
         const r = e.hitRadius + (p.rocket ? 0.6 : 0.25);
         if (dx * dx + dz * dz < r * r) {
           if (p.rocket) boom = true;
-          else damageEntity(e, p.damage);
+          else damageEntity(e, p.damage, p.src);
           dead = true;
           spawnSpark(p.pos);
           break;
@@ -141,7 +146,7 @@ export function updateProjectiles(dt) {
 
     if (dead) {
       if (p.rocket && boom) {
-        splashDamage(p.pos, p.team, 9, p.damage);
+        splashDamage(p.pos, p.team, 9, p.damage, p.src);
         spawnExplosion(p.pos.x, Math.max(1, p.pos.y), p.pos.z, 0.9);
         boomSfx(0.22, 0.3);
       }

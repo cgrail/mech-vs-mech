@@ -47,7 +47,7 @@ export function updateTurret(e, dt) {
     const ax = tp.x + (e.target.velX || 0) * tof * lead;
     const az = tp.z + (e.target.velZ || 0) * tof * lead;
     const dir = _v.set(ax, Math.min(3.5, e.target.hitHeight * 0.55), az).sub(muzzle).normalize().clone();
-    spawnProjectile({ pos: muzzle, dir, speed: 100, damage: e.damage, team: e.team, life: 1 });
+    spawnProjectile({ pos: muzzle, dir, speed: 100, damage: e.damage, team: e.team, life: 1, src: e });
     if (e.team === 'blue') laserSfx(0.03, 2200);
     else laserSfx(0.03, 1300);
   }
@@ -57,11 +57,15 @@ export function updateEnemyMech(e, dt) {
   const cfg = difficulty().mech;
   e.cool -= dt;
   e.retarget -= dt;
+  if (e.aggroT > 0) {
+    e.aggroT -= dt;
+    if (!e.aggro || !e.aggro.alive) { e.aggro = null; e.aggroT = 0; }
+  }
   if (e.retarget <= 0) {
     e.retarget = cfg.retarget;
-    // priority: player nearby > close / already-damaged blue turret > blue base
-    let t = null;
-    if (player.alive && distXZ(e.group.position, player.group.position) < 52) t = player;
+    // priority: whoever shot us recently > player in sight > close / already-damaged blue turret > blue base
+    let t = e.aggroT > 0 ? e.aggro : null;
+    if (!t && player.alive && distXZ(e.group.position, player.group.position) < cfg.sight) t = player;
     if (!t) {
       let bs = Infinity;
       for (const o of entities) {
@@ -80,6 +84,8 @@ export function updateEnemyMech(e, dt) {
   const tp = e.target.group.position;
   const d = distXZ(e.group.position, tp);
   const attackRange = e.target.kind === 'base' ? 32 : e.range;
+  // open fire on the player as soon as they're spotted, while still closing to preferred range
+  const fireRange = e.target === player ? cfg.sight : attackRange;
   const clear = !losBlocked(e.group.position.x, e.group.position.z, tp.x, tp.z, 3);
   const desired = Math.atan2(tp.x - e.group.position.x, tp.z - e.group.position.z);
 
@@ -148,7 +154,7 @@ export function updateEnemyMech(e, dt) {
 
   // fire: lead moving targets, tighter spread on harder difficulties
   const aimDiff = Math.abs(angDiff(desired, e.yaw));
-  if (d < attackRange && clear && aimDiff < 0.25 && e.cool <= 0) {
+  if (d < fireRange && clear && aimDiff < 0.25 && e.cool <= 0) {
     e.cool = e.fireInterval * (0.8 + Math.random() * 0.5);
     const muzzle = localToWorld(e, (Math.random() < 0.5 ? -2.2 : 2.2), 4.5, 2.7);
     const tof = d / 70;
@@ -159,7 +165,7 @@ export function updateEnemyMech(e, dt) {
     dir.applyAxisAngle(UP, spread);
     dir.y = (Math.min(3.5, e.target.hitHeight * 0.5) - muzzle.y) / Math.max(d, 1);
     dir.normalize();
-    spawnProjectile({ pos: muzzle, dir, speed: 70, damage: e.damage, team: 'red', life: 1.4 });
+    spawnProjectile({ pos: muzzle, dir, speed: 70, damage: e.damage, team: 'red', life: 1.4, src: e });
     laserSfx(0.025, 1100);
   }
 }

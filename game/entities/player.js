@@ -56,7 +56,7 @@ export function firePlayerGun() {
   } else {
     dir.copy(forwardOf(player.yaw));
   }
-  spawnProjectile({ pos: muzzle, dir, speed: 130, damage: 9, team: 'blue', life: 1.2 });
+  spawnProjectile({ pos: muzzle, dir, speed: 130, damage: 9, team: 'blue', life: 1.2, src: player });
   laserSfx(0.06, 1800);
   updateHud();
 }
@@ -73,7 +73,7 @@ export function fireRocket() {
   } else {
     dir.copy(forwardOf(player.yaw));
   }
-  spawnProjectile({ pos: muzzle, dir, speed: 60, damage: 60, team: 'blue', rocket: true, life: 3 });
+  spawnProjectile({ pos: muzzle, dir, speed: 60, damage: 60, team: 'blue', rocket: true, life: 3, src: player });
   beep(160, 40, 0.35, 'sawtooth', 0.12);
   updateHud();
 }

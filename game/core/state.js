@@ -4,7 +4,7 @@
 export const DIFFICULTIES = {
   easy: {
     label: 'EASY',
-    mech: { hp: 90, speed: 8.5, damage: 6, fireInterval: 0.55, range: 32, spread: 0.12, aimLead: 0, strafe: false, retarget: 0.7 },
+    mech: { hp: 90, speed: 8.5, damage: 6, fireInterval: 0.55, range: 32, sight: 50, spread: 0.12, aimLead: 0, strafe: false, retarget: 0.7 },
     turret: { hp: 240, damage: 7, range: 40, fireInterval: 0.45 },
     redBaseHp: 900,
     wave: { interval: 26, base: 2, growthDiv: 3, maxPerWave: 4, maxAlive: 7, flank: false },
@@ -12,7 +12,7 @@ export const DIFFICULTIES = {
   },
   medium: {
     label: 'MEDIUM',
-    mech: { hp: 130, speed: 10, damage: 8, fireInterval: 0.38, range: 36, spread: 0.06, aimLead: 0.6, strafe: true, retarget: 0.5 },
+    mech: { hp: 130, speed: 10, damage: 8, fireInterval: 0.38, range: 42, sight: 64, spread: 0.06, aimLead: 0.6, strafe: true, retarget: 0.5 },
     turret: { hp: 320, damage: 9, range: 46, fireInterval: 0.32 },
     redBaseHp: 1200,
     wave: { interval: 21, base: 2, growthDiv: 2, maxPerWave: 6, maxAlive: 12, flank: true },
@@ -20,7 +20,7 @@ export const DIFFICULTIES = {
   },
   hard: {
     label: 'HARD',
-    mech: { hp: 170, speed: 11.5, damage: 10, fireInterval: 0.3, range: 42, spread: 0.03, aimLead: 1, strafe: true, retarget: 0.35 },
+    mech: { hp: 170, speed: 11.5, damage: 10, fireInterval: 0.3, range: 50, sight: 80, spread: 0.03, aimLead: 1, strafe: true, retarget: 0.35 },
     turret: { hp: 420, damage: 11, range: 52, fireInterval: 0.26 },
     redBaseHp: 1600,
     wave: { interval: 17, base: 3, growthDiv: 2, maxPerWave: 8, maxAlive: 16, flank: true },
