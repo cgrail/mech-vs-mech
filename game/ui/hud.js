@@ -39,11 +39,11 @@ const mctx = mini.getContext('2d');
 export function drawMinimap() {
   const w = mini.width, h = mini.height;
   mctx.clearRect(0, 0, w, h);
-  mctx.fillStyle = 'rgba(10,14,22,0.85)';
+  mctx.fillStyle = 'rgba(10,14,22,0.35)';
   mctx.fillRect(0, 0, w, h);
   const px = (x) => (x + ARENA.hw) / (ARENA.hw * 2) * w;
   const pz = (z) => (z + ARENA.hd) / (ARENA.hd * 2) * h;
-  mctx.fillStyle = '#39414f';
+  mctx.fillStyle = 'rgba(57,65,79,0.55)';
   for (const o of obstacles) {
     mctx.fillRect(px(o.x - o.hw), pz(o.z - o.hd), (o.hw * 2) / (ARENA.hw * 2) * w, (o.hd * 2) / (ARENA.hd * 2) * h);
   }

@@ -92,8 +92,8 @@ canvas { display: block; touch-action: none; }
 #baseRed  .fill { height: 100%; width: 100%; background: linear-gradient(90deg,#ff4a3d,#ff9a7d); float: right; }
 
 #minimap {
-  position: absolute; right: 16px; top: 66px;
-  background: rgba(8,10,16,.72); border: 1px solid #4a5578; border-radius: 6px;
+  position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+  background: rgba(8,10,16,.3); border: 1px solid rgba(74,85,120,.6); border-radius: 6px;
 }
 
 #msg {
