@@ -289,7 +289,7 @@ export function createWorld(scene) {
    (top-level await: every module importing this one waits)
 ============================================================ */
 const param = new URLSearchParams(location.search).get('level') || '1';
-const levelName = /^\d+$/.test(param) ? `level${param}` : param;
+export const levelName = /^\d+$/.test(param) ? `level${param}` : param;
 const res = await fetch(`levels/${encodeURIComponent(levelName)}.txt`);
 if (!res.ok) throw new Error(`Could not load level file levels/${levelName}.txt (HTTP ${res.status})`);
 parseLevel(await res.text());

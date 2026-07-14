@@ -1,4 +1,5 @@
 import { renderer } from '../world/scene.js';
+import { levelName } from '../world/world.js';
 import { game, stats, difficulty, touch } from './state.js';
 import { entities, redBase } from '../entities/entities.js';
 import { audioCtx, boomSfx, startMusic, duckMusic } from '../systems/audio.js';
@@ -40,11 +41,31 @@ function applyDifficulty() {
   redBase.hp = redBase.maxHp = cfg.redBaseHp;
 }
 
+/* on victory, the end screen advances to levels/level<N+1>.txt if it exists */
+let nextLevelUrl = null;
+
+async function findNextLevel() {
+  const m = levelName.match(/^level(\d+)$/);
+  if (!m) return null; // named levels have no numeric successor
+  const next = Number(m[1]) + 1;
+  try {
+    const res = await fetch(`levels/level${next}.txt`, { method: 'HEAD' });
+    if (!res.ok) return null;
+  } catch {
+    return null;
+  }
+  const url = new URL(location.href);
+  url.searchParams.set('level', String(next));
+  return url.href;
+}
+
 export function endGame(victory) {
   if (game.state === 'over') return;
   game.state = 'over';
   document.exitPointerLock();
-  setTimeout(() => {
+  const nextLevel = victory ? findNextLevel() : Promise.resolve(null);
+  setTimeout(async () => {
+    nextLevelUrl = await nextLevel;
     overlay.classList.remove('hidden');
     overlay.querySelector('h1').textContent = victory ? 'VICTORY' : 'BASE LOST';
     overlay.querySelector('h1').style.color = victory ? '#7CFF6B' : '#ff5040';
@@ -53,8 +74,10 @@ export function endGame(victory) {
       : 'YOUR BASE WAS DESTROYED';
     document.getElementById('briefing').innerHTML =
       `<b>MISSION REPORT — ${difficulty().label}</b><br>Kills: <b>${stats.kills}</b> · Waves survived: <b>${stats.wave}</b> · Turrets built: <b>${stats.turretsBuilt}</b><br>` +
-      (victory ? 'Outstanding work, officer.' : 'The district has fallen. Redeploy and try again.');
-    document.getElementById('startBtn').textContent = 'REDEPLOY';
+      (victory
+        ? (nextLevelUrl ? 'Outstanding work, officer. The next district needs you.' : 'Outstanding work, officer. All districts secured.')
+        : 'The district has fallen. Redeploy and try again.');
+    document.getElementById('startBtn').textContent = nextLevelUrl ? 'NEXT LEVEL' : 'REDEPLOY';
   }, 1400);
   showMessage(victory ? 'ENEMY BASE DESTROYED' : 'YOUR BASE HAS FALLEN', victory ? '#7CFF6B' : '#ff5040');
   boomSfx(0.5, 1.2);
@@ -62,7 +85,11 @@ export function endGame(victory) {
 }
 
 document.getElementById('startBtn').addEventListener('click', (e) => {
-  if (game.state === 'over') { location.reload(); return; }
+  if (game.state === 'over') {
+    if (nextLevelUrl) location.href = nextLevelUrl;
+    else location.reload();
+    return;
+  }
   e.currentTarget.blur();
   audioCtx();
   startMusic();
