@@ -28,9 +28,9 @@ function updateCamera(dt) {
   const cz = p.z - Math.cos(yaw) * behind;
   const k = 1 - Math.exp(-8 * dt);
   camera.position.x += (cx - camera.position.x) * k;
-  camera.position.y += (up - camera.position.y) * k;
+  camera.position.y += (player.y + up - camera.position.y) * k;
   camera.position.z += (cz - camera.position.z) * k;
-  camTarget.set(p.x + Math.sin(yaw) * 10, 2, p.z + Math.cos(yaw) * 10);
+  camTarget.set(p.x + Math.sin(yaw) * 10, player.y + 2, p.z + Math.cos(yaw) * 10);
   camera.lookAt(camTarget);
 }
 

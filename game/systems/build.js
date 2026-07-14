@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { scene } from '../world/scene.js';
-import { ARENA, obstacles } from '../world/world.js';
+import { ARENA, groundHeightAt } from '../world/world.js';
 import { BLUE, entities, makeTurretModel, makeTurretEntity } from '../entities/entities.js';
 import { game, stats } from '../core/state.js';
 import { localToWorld, distXZ } from '../core/helpers.js';
@@ -41,8 +41,11 @@ function ghostPos() {
 
 function buildPosValid(p) {
   if (Math.abs(p.x) > ARENA.hw - 4 || Math.abs(p.z) > ARENA.hd - 4) return false;
-  for (const o of obstacles) {
-    if (Math.abs(p.x - o.x) < o.hw + 2.5 && Math.abs(p.z - o.z) < o.hd + 2.5) return false;
+  // needs flat footing on the player's own level (no walls, ramps or cliffs)
+  const h = groundHeightAt(p.x, p.z);
+  if (Math.abs(h - player.y) > 0.5) return false;
+  for (const [ox, oz] of [[2.5, 0], [-2.5, 0], [0, 2.5], [0, -2.5]]) {
+    if (Math.abs(groundHeightAt(p.x + ox, p.z + oz) - h) > 0.1) return false;
   }
   for (const e of entities) {
     if (!e.alive || e === player) continue;
@@ -54,7 +57,7 @@ function buildPosValid(p) {
 export function updateGhost() {
   if (!game.buildMode || !ghost) return;
   const p = ghostPos();
-  ghost.position.set(p.x, 0, p.z);
+  ghost.position.set(p.x, groundHeightAt(p.x, p.z), p.z);
   const valid = buildPosValid(p);
   const afford = stats.salvage >= TURRET_COST;
   const mat = valid && afford ? ghostOk : ghostBad;
@@ -64,14 +67,14 @@ export function updateGhost() {
     ? `NOT ENOUGH SALVAGE — NEED 🛢️ ${TURRET_COST}`
     : valid
       ? `BUILD TURRET HERE — LMB TO CONFIRM (🛢️ ${TURRET_COST})`
-      : 'INVALID POSITION — TOO CLOSE TO STRUCTURE';
+      : 'INVALID POSITION — NEEDS FLAT OPEN GROUND';
 }
 
 function placeTurretAt(p) {
   stats.salvage -= TURRET_COST;
   stats.turretsBuilt++;
   makeTurretEntity('blue', p.x, p.z);
-  spawnSpark(new THREE.Vector3(p.x, 2, p.z));
+  spawnSpark(new THREE.Vector3(p.x, groundHeightAt(p.x, p.z) + 2, p.z));
   beep(500, 1100, 0.15, 'sine', 0.12);
   updateHud();
 }
@@ -103,7 +106,7 @@ export function placeTurretDirect() {
   }
   if (!buildPosValid(p)) {
     beep(140, 90, 0.15, 'square', 0.1);
-    flashHint('INVALID POSITION — TOO CLOSE TO STRUCTURE');
+    flashHint('INVALID POSITION — NEEDS FLAT OPEN GROUND');
     return;
   }
   placeTurretAt(p);

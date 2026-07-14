@@ -1,0 +1,37 @@
+# MECH VS MECH level — one character per 8x8 tile, first row is the enemy (north) end.
+# Terrain:  g ground · l low ground · h high ground · w wall · r ramp (slopes between its neighbours)
+# Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
+#           (a marker sits on the same terrain as the tile to its left)
+wwwwwwwwwwwwwwwwwwwww
+wgggggggggggggggggggw
+wgggSgggggRgggggSgggw
+wgggggggggggggggggggw
+wgggggggTgSgTgggggggw
+wgggggggggTgggggggggw
+wgggggggggggggggggggw
+wgggwwwwgggggwwwwgggw
+wgggwwwwgggggwwwwgggw
+wgggggggggggggggggggw
+wrrrggggggggggggggggw
+wlllgggggggggggghhhhw
+wlllgggggggggggghhhhw
+wlllggggrrrrrggrhhhhw
+wlllgggghhhhhggrhhhhw
+wlllgggghhhhhggrhhhhw
+wlllgggghhhhhggghhhhw
+wlllgggghhhhhggghhhhw
+wlllgggghhhhhgggggggw
+wlllggggrrrrrgggggggw
+wlllggggggggggggggggw
+wlllggggggggggggggggw
+wrrrggggggggggggggggw
+wgggggggggggggggggggw
+wgggwwwwgggggwwwwgggw
+wgggwwwwgggggwwwwgggw
+wgggggggggggggggggggw
+wgggggggggggggggggggw
+wgggggggggPgggggggggw
+wgggggggggggggggggggw
+wgggggggggBgggggggggw
+wgggggggggggggggggggw
+wwwwwwwwwwwwwwwwwwwww

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { scene } from '../world/scene.js';
-import { obstacles } from '../world/world.js';
+import { groundHeightAt } from '../world/world.js';
 import { entities } from './entities.js';
 import { game, stats, difficulty } from '../core/state.js';
 import { distXZ } from '../core/helpers.js';
@@ -103,7 +103,9 @@ export function killEntity(e) {
 export function splashDamage(pos, team, radius, maxDmg, src) {
   for (const e of entities) {
     if (!e.alive || e.team === team) continue;
-    const d = distXZ(pos, e.group.position) - e.hitRadius;
+    const ey = e.group.position.y;
+    const dy = Math.max(0, Math.abs(pos.y - (ey + e.hitHeight * 0.5)) - e.hitHeight * 0.5);
+    const d = distXZ(pos, e.group.position) - e.hitRadius + dy;
     if (d < radius) {
       damageEntity(e, maxDmg * (1 - Math.max(0, d) / radius), src);
     }
@@ -118,20 +120,14 @@ export function updateProjectiles(dt) {
     let dead = p.life <= 0;
     let boom = false;
 
-    if (!dead && p.pos.y < 0.15) { dead = true; boom = true; }
-
-    if (!dead) {
-      for (const o of obstacles) {
-        if (p.pos.y < o.h && Math.abs(p.pos.x - o.x) < o.hw && Math.abs(p.pos.z - o.z) < o.hd) {
-          dead = true; boom = true; break;
-        }
-      }
-    }
+    // terrain: ground, walls and cliff sides all stop shots
+    if (!dead && p.pos.y < groundHeightAt(p.pos.x, p.pos.z) + 0.15) { dead = true; boom = true; }
 
     if (!dead) {
       for (const e of entities) {
         if (!e.alive || e.team === p.team) continue;
-        if (p.pos.y > e.hitHeight + 1) continue;
+        const ey = e.group.position.y;
+        if (p.pos.y > ey + e.hitHeight + 1 || p.pos.y < ey - 1) continue;
         const dx = p.pos.x - e.group.position.x, dz = p.pos.z - e.group.position.z;
         const r = e.hitRadius + (p.rocket ? 0.6 : 0.25);
         if (dx * dx + dz * dz < r * r) {

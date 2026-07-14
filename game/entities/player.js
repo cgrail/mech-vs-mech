@@ -3,7 +3,8 @@ import { scene } from '../world/scene.js';
 import { BLUE, entities, makeBar, makeMech, registerEntity } from './entities.js';
 import { game, stats, touch } from '../core/state.js';
 import { keys } from '../systems/input.js';
-import { forwardOf, localToWorld, losBlocked, collideCircle } from '../core/helpers.js';
+import { LEVEL, groundHeightAt } from '../world/world.js';
+import { forwardOf, localToWorld, losBlocked, collideCircle, updateVertical, aimYOf } from '../core/helpers.js';
 import { spawnProjectile } from './projectiles.js';
 import { beep, laserSfx } from '../systems/audio.js';
 import { updateHud, showMessage } from '../ui/hud.js';
@@ -13,14 +14,17 @@ import { updateHud, showMessage } from '../ui/hud.js';
 ============================================================ */
 export const playerModel = makeMech(BLUE);
 const playerBar = makeBar(5);
+const SPAWN = LEVEL.playerSpawn;
+const spawnYaw = Math.atan2(LEVEL.redBase.x - SPAWN.x, LEVEL.redBase.z - SPAWN.z); // face the enemy base
 export const player = registerEntity({
   kind: 'player', team: 'blue', group: playerModel.group, model: playerModel,
   hp: 300, maxHp: 300, alive: true,
   hitRadius: 2.4, hitHeight: 7, bar: playerBar, barHeight: 8.2,
-  yaw: Math.PI, walkPhase: 0, velX: 0, velZ: 0,
+  yaw: spawnYaw, walkPhase: 0, velX: 0, velZ: 0,
+  y: groundHeightAt(SPAWN.x, SPAWN.z), vy: 0,
   gunCool: 0, rocketCool: 0, lastDamaged: -99, respawnAt: 0,
 });
-player.group.position.set(0, 0, 92);
+player.group.position.set(SPAWN.x, player.y, SPAWN.z);
 
 /* ============================================================
    Player combat & movement
@@ -35,7 +39,7 @@ function findAimTarget(muzzle, yaw) {
     if (d > 75 || d < 2) continue;
     const ang = Math.abs(Math.atan2(Math.sin(Math.atan2(dx, dz) - yaw), Math.cos(Math.atan2(dx, dz) - yaw)));
     if (ang < bestAng + (e.kind === 'base' ? 0.1 : 0)) {
-      if (losBlocked(muzzle.x, muzzle.z, e.group.position.x, e.group.position.z, 3)) continue;
+      if (losBlocked(muzzle.x, muzzle.y, muzzle.z, e.group.position.x, aimYOf(e), e.group.position.z)) continue;
       bestAng = ang; best = e;
     }
   }
@@ -52,7 +56,8 @@ export function firePlayerGun() {
   const target = findAimTarget(muzzle, player.yaw);
   const dir = new THREE.Vector3();
   if (target) {
-    dir.set(target.group.position.x, Math.min(3.5, target.hitHeight * 0.55), target.group.position.z).sub(muzzle).normalize();
+    // guns auto-pitch to the target's level
+    dir.set(target.group.position.x, aimYOf(target), target.group.position.z).sub(muzzle).normalize();
   } else {
     dir.copy(forwardOf(player.yaw));
   }
@@ -69,7 +74,7 @@ export function fireRocket() {
   const target = findAimTarget(muzzle, player.yaw);
   const dir = new THREE.Vector3();
   if (target) {
-    dir.set(target.group.position.x, Math.min(4, target.hitHeight * 0.5), target.group.position.z).sub(muzzle).normalize();
+    dir.set(target.group.position.x, aimYOf(target), target.group.position.z).sub(muzzle).normalize();
   } else {
     dir.copy(forwardOf(player.yaw));
   }
@@ -109,14 +114,15 @@ export function updatePlayer(dt) {
   // tracked so enemy AI can lead its shots
   player.velX = moving ? move.x * speed : 0;
   player.velZ = moving ? move.z * speed : 0;
-  collideCircle(player.group.position, 2.2);
+  collideCircle(player.group.position, 2.2, player.y);
+  const onGround = updateVertical(player, dt);
   player.group.rotation.y = player.yaw;
 
   // walk animation + bob
   const sw = moving ? Math.sin(player.walkPhase) * 0.55 : 0;
   playerModel.legL.rotation.x = sw;
   playerModel.legR.rotation.x = -sw;
-  player.group.position.y = moving ? Math.abs(Math.sin(player.walkPhase)) * 0.25 : 0;
+  player.group.position.y = player.y + (moving && onGround ? Math.abs(Math.sin(player.walkPhase)) * 0.25 : 0);
 
   // police light blink
   const blink = Math.sin(game.elapsed * 10) > 0;
@@ -139,8 +145,10 @@ function respawnPlayer() {
   player.alive = true;
   player.hp = player.maxHp;
   player.bar.set(1);
-  player.yaw = Math.PI;
-  player.group.position.set(0, 0, 92);
+  player.yaw = spawnYaw;
+  player.y = groundHeightAt(SPAWN.x, SPAWN.z);
+  player.vy = 0;
+  player.group.position.set(SPAWN.x, player.y, SPAWN.z);
   scene.add(player.group);
   document.getElementById('respawn').style.display = 'none';
   showMessage('MECH REDEPLOYED', '#8ab4ff');

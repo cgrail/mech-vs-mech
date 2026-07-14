@@ -1,0 +1,37 @@
+# CANYON — a sunken river valley splits the map; high shelves with red turrets overlook it.
+# Terrain:  g ground · l low ground · h high ground · w wall · r ramp (slopes between its neighbours)
+# Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
+#           (a marker sits on the same terrain as the tile to its left)
+wwwwwwwwwwwwwwwwwwwww
+wgggggggggggggggggggw
+wggggSggggRggggSggggw
+wgggggggggggggggggggw
+wgggggggTgggTgggggggw
+wgggggggggggggggggggw
+whhhhgggrrrrrggghhhhw
+whhhhggrlllllrgghhhhw
+whhThggrlllllrgghThhw
+whhhhggrlllllrgghhhhw
+whhhhrgrlllllrgrhhhhw
+whhhhggrlllllrgghhhhw
+whhhhggrlllllrgghhhhw
+whhhhggrlllllrgghhhhw
+whhhhggrlllllrgghhhhw
+whhhhggrlwwwlrgghhhhw
+whhhhggrlwwwlrgghhhhw
+whhhhggrlwwwlrgghhhhw
+whhhhggrlllllrgghhhhw
+whhhhggrlllllrgghhhhw
+whhhhggrlllllrgghhhhw
+whhhhggrlllllrgghhhhw
+whhhhrgrlllllrgrhhhhw
+whhhhggrlllllrgghhhhw
+whhhhggrlllllrgghhhhw
+whhhhggrlllllrgghhhhw
+whhhhgggrrrrrggghhhhw
+wgggggggggggggggggggw
+wgggggggggPgggggggggw
+wgggggggggggggggggggw
+wgggggggggBgggggggggw
+wgggggggggggggggggggw
+wwwwwwwwwwwwwwwwwwwww

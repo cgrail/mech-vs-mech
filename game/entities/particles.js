@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { scene } from '../world/scene.js';
+import { groundHeightAt } from '../world/world.js';
 
 /* ============================================================
    Explosions / particles
@@ -59,7 +60,8 @@ export function updateParticles(dt) {
     p.mesh.position.addScaledVector(p.vel, dt);
     p.mesh.rotation.x += p.spin * dt;
     p.mesh.rotation.y += p.spin * dt * 0.7;
-    if (p.mesh.position.y < 0.2) { p.mesh.position.y = 0.2; p.vel.y *= -0.35; p.vel.x *= 0.7; p.vel.z *= 0.7; }
+    const floor = groundHeightAt(p.mesh.position.x, p.mesh.position.z) + 0.2;
+    if (p.mesh.position.y < floor) { p.mesh.position.y = floor; p.vel.y *= -0.35; p.vel.x *= 0.7; p.vel.z *= 0.7; }
     if (p.life <= 0) { scene.remove(p.mesh); particles.splice(i, 1); }
   }
 }

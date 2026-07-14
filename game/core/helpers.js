@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { ARENA, obstacles } from '../world/world.js';
+import { ARENA, groundHeightAt, collideTerrain } from '../world/world.js';
 import { entities } from '../entities/entities.js';
 
 /* ============================================================
@@ -23,16 +23,20 @@ export function distXZ(a, b) {
   return Math.hypot(dx, dz);
 }
 
-export function losBlocked(ax, az, bx, bz, y) {
-  const dx = bx - ax, dz = bz - az;
-  const dist = Math.hypot(dx, dz);
-  const steps = Math.ceil(dist / 3);
+/* where guns auto-point on a target (torso height above its ground) */
+export function aimYOf(e) {
+  return e.group.position.y + Math.min(3.5, e.hitHeight * 0.55);
+}
+
+/* 3D line of sight: blocked where the ray dips into terrain or walls.
+   A cliff rim naturally blocks shots down a level until the shooter
+   steps up to the edge. */
+export function losBlocked(ax, ay, az, bx, by, bz) {
+  const dx = bx - ax, dy = by - ay, dz = bz - az;
+  const steps = Math.ceil(Math.hypot(dx, dz) / 2);
   for (let i = 1; i < steps; i++) {
     const t = i / steps;
-    const x = ax + dx * t, z = az + dz * t;
-    for (const o of obstacles) {
-      if (o.h > y && Math.abs(x - o.x) < o.hw && Math.abs(z - o.z) < o.hd) return true;
-    }
+    if (ay + dy * t < groundHeightAt(ax + dx * t, az + dz * t) + 0.25) return true;
   }
   return false;
 }
@@ -48,29 +52,13 @@ export function nearestEnemyOf(team, pos, range, opts) {
   return best;
 }
 
-/* circle vs obstacle AABBs + arena clamp */
-export function collideCircle(pos, r) {
-  for (const o of obstacles) {
-    const cx = Math.max(o.x - o.hw, Math.min(pos.x, o.x + o.hw));
-    const cz = Math.max(o.z - o.hd, Math.min(pos.z, o.z + o.hd));
-    let dx = pos.x - cx, dz = pos.z - cz;
-    let d2 = dx * dx + dz * dz;
-    if (d2 < r * r) {
-      if (d2 < 1e-6) { // center inside: push along smallest axis
-        const px = (o.hw - Math.abs(pos.x - o.x));
-        const pz = (o.hd - Math.abs(pos.z - o.z));
-        if (px < pz) pos.x += (pos.x >= o.x ? 1 : -1) * (px + r);
-        else pos.z += (pos.z >= o.z ? 1 : -1) * (pz + r);
-      } else {
-        const d = Math.sqrt(d2);
-        pos.x += dx / d * (r - d);
-        pos.z += dz / d * (r - d);
-      }
-    }
-  }
+/* circle vs terrain tiles + solid entities + arena clamp; y = walker's height */
+export function collideCircle(pos, r, y) {
+  collideTerrain(pos, r, y);
   // solid entities (bases, turrets) as circles
   for (const e of entities) {
     if (!e.alive || e.kind === 'mech' || e.kind === 'player') continue;
+    if (Math.abs(e.group.position.y - y) > 6) continue; // different level
     const rr = r + e.hitRadius * 0.85;
     const dx = pos.x - e.group.position.x, dz = pos.z - e.group.position.z;
     const d = Math.hypot(dx, dz);
@@ -83,11 +71,26 @@ export function collideCircle(pos, r) {
   pos.z = Math.max(-ARENA.hd + r, Math.min(ARENA.hd - r, pos.z));
 }
 
+/* keep e.y glued to the ground, or fall once it walks off an edge.
+   Returns true while on the ground. */
+export function updateVertical(e, dt) {
+  const gh = groundHeightAt(e.group.position.x, e.group.position.z);
+  if (gh >= e.y - 0.9) { // ground contact, incl. walking up/down ramps
+    e.y = gh; e.vy = 0;
+    return true;
+  }
+  e.vy -= 50 * dt;
+  e.y = Math.max(gh, e.y + e.vy * dt);
+  if (e.y === gh) { e.vy = 0; return true; }
+  return false;
+}
+
 /* light mech-vs-mech separation */
 export function separateMechs() {
   const mechs = entities.filter(e => e.alive && (e.kind === 'mech' || e.kind === 'player'));
   for (let i = 0; i < mechs.length; i++) {
     for (let j = i + 1; j < mechs.length; j++) {
+      if (Math.abs(mechs[i].y - mechs[j].y) > 4) continue; // different level
       const a = mechs[i].group.position, b = mechs[j].group.position;
       const dx = b.x - a.x, dz = b.z - a.z;
       const d = Math.hypot(dx, dz), min = 4.4;

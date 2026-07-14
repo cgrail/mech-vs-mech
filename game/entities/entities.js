@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { scene } from '../world/scene.js';
+import { LEVEL, groundHeightAt } from '../world/world.js';
 import { difficulty } from '../core/state.js';
 
 export const BLUE = { body: 0x2b4fd8, accent: 0x6fd2ff };
@@ -148,10 +149,10 @@ export function registerEntity(e) {
   return e;
 }
 
-export function makeBaseEntity(team, z) {
+export function makeBaseEntity(team, x, z) {
   const palette = team === 'blue' ? BLUE : RED;
   const model = makeBaseModel(palette);
-  model.group.position.set(0, 0, z);
+  model.group.position.set(x, groundHeightAt(x, z), z);
   const bar = makeBar(14);
   return registerEntity({
     kind: 'base', team, group: model.group,
@@ -164,7 +165,7 @@ export function makeBaseEntity(team, z) {
 export function makeTurretEntity(team, x, z) {
   const palette = team === 'blue' ? BLUE : RED;
   const model = makeTurretModel(palette);
-  model.group.position.set(x, 0, z);
+  model.group.position.set(x, groundHeightAt(x, z), z);
   const bar = makeBar(5);
   return registerEntity({
     kind: 'turret', team, group: model.group, head: model.head,
@@ -178,7 +179,8 @@ export function makeTurretEntity(team, x, z) {
 
 export function makeEnemyMech(x, z) {
   const model = makeMech(RED);
-  model.group.position.set(x, 0, z);
+  const y = groundHeightAt(x, z);
+  model.group.position.set(x, y, z);
   const bar = makeBar(5);
   const m = difficulty().mech;
   return registerEntity({
@@ -189,13 +191,11 @@ export function makeEnemyMech(x, z) {
     fireInterval: m.fireInterval, cool: 1 + Math.random(),
     retarget: 0, target: null, aggro: null, aggroT: 0, yaw: 0, walkPhase: Math.random() * 6,
     strafeDir: 1, strafeTimer: 0, stuckT: 0, detourT: 0, detourYaw: 0,
-    px: x, pz: z,
+    px: x, pz: z, y, vy: 0,
   });
 }
 
-/* bases + enemy defense turrets */
-export const blueBase = makeBaseEntity('blue', 112);
-export const redBase = makeBaseEntity('red', -112);
-makeTurretEntity('red', -17, -98);
-makeTurretEntity('red', 17, -98);
-makeTurretEntity('red', 0, -86);
+/* bases + enemy defense turrets, placed by the level's markers */
+export const blueBase = makeBaseEntity('blue', LEVEL.blueBase.x, LEVEL.blueBase.z);
+export const redBase = makeBaseEntity('red', LEVEL.redBase.x, LEVEL.redBase.z);
+for (const t of LEVEL.redTurrets) makeTurretEntity('red', t.x, t.z);

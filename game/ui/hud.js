@@ -1,4 +1,4 @@
-import { ARENA, obstacles } from '../world/world.js';
+import { ARENA, drawTerrainMinimap } from '../world/world.js';
 import { entities, blueBase, redBase } from '../entities/entities.js';
 import { stats } from '../core/state.js';
 import { player } from '../entities/player.js';
@@ -36,17 +36,20 @@ export function showMessage(text, color) {
 
 const mini = document.getElementById('minimap');
 const mctx = mini.getContext('2d');
+// terrain never changes — render it once to an offscreen layer
+const terrainLayer = document.createElement('canvas');
+terrainLayer.width = mini.width;
+terrainLayer.height = mini.height;
+drawTerrainMinimap(terrainLayer.getContext('2d'), mini.width, mini.height);
+
 export function drawMinimap() {
   const w = mini.width, h = mini.height;
   mctx.clearRect(0, 0, w, h);
-  mctx.fillStyle = 'rgba(10,14,22,0.35)';
-  mctx.fillRect(0, 0, w, h);
+  mctx.globalAlpha = 0.75;
+  mctx.drawImage(terrainLayer, 0, 0);
+  mctx.globalAlpha = 1;
   const px = (x) => (x + ARENA.hw) / (ARENA.hw * 2) * w;
   const pz = (z) => (z + ARENA.hd) / (ARENA.hd * 2) * h;
-  mctx.fillStyle = 'rgba(57,65,79,0.55)';
-  for (const o of obstacles) {
-    mctx.fillRect(px(o.x - o.hw), pz(o.z - o.hd), (o.hw * 2) / (ARENA.hw * 2) * w, (o.hd * 2) / (ARENA.hd * 2) * h);
-  }
   for (const e of entities) {
     if (!e.alive) continue;
     const x = px(e.group.position.x), y = pz(e.group.position.z);
