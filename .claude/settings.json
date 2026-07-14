@@ -1,7 +1,6 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python3 - /private/tmp/claude-501/-Users-christian-Documents-GitHub-mech-vs-mech/3d947fe0-91fd-4366-830e-29612fc50cbb/scratchpad)",
       "Bash(git add *)",
       "Bash(git commit -m ' *)"
     ]
