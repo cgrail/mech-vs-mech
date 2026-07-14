@@ -132,7 +132,11 @@ export function collideTerrain(pos, r, y) {
         if (px < pz) pos.x += (pos.x >= ox ? 1 : -1) * (px + r);
         else pos.z += (pos.z >= oz ? 1 : -1) * (pz + r);
       } else {
+        // measure the step right at the contact edge, so a walker part-way
+        // up a ramp isn't blocked by the level the ramp leads onto
         const d = Math.sqrt(d2);
+        const hEdge = groundHeightAt(nx + dx / d * 0.5, nz + dz / d * 0.5);
+        if (h <= Math.max(y, hEdge) + STEP) continue;
         pos.x += dx / d * (r - d);
         pos.z += dz / d * (r - d);
       }

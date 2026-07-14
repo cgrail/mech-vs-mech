@@ -15,6 +15,7 @@ import './systems/mobile.js';
 import './core/flow.js';
 
 createWorld(scene);
+window.__mech = { player, game, entities }; // console/testing hook
 
 /* ============================================================
    Camera
