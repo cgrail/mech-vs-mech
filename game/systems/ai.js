@@ -1,11 +1,11 @@
 import * as THREE from 'three';
-import { entities, blueBase, redBase, makeEnemyMech } from './entities.js';
-import { game, stats, difficulty } from './state.js';
-import { distXZ, losBlocked, localToWorld, nearestEnemyOf, collideCircle } from './helpers.js';
-import { spawnProjectile } from './projectiles.js';
+import { entities, blueBase, redBase, makeEnemyMech } from '../entities/entities.js';
+import { game, stats, difficulty } from '../core/state.js';
+import { distXZ, losBlocked, localToWorld, nearestEnemyOf, collideCircle } from '../core/helpers.js';
+import { spawnProjectile } from '../entities/projectiles.js';
 import { beep } from './audio.js';
-import { player } from './player.js';
-import { showMessage } from './hud.js';
+import { player } from '../entities/player.js';
+import { showMessage } from '../ui/hud.js';
 
 /* ============================================================
    AI: turrets + enemy mechs + waves

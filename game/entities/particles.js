@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { scene } from './scene.js';
+import { scene } from '../world/scene.js';
 
 /* ============================================================
    Explosions / particles

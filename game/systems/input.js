@@ -1,7 +1,7 @@
-import { renderer } from './scene.js';
-import { game } from './state.js';
+import { renderer } from '../world/scene.js';
+import { game } from '../core/state.js';
 import { toggleBuildMode, tryPlaceTurret } from './build.js';
-import { player, fireRocket } from './player.js';
+import { player, fireRocket } from '../entities/player.js';
 
 /* ============================================================
    Input

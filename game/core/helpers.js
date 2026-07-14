@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { ARENA, obstacles } from './world.js';
-import { entities } from './entities.js';
+import { ARENA, obstacles } from '../world/world.js';
+import { entities } from '../entities/entities.js';
 
 /* ============================================================
    Math / collision helpers

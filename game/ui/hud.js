@@ -1,7 +1,7 @@
-import { ARENA, obstacles } from './world.js';
-import { entities, blueBase, redBase } from './entities.js';
-import { stats } from './state.js';
-import { player } from './player.js';
+import { ARENA, obstacles } from '../world/world.js';
+import { entities, blueBase, redBase } from '../entities/entities.js';
+import { stats } from '../core/state.js';
+import { player } from '../entities/player.js';
 
 /* ============================================================
    HUD / minimap / messages

@@ -1,15 +1,15 @@
 import * as THREE from 'three';
-import { scene } from './scene.js';
-import { obstacles } from './world.js';
+import { scene } from '../world/scene.js';
+import { obstacles } from '../world/world.js';
 import { entities } from './entities.js';
-import { game, stats, difficulty } from './state.js';
-import { distXZ } from './helpers.js';
+import { game, stats, difficulty } from '../core/state.js';
+import { distXZ } from '../core/helpers.js';
 import { spawnExplosion, spawnSpark } from './particles.js';
-import { boomSfx } from './audio.js';
+import { boomSfx } from '../systems/audio.js';
 import { player } from './player.js';
-import { toggleBuildMode } from './build.js';
-import { updateHud } from './hud.js';
-import { endGame } from './flow.js';
+import { toggleBuildMode } from '../systems/build.js';
+import { updateHud } from '../ui/hud.js';
+import { endGame } from '../core/flow.js';
 
 /* ============================================================
    Projectiles & damage

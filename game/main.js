@@ -1,17 +1,17 @@
 import * as THREE from 'three';
-import { renderer, scene, camera } from './scene.js';
-import { createWorld } from './world.js';
-import { entities } from './entities.js';
-import { game, stats, difficulty } from './state.js';
-import { player, updatePlayer } from './player.js';
-import { separateMechs } from './helpers.js';
-import { updateProjectiles } from './projectiles.js';
-import { updateParticles } from './particles.js';
-import { updateGhost } from './build.js';
-import { updateTurret, updateEnemyMech, updateWaves } from './ai.js';
-import { updateHud, drawMinimap } from './hud.js';
-import './input.js';
-import './flow.js';
+import { renderer, scene, camera } from './world/scene.js';
+import { createWorld } from './world/world.js';
+import { entities } from './entities/entities.js';
+import { game, stats, difficulty } from './core/state.js';
+import { player, updatePlayer } from './entities/player.js';
+import { separateMechs } from './core/helpers.js';
+import { updateProjectiles } from './entities/projectiles.js';
+import { updateParticles } from './entities/particles.js';
+import { updateGhost } from './systems/build.js';
+import { updateTurret, updateEnemyMech, updateWaves } from './systems/ai.js';
+import { updateHud, drawMinimap } from './ui/hud.js';
+import './systems/input.js';
+import './core/flow.js';
 
 createWorld(scene);
 

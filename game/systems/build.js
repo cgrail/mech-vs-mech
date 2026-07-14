@@ -1,13 +1,13 @@
 import * as THREE from 'three';
-import { scene } from './scene.js';
-import { ARENA, obstacles } from './world.js';
-import { BLUE, entities, makeTurretModel, makeTurretEntity } from './entities.js';
-import { game, stats } from './state.js';
-import { localToWorld, distXZ } from './helpers.js';
-import { spawnSpark } from './particles.js';
+import { scene } from '../world/scene.js';
+import { ARENA, obstacles } from '../world/world.js';
+import { BLUE, entities, makeTurretModel, makeTurretEntity } from '../entities/entities.js';
+import { game, stats } from '../core/state.js';
+import { localToWorld, distXZ } from '../core/helpers.js';
+import { spawnSpark } from '../entities/particles.js';
 import { beep } from './audio.js';
-import { player } from './player.js';
-import { updateHud } from './hud.js';
+import { player } from '../entities/player.js';
+import { updateHud } from '../ui/hud.js';
 
 /* ============================================================
    Build mode

@@ -1,8 +1,8 @@
-import { renderer } from './scene.js';
+import { renderer } from '../world/scene.js';
 import { game, stats, difficulty } from './state.js';
-import { entities, redBase } from './entities.js';
-import { audioCtx, boomSfx } from './audio.js';
-import { updateHud, showMessage } from './hud.js';
+import { entities, redBase } from '../entities/entities.js';
+import { audioCtx, boomSfx } from '../systems/audio.js';
+import { updateHud, showMessage } from '../ui/hud.js';
 
 /* ============================================================
    Game flow: difficulty select, start / end screens

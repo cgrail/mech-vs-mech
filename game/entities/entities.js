@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { scene } from './scene.js';
-import { difficulty } from './state.js';
+import { scene } from '../world/scene.js';
+import { difficulty } from '../core/state.js';
 
 export const BLUE = { body: 0x2b4fd8, accent: 0x6fd2ff };
 export const RED = { body: 0xa42a20, accent: 0xffb03a };

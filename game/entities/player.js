@@ -1,12 +1,12 @@
 import * as THREE from 'three';
-import { scene } from './scene.js';
+import { scene } from '../world/scene.js';
 import { BLUE, entities, makeBar, makeMech, registerEntity } from './entities.js';
-import { game, stats } from './state.js';
-import { keys } from './input.js';
-import { forwardOf, localToWorld, losBlocked, collideCircle } from './helpers.js';
+import { game, stats } from '../core/state.js';
+import { keys } from '../systems/input.js';
+import { forwardOf, localToWorld, losBlocked, collideCircle } from '../core/helpers.js';
 import { spawnProjectile } from './projectiles.js';
-import { beep } from './audio.js';
-import { updateHud, showMessage } from './hud.js';
+import { beep } from '../systems/audio.js';
+import { updateHud, showMessage } from '../ui/hud.js';
 
 /* ============================================================
    Player entity
