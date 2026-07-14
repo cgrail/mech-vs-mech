@@ -36,6 +36,7 @@ const saved = localStorage.getItem('mechDifficulty');
 export const game = {
   state: 'menu',          // menu | playing | over
   elapsed: 0,
+  weapon: 1,              // desktop weapon slot: 1 machine gun, 2 rockets
   buildMode: false,
   mouseDown: false,
   pointerLocked: false,

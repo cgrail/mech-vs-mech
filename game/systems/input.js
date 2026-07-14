@@ -1,7 +1,7 @@
 import { renderer } from '../world/scene.js';
 import { game, touch } from '../core/state.js';
-import { toggleBuildMode, tryPlaceTurret } from './build.js';
-import { player, fireRocket } from '../entities/player.js';
+import { toggleBuildMode, tryPlaceTurret, placeTurretDirect } from './build.js';
+import { player, fireRocket, selectWeapon } from '../entities/player.js';
 
 /* ============================================================
    Input
@@ -14,7 +14,16 @@ document.addEventListener('keydown', (e) => {
   if (game.state !== 'playing') return;
   if (e.code === 'KeyB' || e.code === 'KeyT') toggleBuildMode();
   else if (e.code === 'KeyQ') fireRocket();
-  else if (e.code === 'Space' && game.buildMode) tryPlaceTurret();
+  else if (e.code === 'Digit1' || e.code === 'Numpad1') {
+    if (game.buildMode) toggleBuildMode();
+    selectWeapon(1);
+  } else if (e.code === 'Digit2' || e.code === 'Numpad2') {
+    if (game.buildMode) toggleBuildMode();
+    selectWeapon(2);
+  } else if (e.code === 'Digit3' || e.code === 'Numpad3') {
+    if (game.buildMode) toggleBuildMode();
+    if (placeTurretDirect()) selectWeapon(1);
+  } else if (e.code === 'Space' && game.buildMode) tryPlaceTurret();
 });
 document.addEventListener('keyup', (e) => { keys[e.code] = false; });
 document.addEventListener('contextmenu', (e) => e.preventDefault());

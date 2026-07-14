@@ -97,17 +97,18 @@ function flashHint(text) {
 }
 
 export function placeTurretDirect() {
-  if (!player.alive || game.buildMode) return;
+  if (!player.alive || game.buildMode) return false;
   const p = ghostPos();
   if (stats.salvage < TURRET_COST) {
     beep(140, 90, 0.15, 'square', 0.1);
     flashHint(`NOT ENOUGH SALVAGE — NEED 🛢️ ${TURRET_COST}`);
-    return;
+    return false;
   }
   if (!buildPosValid(p)) {
     beep(140, 90, 0.15, 'square', 0.1);
     flashHint('INVALID POSITION — NEEDS FLAT OPEN GROUND');
-    return;
+    return false;
   }
   placeTurretAt(p);
+  return true;
 }

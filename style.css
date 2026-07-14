@@ -75,9 +75,18 @@ canvas { display: block; touch-action: none; }
 #ammoBar .slot { display: flex; align-items: center; gap: 10px; }
 #ammoBar .ico { font-size: 30px; filter: drop-shadow(2px 2px 0 #000); }
 #ammoBar .salv { color: #ffd23c; }
+#ammoBar .key {
+  font-size: 13px; font-weight: 700; line-height: 1; color: #8a97b6;
+  border: 1px solid #4a5578; border-radius: 4px; padding: 3px 6px;
+  text-shadow: none;
+}
+#ammoBar .slot.active .key { color: #101820; background: #ffd23c; border-color: #ffd23c; }
 @media (max-width: 900px) {
   #ammoBar { gap: 18px; font-size: 20px; }
   #ammoBar .ico { font-size: 22px; }
+}
+@media (pointer: coarse) {
+  #ammoBar .key { display: none; }
 }
 
 /* base health, top */

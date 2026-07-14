@@ -1,6 +1,6 @@
 import { ARENA, drawTerrainMinimap } from '../world/world.js';
 import { entities, blueBase, redBase } from '../entities/entities.js';
-import { stats } from '../core/state.js';
+import { game, stats } from '../core/state.js';
 import { player } from '../entities/player.js';
 
 /* ============================================================
@@ -11,6 +11,8 @@ const salvageVal = document.getElementById('salvageVal');
 const ammoVal = document.getElementById('ammoVal');
 const rocketVal = document.getElementById('rocketVal');
 const turretVal = document.getElementById('turretVal');
+const slotGun = document.getElementById('slotGun');
+const slotRocket = document.getElementById('slotRocket');
 const baseBlueFill = document.getElementById('baseBlueFill');
 const baseRedFill = document.getElementById('baseRedFill');
 const msgEl = document.getElementById('msg');
@@ -21,6 +23,8 @@ export function updateHud() {
   salvageVal.textContent = Math.floor(stats.salvage);
   ammoVal.textContent = Math.max(0, Math.floor(stats.ammo));
   rocketVal.textContent = stats.rockets;
+  slotGun.classList.toggle('active', game.weapon !== 2);
+  slotRocket.classList.toggle('active', game.weapon === 2);
   turretVal.textContent = entities.filter(e => e.alive && e.team === 'blue' && e.kind === 'turret').length;
   baseBlueFill.style.width = `${Math.max(0, blueBase.hp / blueBase.maxHp * 100)}%`;
   baseRedFill.style.width = `${Math.max(0, redBase.hp / redBase.maxHp * 100)}%`;

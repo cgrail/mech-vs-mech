@@ -46,6 +46,17 @@ function findAimTarget(muzzle, yaw) {
   return best;
 }
 
+export function selectWeapon(n) {
+  if (n === 2 && stats.rockets <= 0) {
+    beep(140, 90, 0.15, 'square', 0.1);
+    showMessage('OUT OF ROCKETS', '#ff8a7a');
+    return;
+  }
+  if (game.weapon !== n) beep(700, 1000, 0.05, 'sine', 0.06);
+  game.weapon = n;
+  updateHud();
+}
+
 let gunSide = 1;
 export function firePlayerGun() {
   if (player.gunCool > 0 || stats.ammo <= 0) return;
@@ -70,6 +81,10 @@ export function fireRocket() {
   if (!player.alive || player.rocketCool > 0 || stats.rockets <= 0 || game.buildMode) return;
   player.rocketCool = 0.55;
   stats.rockets--;
+  if (stats.rockets <= 0 && game.weapon === 2) {
+    game.weapon = 1;
+    showMessage('OUT OF ROCKETS — MACHINE GUNS', '#8ab4ff');
+  }
   const muzzle = localToWorld(player, 0, 4.8, 2.2);
   const target = findAimTarget(muzzle, player.yaw);
   const dir = new THREE.Vector3();
@@ -131,7 +146,9 @@ export function updatePlayer(dt) {
 
   player.gunCool -= dt;
   player.rocketCool -= dt;
-  if ((game.mouseDown || keys['Space']) && !game.buildMode) firePlayerGun();
+  if ((game.mouseDown || keys['Space']) && !game.buildMode) {
+    if (game.weapon === 2) fireRocket(); else firePlayerGun();
+  }
 
   // slow self-repair after 5s without damage
   if (player.hp < player.maxHp && game.elapsed - player.lastDamaged > 5) {
