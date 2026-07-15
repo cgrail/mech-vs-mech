@@ -33,23 +33,30 @@
 <div id="overlay">
   <h1>MECH VS MECH</h1>
   <h2>BASE STRIKE &nbsp;·&nbsp; CAPTURE-THE-FLAG ASSAULT MODE</h2>
-  <div class="panel" id="briefing">
-    <b style="color:#ffd23c">MISSION:</b> Destroy the <b style="color:#ff8a7a">red enemy base</b> at the far end of the
-    district before enemy assault mechs destroy <b style="color:#8ab4ff">yours</b>.<br>
-    Enemy waves march on your base — build turrets to hold them off.<br><br>
-    <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> / <kbd>▲</kbd><kbd>▼</kbd> move &nbsp; <kbd>Mouse</kbd> / <kbd>◀</kbd><kbd>▶</kbd> aim &nbsp; <kbd>Shift</kbd> boost<br>
-    <kbd>LMB</kbd> / <kbd>Space</kbd> fire &nbsp; <kbd>1</kbd> machine guns &nbsp; <kbd>2</kbd> rockets (<span style="color:#ffd23c">🛢️ 20</span>) &nbsp; <kbd>3</kbd> / <kbd>T</kbd> build turret in front of you (<span style="color:#ffd23c">🛢️ 100</span>)<br>
-    <kbd>Q</kbd> / <kbd>RMB</kbd> quick rocket &nbsp; — machine guns are free, rockets &amp; turrets cost salvage<br>
-    <kbd>Esc</kbd> release mouse — click canvas to re-engage
+  <div class="screen" id="menuScreen">
+    <div class="panel" id="briefing">
+      <b style="color:#ffd23c">MISSION:</b> Destroy the <b style="color:#ff8a7a">red enemy base</b> at the far end of the
+      district before enemy assault mechs destroy <b style="color:#8ab4ff">yours</b>.<br>
+      Enemy waves march on your base — build turrets to hold them off.<br><br>
+      <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> / <kbd>▲</kbd><kbd>▼</kbd> move &nbsp; <kbd>Mouse</kbd> / <kbd>◀</kbd><kbd>▶</kbd> aim &nbsp; <kbd>Shift</kbd> boost<br>
+      <kbd>LMB</kbd> / <kbd>Space</kbd> fire &nbsp; <kbd>1</kbd> machine guns &nbsp; <kbd>2</kbd> rockets (<span style="color:#ffd23c">🛢️ 20</span>) &nbsp; <kbd>3</kbd> / <kbd>T</kbd> build turret in front of you (<span style="color:#ffd23c">🛢️ 100</span>)<br>
+      <kbd>Q</kbd> / <kbd>RMB</kbd> quick rocket &nbsp; — machine guns are free, rockets &amp; turrets cost salvage<br>
+      <kbd>Esc</kbd> release mouse — click canvas to re-engage
+    </div>
+    <button id="levelBtn"><span class="lbl">SELECT LEVEL</span><span id="levelCur">…</span><span class="chev">▸</span></button>
+    <div id="diffRow">
+      <button data-diff="easy">EASY</button>
+      <button data-diff="medium" class="selected">MEDIUM</button>
+      <button data-diff="hard">HARD</button>
+    </div>
+    <button id="startBtn">DEPLOY</button>
+    <div class="sub">Salvage is earned from kills · destroyed enemy turrets pay extra</div>
   </div>
-  <div id="levelRow"></div>
-  <div id="diffRow">
-    <button data-diff="easy">EASY</button>
-    <button data-diff="medium" class="selected">MEDIUM</button>
-    <button data-diff="hard">HARD</button>
+  <div class="screen hidden" id="levelScreen">
+    <div class="screenTitle">SELECT LEVEL</div>
+    <div id="levelList"></div>
+    <button id="levelBack">◂ BACK</button>
   </div>
-  <button id="startBtn">DEPLOY</button>
-  <div class="sub">Salvage is earned from kills · destroyed enemy turrets pay extra</div>
 </div>
 
 <script type="importmap">

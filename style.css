@@ -155,22 +155,51 @@ body.touch #touchControls { display: flex; }
 
 .turretIco { width: 1em; height: 1em; display: inline-block; vertical-align: -0.1em; }
 
-/* ---------- level & difficulty pickers ---------- */
-#diffRow, #levelRow { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
-#overlay #diffRow button, #overlay #levelRow button {
+/* ---------- menu screens ---------- */
+#overlay .screen { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+#overlay .screen.hidden { display: none; }
+#overlay .screenTitle { font-size: 15px; font-weight: 700; letter-spacing: 3px; color: #9fb4ff; }
+
+/* ---------- difficulty picker, level-select entry ---------- */
+#diffRow { display: flex; gap: 10px; }
+#overlay #diffRow button, #overlay #levelBtn, #overlay #levelBack {
   font-size: 13px; font-weight: 700; letter-spacing: 2px;
   color: #9fb4ff; background: rgba(20, 24, 40, .85);
   border: 1px solid #3a4468; border-radius: 6px; padding: 8px 22px;
   box-shadow: none;
 }
-#overlay #diffRow button:hover, #overlay #levelRow button:hover { border-color: #6f83c9; color: #cdd8ff; filter: none; }
-#overlay #diffRow button.selected, #overlay #levelRow button.selected {
+#overlay #diffRow button:hover, #overlay #levelBtn:hover, #overlay #levelBack:hover {
+  border-color: #6f83c9; color: #cdd8ff; filter: none;
+}
+#overlay #diffRow button.selected {
   color: #101427; background: linear-gradient(#cdd8ff, #7d97e8);
   border-color: #e6ecff; box-shadow: 0 0 14px rgba(120, 150, 255, .45);
 }
-#overlay #levelRow button { display: flex; align-items: center; gap: 8px; padding: 8px 16px; }
-#levelRow .num {
-  font-size: 11px; line-height: 1; color: #8a97b6;
-  border: 1px solid #4a5578; border-radius: 4px; padding: 2px 6px;
+#overlay #levelBtn { display: flex; align-items: center; gap: 12px; padding: 8px 16px; }
+#levelBtn .lbl { font-size: 11px; color: #8a92ad; }
+#levelBtn #levelCur { color: #ffd23c; }
+#levelBtn .chev { color: #8a92ad; }
+
+/* ---------- level list ---------- */
+#levelList { display: flex; flex-direction: column; gap: 10px; width: min(440px, 86vw); }
+#overlay #levelList button {
+  display: flex; align-items: center; gap: 14px; text-align: left;
+  font-size: 14px; font-weight: 700; letter-spacing: 2px; color: #cdd8ff;
+  background: rgba(20, 24, 40, .85); border: 1px solid #3a4468; border-radius: 8px;
+  padding: 12px 16px; box-shadow: none;
 }
-#levelRow button.selected .num { color: #101427; border-color: #26305a; }
+#overlay #levelList button:hover { border-color: #6f83c9; filter: none; }
+#overlay #levelList button.selected {
+  border-color: #ffd23c; box-shadow: 0 0 14px rgba(255, 210, 60, .3);
+}
+#levelList button.selected .title { color: #ffd23c; }
+#levelList .num {
+  flex: none; font-size: 12px; line-height: 1; color: #8a97b6;
+  border: 1px solid #4a5578; border-radius: 4px; padding: 3px 7px;
+}
+#levelList button.selected .num { color: #ffd23c; border-color: #ffd23c; }
+#levelList .info { display: flex; flex-direction: column; gap: 3px; }
+#levelList .desc {
+  font-size: 12px; font-weight: 400; letter-spacing: normal;
+  color: #8a92ad; line-height: 1.4;
+}

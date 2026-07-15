@@ -33,7 +33,7 @@ node --input-type=module --check < game/systems/ai.js
 - Terrain: `g` ground (y 0) · `l` low (−4) · `h` high (+4) · `w` wall · `r` ramp (auto-slopes between its differing flat neighbors)
 - Markers: `P` player spawn · `B` blue base · `R` red base · `T` red turret · `S` enemy wave spawn — a marker sits on the same terrain as the tile to its **left**
 - Rows must be equal length; comment lines start with `#`
-- The first comment line doubles as the level's title: `# TITLE — description`. The menu's level chooser (`flow.js`) probes `level1.txt`, `level2.txt`, … in order (stops at the first gap) and shows these titles; picking one reloads with `?level=N`, and the menu's orbit camera previews that map
+- The first comment line doubles as the level's menu entry: `# TITLE — player-facing description`. The level-select screen (`flow.js`) probes `level1.txt`, `level2.txt`, … in order (stops at the first gap) and lists title + description; picking one reloads with `?level=N`, and the menu's orbit camera previews that map
 - Design rule: mechs can step up ramps and drop off ledges, but can never climb a ledge — any `l` region needs an `r` exit or things that drop in are stuck there forever
 
 ### Terrain is the single source of truth for physics

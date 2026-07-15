@@ -1,4 +1,5 @@
-# THE DISTRICT — one character per 8x8 tile, first row is the enemy (north) end.
+# THE DISTRICT — city blocks between the bases; a sunken west road and a high east shelf flank the plaza.
+# Format:   one character per 8x8 tile, first row is the enemy (north) end
 # Terrain:  g ground · l low ground · h high ground · w wall · r ramp (slopes between its neighbours)
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)

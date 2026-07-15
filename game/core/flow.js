@@ -26,10 +26,29 @@ for (const b of diffBtns) {
 }
 reflectDifficulty();
 
-/* level picker — probe levels/level<N>.txt in order and offer each one.
-   Picking a level reloads with ?level=N: the menu's orbit camera then
-   shows that map rotating behind the overlay as the preview. */
-const levelRow = document.getElementById('levelRow');
+/* level select screen — probe levels/level<N>.txt in order and list them.
+   Picking a level reloads with ?level=N: back on the menu, the orbit
+   camera shows that map rotating behind the overlay as the preview. */
+const menuScreen = document.getElementById('menuScreen');
+const levelScreen = document.getElementById('levelScreen');
+const levelList = document.getElementById('levelList');
+const levelCur = document.getElementById('levelCur');
+
+function showLevelScreen(show) {
+  levelScreen.classList.toggle('hidden', !show);
+  menuScreen.classList.toggle('hidden', show);
+}
+document.getElementById('levelBtn').addEventListener('click', () => showLevelScreen(true));
+document.getElementById('levelBack').addEventListener('click', () => showLevelScreen(false));
+
+/* picking a level reloads the page — reopen this screen so the player
+   sees the chosen map rotating before heading back to the main menu */
+if (sessionStorage.getItem('mechLevelScreen')) {
+  sessionStorage.removeItem('mechLevelScreen');
+  showLevelScreen(true);
+}
+
+levelCur.textContent = levelName.toUpperCase(); // fallback for named levels
 (async () => {
   for (let n = 1; n <= 20; n++) {
     let text;
@@ -40,21 +59,37 @@ const levelRow = document.getElementById('levelRow');
     } catch { break; }
     // a level's title is its first comment line: "# TITLE — description"
     const first = text.split('\n').find((l) => l.startsWith('#')) || '';
-    const m = first.match(/^#\s*(.+?)\s+—/);
+    const m = first.match(/^#\s*(.+?)\s+—\s*(.*)/);
     const title = m && m[1].length <= 20 ? m[1].toUpperCase() : `LEVEL ${n}`;
+    const current = `level${n}` === levelName;
+
     const b = document.createElement('button');
     const num = document.createElement('span');
     num.className = 'num';
     num.textContent = n;
-    b.append(num, title);
-    b.classList.toggle('selected', `level${n}` === levelName);
+    const info = document.createElement('span');
+    info.className = 'info';
+    const t = document.createElement('span');
+    t.className = 'title';
+    t.textContent = title;
+    info.appendChild(t);
+    if (m && m[2]) {
+      const d = document.createElement('span');
+      d.className = 'desc';
+      d.textContent = m[2];
+      info.appendChild(d);
+    }
+    b.append(num, info);
+    b.classList.toggle('selected', current);
     b.addEventListener('click', () => {
-      if (`level${n}` === levelName) return;
+      if (current) { showLevelScreen(false); return; }
+      sessionStorage.setItem('mechLevelScreen', '1');
       const url = new URL(location.href);
       url.searchParams.set('level', String(n));
       location.href = url.href;
     });
-    levelRow.appendChild(b);
+    levelList.appendChild(b);
+    if (current) levelCur.textContent = `${n} · ${title}`;
   }
 })();
 
@@ -102,6 +137,7 @@ export function endGame(victory) {
   const nextLevel = victory ? findNextLevel() : Promise.resolve(null);
   setTimeout(async () => {
     nextLevelUrl = await nextLevel;
+    showLevelScreen(false);
     overlay.classList.remove('hidden');
     overlay.querySelector('h1').textContent = victory ? 'VICTORY' : 'BASE LOST';
     overlay.querySelector('h1').style.color = victory ? '#7CFF6B' : '#ff5040';
