@@ -45,9 +45,11 @@ export const game = {
 /* touch/mobile input, written by systems/mobile.js, read by the player update */
 export const touch = {
   active: false,  // true on touch devices
-  move: 0,        // gyro lean: 1 forward, -1 backward, 0 neutral
-  strafe: 0,      // gyro side tilt: 1 right, -1 left, 0 neutral
-  yaw: null,      // compass-driven target yaw in radians (null = keyboard/mouse)
+  // control scheme, picked on the menu: 'joystick' or 'gyro'
+  scheme: localStorage.getItem('mechControls') === 'gyro' ? 'gyro' : 'joystick',
+  move: 0,        // forward/back, −1..1 (sign is what matters)
+  strafe: 0,      // strafe, −1..1 (sign is what matters)
+  yaw: null,      // gyro target yaw in radians (null = yaw controlled directly)
 };
 
 export const stats = {

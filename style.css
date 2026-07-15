@@ -153,6 +153,19 @@ body.touch #touchControls { display: flex; }
 #touchControls button:active { background: rgba(60, 74, 120, .85); border-color: #8ab4ff; }
 #touchControls .cost { font-size: 11px; color: #ffd23c; margin-top: 2px; }
 
+/* floating joystick — display only, touches are tracked on the canvas */
+#joystick {
+  position: absolute; width: 120px; height: 120px; border-radius: 50%;
+  border: 2px solid #4a5578; background: rgba(14, 18, 32, .4);
+  transform: translate(-50%, -50%); display: none;
+}
+#joystick.on { display: block; }
+#joyKnob {
+  position: absolute; left: 50%; top: 50%; width: 52px; height: 52px;
+  border-radius: 50%; background: rgba(120, 150, 255, .35);
+  border: 2px solid #8ab4ff; transform: translate(-50%, -50%);
+}
+
 .turretIco { width: 1em; height: 1em; display: inline-block; vertical-align: -0.1em; }
 
 /* ---------- menu screens ---------- */
@@ -165,18 +178,20 @@ body.touch #touchControls { display: flex; }
 #overlay.level { background: rgba(6, 6, 12, 0.1); }
 #levelScreen.loading { visibility: hidden; } /* nothing until the list is complete */
 
-/* ---------- difficulty picker, level-select entry ---------- */
+/* ---------- difficulty picker, control scheme, level-select entry ---------- */
 #diffRow { display: flex; gap: 10px; }
-#overlay #diffRow button, #overlay #levelBtn, #overlay #levelBack {
+#ctrlRow { display: none; gap: 10px; } /* touch devices only */
+body.touch #ctrlRow { display: flex; }
+#overlay #ctrlRow button, #overlay #diffRow button, #overlay #levelBtn, #overlay #levelBack {
   font-size: 13px; font-weight: 700; letter-spacing: 2px;
   color: #9fb4ff; background: rgba(20, 24, 40, .85);
   border: 1px solid #3a4468; border-radius: 6px; padding: 8px 22px;
   box-shadow: none;
 }
-#overlay #diffRow button:hover, #overlay #levelBtn:hover, #overlay #levelBack:hover {
+#overlay #ctrlRow button:hover, #overlay #diffRow button:hover, #overlay #levelBtn:hover, #overlay #levelBack:hover {
   border-color: #6f83c9; color: #cdd8ff; filter: none;
 }
-#overlay #diffRow button.selected {
+#overlay #ctrlRow button.selected, #overlay #diffRow button.selected {
   color: #101427; background: linear-gradient(#cdd8ff, #7d97e8);
   border-color: #e6ecff; box-shadow: 0 0 14px rgba(120, 150, 255, .45);
 }
