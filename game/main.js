@@ -30,7 +30,8 @@ function updateCamera(dt) {
   camera.position.x += (cx - camera.position.x) * k;
   camera.position.y += (player.y + up - camera.position.y) * k;
   camera.position.z += (cz - camera.position.z) * k;
-  camTarget.set(p.x + Math.sin(yaw) * 10, player.y + 2, p.z + Math.cos(yaw) * 10);
+  // aim well ahead of the mech: tilts the view up so more of the field shows
+  camTarget.set(p.x + Math.sin(yaw) * 17, player.y + 2, p.z + Math.cos(yaw) * 17);
   camera.lookAt(camTarget);
 }
 
