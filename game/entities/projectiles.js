@@ -9,9 +9,16 @@ import { boomSfx } from '../systems/audio.js';
 import { player } from './player.js';
 import { updateHud } from '../ui/hud.js';
 import { endGame } from '../core/flow.js';
+import { MP, sendGame } from '../net/net.js';
 
 /* ============================================================
    Projectiles & damage
+
+   Multiplayer: only the shooter's client simulates a projectile
+   for real — the copy shown on the opponent's screen is cosmetic.
+   Hits on opponent-owned entities are reported over the wire and
+   applied by their owner (remote.js), never locally, so hp always
+   has exactly one authority.
 ============================================================ */
 export const projectiles = [];
 
@@ -41,7 +48,26 @@ export function spawnProjectile(opts) {
     vel: opts.dir.clone().multiplyScalar(opts.speed),
     team: opts.team, damage: opts.damage, rocket: !!opts.rocket,
     src: opts.src || null, life: opts.life || 3,
+    cosmetic: !!opts.cosmetic, // replicated enemy shot: visuals only
   });
+  if (MP.active && !opts.cosmetic) {
+    sendGame({
+      t: 'shot',
+      x: +opts.pos.x.toFixed(1), y: +opts.pos.y.toFixed(1), z: +opts.pos.z.toFixed(1),
+      dx: +opts.dir.x.toFixed(3), dy: +opts.dir.y.toFixed(3), dz: +opts.dir.z.toFixed(3),
+      s: opts.speed, r: opts.rocket ? 1 : 0, l: opts.life || 3, tm: opts.team,
+    });
+  }
+}
+
+/* route damage: opponent-owned entities are reported to their owner
+   instead of being damaged locally */
+function applyHit(e, dmg, src) {
+  if (MP.active && e.team === MP.enemyTeam) {
+    if (e.netId) sendGame({ t: 'hit', id: e.netId, d: Math.round(dmg * 10) / 10 });
+    return;
+  }
+  damageEntity(e, dmg, src);
 }
 
 export function damageEntity(e, dmg, src) {
@@ -58,28 +84,35 @@ export function damageEntity(e, dmg, src) {
     updateHud();
   }
   if (e.kind === 'base') updateHud();
-  if (e.hp <= 0) killEntity(e);
+  if (e.hp <= 0) { killEntity(e); return; }
+  // echo the authoritative hp to the opponent (player hp rides the state tick)
+  if (MP.active && e.netId && e.team === MP.myTeam && e.kind !== 'player') {
+    sendGame({ t: 'hp', id: e.netId, hp: Math.round(e.hp) });
+  }
 }
 
 export function killEntity(e) {
   e.alive = false;
+  // my entities die on my client — tell the opponent to mirror it
+  if (MP.active && e.netId && e.team === MP.myTeam) sendGame({ t: 'die', id: e.netId });
   const p = e.group.position;
   const scale = e.kind === 'base' ? 3 : e.kind === 'turret' ? 1.2 : 1.6;
   spawnExplosion(p.x, e.hitHeight / 2, p.z, scale);
   boomSfx(e.kind === 'base' ? 0.5 : 0.3, e.kind === 'base' ? 0.8 : 0.4);
 
-  if (e.team === 'red') {
+  if (e.team === MP.enemyTeam) {
+    const mult = MP.active ? 1 : difficulty().salvageMult; // symmetric income in PvP
     if (e.kind === 'mech') {
       stats.kills++;
-      stats.salvage += 40 * difficulty().salvageMult;
+      stats.salvage += 40 * mult;
     } else if (e.kind === 'turret') {
-      stats.salvage += 80 * difficulty().salvageMult;
+      stats.salvage += 80 * mult;
     }
     updateHud();
   }
 
   if (e.kind === 'base') {
-    endGame(e.team === 'red');
+    endGame(e.team === MP.enemyTeam);
     scene.remove(e.group);
     return;
   }
@@ -103,7 +136,7 @@ export function splashDamage(pos, team, radius, maxDmg, src) {
     const dy = Math.max(0, Math.abs(pos.y - (ey + e.hitHeight * 0.5)) - e.hitHeight * 0.5);
     const d = distXZ(pos, e.group.position) - e.hitRadius + dy;
     if (d < radius) {
-      damageEntity(e, maxDmg * (1 - Math.max(0, d) / radius), src);
+      applyHit(e, maxDmg * (1 - Math.max(0, d) / radius), src);
     }
   }
 }
@@ -128,7 +161,7 @@ export function updateProjectiles(dt) {
         const r = e.hitRadius + (p.rocket ? 0.6 : 0.25);
         if (dx * dx + dz * dz < r * r) {
           if (p.rocket) boom = true;
-          else damageEntity(e, p.damage, p.src);
+          else if (!p.cosmetic) applyHit(e, p.damage, p.src);
           dead = true;
           spawnSpark(p.pos);
           break;
@@ -138,7 +171,7 @@ export function updateProjectiles(dt) {
 
     if (dead) {
       if (p.rocket && boom) {
-        splashDamage(p.pos, p.team, 9, p.damage, p.src);
+        if (!p.cosmetic) splashDamage(p.pos, p.team, 9, p.damage, p.src);
         spawnExplosion(p.pos.x, Math.max(1, p.pos.y), p.pos.z, 0.9);
         boomSfx(0.22, 0.3);
       }

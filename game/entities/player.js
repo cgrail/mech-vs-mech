@@ -1,23 +1,26 @@
 import * as THREE from 'three';
 import { scene } from '../world/scene.js';
-import { BLUE, entities, makeBar, makeMech, registerEntity } from './entities.js';
+import { BLUE, RED, entities, makeBar, makeMech, registerEntity } from './entities.js';
 import { game, stats, touch, COSTS } from '../core/state.js';
 import { keys } from '../systems/input.js';
-import { LEVEL, groundHeightAt } from '../world/world.js';
-import { forwardOf, localToWorld, losBlocked, collideCircle, updateVertical, aimYOf } from '../core/helpers.js';
+import { groundHeightAt } from '../world/world.js';
+import { forwardOf, localToWorld, losBlocked, collideCircle, updateVertical, aimYOf, spawnPointFor } from '../core/helpers.js';
 import { spawnProjectile } from './projectiles.js';
 import { beep, laserSfx } from '../systems/audio.js';
 import { updateHud, showMessage } from '../ui/hud.js';
+import { MP, sendGame } from '../net/net.js';
 
 /* ============================================================
-   Player entity
+   Player entity — in multiplayer the guest plays the red side
 ============================================================ */
-export const playerModel = makeMech(BLUE);
+export const playerModel = makeMech(MP.myTeam === 'red' ? RED : BLUE);
 const playerBar = makeBar(5);
-const SPAWN = LEVEL.playerSpawn;
-const spawnYaw = Math.atan2(LEVEL.redBase.x - SPAWN.x, LEVEL.redBase.z - SPAWN.z); // face the enemy base
+const sp = spawnPointFor(MP.myTeam);
+const SPAWN = sp.pos;
+const spawnYaw = Math.atan2(sp.face.x - SPAWN.x, sp.face.z - SPAWN.z); // face the enemy base
 export const player = registerEntity({
-  kind: 'player', team: 'blue', group: playerModel.group, model: playerModel,
+  kind: 'player', team: MP.myTeam, group: playerModel.group, model: playerModel,
+  netId: `player:${MP.myTeam}`,
   hp: 300, maxHp: 300, alive: true,
   hitRadius: 2.4, hitHeight: 7, bar: playerBar, barHeight: 8.2,
   yaw: spawnYaw, walkPhase: 0, velX: 0, velZ: 0,
@@ -33,7 +36,7 @@ function findAimTarget(muzzle, yaw) {
   // Future-Cop style aim assist: snap to best enemy in a narrow cone
   let best = null, bestAng = 0.16;
   for (const e of entities) {
-    if (!e.alive || e.team === 'blue') continue;
+    if (!e.alive || e.team === player.team) continue;
     const dx = e.group.position.x - muzzle.x, dz = e.group.position.z - muzzle.z;
     const d = Math.hypot(dx, dz);
     if (d > 75 || d < 2) continue;
@@ -71,7 +74,7 @@ export function firePlayerGun() {
   } else {
     dir.copy(forwardOf(player.yaw));
   }
-  spawnProjectile({ pos: muzzle, dir, speed: 130, damage: 9, team: 'blue', life: 1.2, src: player });
+  spawnProjectile({ pos: muzzle, dir, speed: 130, damage: 9, team: player.team, life: 1.2, src: player });
   laserSfx(0.06, 1800);
   updateHud();
 }
@@ -97,7 +100,7 @@ export function fireRocket() {
   } else {
     dir.copy(forwardOf(player.yaw));
   }
-  spawnProjectile({ pos: muzzle, dir, speed: 60, damage: 60, team: 'blue', rocket: true, life: 3, src: player });
+  spawnProjectile({ pos: muzzle, dir, speed: 60, damage: 60, team: player.team, rocket: true, life: 3, src: player });
   beep(160, 40, 0.35, 'sawtooth', 0.12);
   updateHud();
 }
@@ -172,6 +175,7 @@ function respawnPlayer() {
   player.group.position.set(SPAWN.x, player.y, SPAWN.z);
   scene.add(player.group);
   document.getElementById('respawn').style.display = 'none';
+  if (MP.active) sendGame({ t: 'respawn' });
   showMessage('MECH REDEPLOYED', '#8ab4ff');
   updateHud();
 }

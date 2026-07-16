@@ -4,6 +4,7 @@ import { game, stats, difficulty, touch } from './state.js';
 import { entities, redBase } from '../entities/entities.js';
 import { audioCtx, boomSfx, startMusic, duckMusic } from '../systems/audio.js';
 import { updateHud, showMessage } from '../ui/hud.js';
+import { MP } from '../net/net.js';
 
 /* ============================================================
    Game flow: difficulty select, start / end screens
@@ -159,47 +160,77 @@ function findNextLevel() {
   return url.href;
 }
 
-export function endGame(victory) {
+export function endGame(victory, reason) {
   if (game.state === 'over') return;
   game.state = 'over';
   document.exitPointerLock();
   setTimeout(() => {
-    nextLevelUrl = victory ? findNextLevel() : null;
+    nextLevelUrl = victory && !MP.active ? findNextLevel() : null;
     showLevelScreen(false);
     overlay.classList.remove('hidden');
-    overlay.querySelector('h1').textContent = victory ? 'VICTORY' : 'BASE LOST';
+    overlay.querySelector('h1').textContent = victory ? 'VICTORY' : MP.active ? 'DEFEAT' : 'BASE LOST';
     overlay.querySelector('h1').style.color = victory ? '#7CFF6B' : '#ff5040';
-    overlay.querySelector('h2').textContent = victory
+    overlay.querySelector('h2').textContent = reason || (victory
       ? 'ENEMY BASE DESTROYED — DISTRICT SECURED'
-      : 'YOUR BASE WAS DESTROYED';
-    document.getElementById('briefing').innerHTML =
-      `<b>MISSION REPORT — ${difficulty().label}</b><br>Kills: <b>${stats.kills}</b> · Waves survived: <b>${stats.wave}</b> · Turrets built: <b>${stats.turretsBuilt}</b><br>` +
-      (victory
-        ? (nextLevelUrl ? 'Outstanding work, officer. The next district needs you.' : 'Outstanding work, officer. All districts secured.')
-        : 'The district has fallen. Redeploy and try again.');
-    document.getElementById('startBtn').textContent = nextLevelUrl ? 'NEXT LEVEL' : 'REDEPLOY';
+      : 'YOUR BASE WAS DESTROYED');
+    if (MP.active) {
+      // the end screen reuses the menu — its single-player widgets don't apply here
+      for (const id of ['levelBtn', 'diffRow', 'ctrlRow', 'mpBtn']) {
+        document.getElementById(id).classList.add('mpHidden');
+      }
+      const esc = (s) => String(s).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+      document.getElementById('briefing').innerHTML =
+        `<b>MULTIPLAYER — vs ${esc(MP.opponent)}</b><br>Kills: <b>${stats.kills}</b> · Turrets built: <b>${stats.turretsBuilt}</b><br>` +
+        (victory
+          ? 'District secured, officer. Head back to the lobby for the next challenger.'
+          : 'The district has fallen. Return to the lobby and take the rematch.');
+      document.getElementById('startBtn').textContent = 'BACK TO LOBBY';
+    } else {
+      document.getElementById('briefing').innerHTML =
+        `<b>MISSION REPORT — ${difficulty().label}</b><br>Kills: <b>${stats.kills}</b> · Waves survived: <b>${stats.wave}</b> · Turrets built: <b>${stats.turretsBuilt}</b><br>` +
+        (victory
+          ? (nextLevelUrl ? 'Outstanding work, officer. The next district needs you.' : 'Outstanding work, officer. All districts secured.')
+          : 'The district has fallen. Redeploy and try again.');
+      document.getElementById('startBtn').textContent = nextLevelUrl ? 'NEXT LEVEL' : 'REDEPLOY';
+    }
   }, 1400);
   showMessage(victory ? 'ENEMY BASE DESTROYED' : 'YOUR BASE HAS FALLEN', victory ? '#7CFF6B' : '#ff5040');
   boomSfx(0.5, 1.2);
   duckMusic();
 }
 
-document.getElementById('startBtn').addEventListener('click', (e) => {
-  if (game.state === 'over') {
-    if (nextLevelUrl) location.href = nextLevelUrl;
-    else location.reload();
-    return;
-  }
-  e.currentTarget.blur();
+/* leave a multiplayer match: reload without ?mp and reopen the lobby */
+export function backToLobby() {
+  sessionStorage.removeItem('mechMpMatch');
+  sessionStorage.setItem('mechMpReturn', '1');
+  const url = new URL(location.href);
+  url.searchParams.delete('mp');
+  location.href = url.href;
+}
+
+/* used by the DEPLOY button (single player) and the multiplayer
+   ready-handshake once both players are in */
+export function startGame() {
   audioCtx();
   startMusic();
   scene.fog.near = 90;
   scene.fog.far = 280;
-  applyDifficulty();
+  if (!MP.active) applyDifficulty(); // PvP is symmetric: no difficulty scaling
   overlay.classList.add('hidden');
   hud.classList.add('active');
   game.state = 'playing';
   if (!touch.active) renderer.domElement.requestPointerLock();
   showMessage('DESTROY THE ENEMY BASE', '#ffd23c');
   updateHud();
+}
+
+document.getElementById('startBtn').addEventListener('click', (e) => {
+  if (game.state === 'over') {
+    if (MP.active) backToLobby();
+    else if (nextLevelUrl) location.href = nextLevelUrl;
+    else location.reload();
+    return;
+  }
+  e.currentTarget.blur();
+  startGame();
 });

@@ -7,6 +7,7 @@ import { spawnSpark } from '../entities/particles.js';
 import { beep } from './audio.js';
 import { player } from '../entities/player.js';
 import { updateHud } from '../ui/hud.js';
+import { MP, sendGame } from '../net/net.js';
 
 /* ============================================================
    Turret building — placed directly in front of the player
@@ -56,7 +57,8 @@ export function placeTurretDirect() {
   }
   stats.salvage -= COSTS.turret;
   stats.turretsBuilt++;
-  makeTurretEntity('blue', p.x, p.z);
+  const t = makeTurretEntity(player.team, p.x, p.z, `${player.team}:t${stats.turretsBuilt}`);
+  if (MP.active) sendGame({ t: 'build', id: t.netId, x: +p.x.toFixed(1), z: +p.z.toFixed(1) });
   spawnSpark(new THREE.Vector3(p.x, groundHeightAt(p.x, p.z) + 2, p.z));
   beep(500, 1100, 0.15, 'sine', 0.12);
   updateHud();

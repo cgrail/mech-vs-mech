@@ -9,6 +9,7 @@ import { player, fireRocket, selectWeapon } from '../entities/player.js';
 export const keys = {};
 
 document.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT') return; // typing in the lobby name field
   keys[e.code] = true;
   if (e.code === 'Space' || e.code.startsWith('Arrow')) e.preventDefault();
   if (game.state !== 'playing') return;

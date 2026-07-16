@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { scene } from '../world/scene.js';
 import { LEVEL, groundHeightAt } from '../world/world.js';
 import { difficulty } from '../core/state.js';
+import { MP, netRegistry } from '../net/net.js';
 
 export const BLUE = { body: 0x2b4fd8, accent: 0x6fd2ff };
 export const RED = { body: 0xa42a20, accent: 0xffb03a };
@@ -146,6 +147,7 @@ export function registerEntity(e) {
     e.bar.sprite.position.y = e.barHeight;
     e.group.add(e.bar.sprite);
   }
+  if (e.netId) netRegistry.set(e.netId, e); // addressable by multiplayer events
   return e;
 }
 
@@ -155,24 +157,27 @@ export function makeBaseEntity(team, x, z) {
   model.group.position.set(x, groundHeightAt(x, z), z);
   const bar = makeBar(14);
   return registerEntity({
-    kind: 'base', team, group: model.group,
+    kind: 'base', team, group: model.group, netId: `base:${team}`,
     hp: 1200, maxHp: 1200, alive: true,
     hitRadius: 9.5, hitHeight: 14, bar, barHeight: 16,
     yaw: 0,
   });
 }
 
-export function makeTurretEntity(team, x, z) {
+export function makeTurretEntity(team, x, z, netId) {
   const palette = team === 'blue' ? BLUE : RED;
   const model = makeTurretModel(palette);
   model.group.position.set(x, groundHeightAt(x, z), z);
   const bar = makeBar(5);
+  // in multiplayer every turret is player-built — both teams get the blue
+  // profile so the match stays symmetric (SP red stats come from applyDifficulty)
+  const mine = team === 'blue' || MP.active;
   return registerEntity({
-    kind: 'turret', team, group: model.group, head: model.head,
-    hp: team === 'blue' ? 260 : 320, maxHp: team === 'blue' ? 260 : 320, alive: true,
+    kind: 'turret', team, group: model.group, head: model.head, netId,
+    hp: mine ? 260 : 320, maxHp: mine ? 260 : 320, alive: true,
     hitRadius: 2.2, hitHeight: 4, bar, barHeight: 5.2,
-    range: team === 'blue' ? 48 : 44, damage: 8,
-    fireInterval: team === 'blue' ? 0.28 : 0.34,
+    range: mine ? 48 : 44, damage: 8,
+    fireInterval: mine ? 0.28 : 0.34,
     cool: Math.random() * 0.4, retarget: 0, target: null, yaw: 0,
   });
 }
@@ -195,7 +200,8 @@ export function makeEnemyMech(x, z) {
   });
 }
 
-/* bases + enemy defense turrets, placed by the level's markers */
+/* bases + enemy defense turrets, placed by the level's markers.
+   Multiplayer skips the marker turrets: pure PvP, both sides build their own. */
 export const blueBase = makeBaseEntity('blue', LEVEL.blueBase.x, LEVEL.blueBase.z);
 export const redBase = makeBaseEntity('red', LEVEL.redBase.x, LEVEL.redBase.z);
-for (const t of LEVEL.redTurrets) makeTurretEntity('red', t.x, t.z);
+if (!MP.active) for (const t of LEVEL.redTurrets) makeTurretEntity('red', t.x, t.z);

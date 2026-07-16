@@ -33,6 +33,7 @@
 
 <div id="overlay">
   <h1>MECH VS MECH</h1>
+  <h2></h2>
   <div class="screen" id="menuScreen">
     <div class="panel" id="briefing">
       <b style="color:#ffd23c">MISSION:</b> Destroy the <b style="color:#ff8a7a">red enemy base</b> at the far end of the
@@ -54,12 +55,29 @@
       <button data-diff="hard">HARD</button>
     </div>
     <button id="startBtn">DEPLOY</button>
+    <button id="mpBtn"><span class="lbl">MULTIPLAYER</span><span>CHALLENGE A PILOT</span><span class="chev">▸</span></button>
     <div class="sub">Salvage is earned from kills · destroyed enemy turrets pay extra</div>
   </div>
   <div class="screen hidden loading" id="levelScreen">
     <div class="screenTitle">SELECT LEVEL</div>
     <div id="levelList"></div>
     <button id="levelBack">◂ BACK</button>
+  </div>
+  <div class="screen hidden" id="mpScreen">
+    <div class="screenTitle">MULTIPLAYER LOBBY</div>
+    <div id="mpStatus">CONNECTING TO SERVER…</div>
+    <div id="mpNameRow" class="mpHidden">
+      <input id="mpNameInput" maxlength="16" placeholder="YOUR CALLSIGN" autocomplete="off" spellcheck="false">
+      <button id="mpJoinBtn">ENTER LOBBY</button>
+    </div>
+    <div id="mpBanner" class="mpHidden"></div>
+    <div id="mpList" class="mpHidden"></div>
+    <button id="mpBack">◂ BACK</button>
+  </div>
+  <div class="screen hidden" id="matchScreen">
+    <div class="screenTitle">MULTIPLAYER MATCH</div>
+    <div id="matchInfo" class="panel">CONNECTING TO SERVER…</div>
+    <button id="readyBtn" class="mpHidden">⚔ DEPLOY</button>
   </div>
 </div>
 
@@ -71,6 +89,11 @@
     document.getElementById('menuScreen').classList.add('hidden');
     document.getElementById('levelScreen').classList.remove('hidden');
     document.getElementById('overlay').classList.add('level');
+  }
+  // booting straight into a multiplayer match: show its screen before first paint
+  if (new URLSearchParams(location.search).get('mp') === '1') {
+    document.getElementById('menuScreen').classList.add('hidden');
+    document.getElementById('matchScreen').classList.remove('hidden');
   }
 </script>
 

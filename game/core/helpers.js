@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { ARENA, groundHeightAt, collideTerrain } from '../world/world.js';
+import { ARENA, LEVEL, groundHeightAt, collideTerrain } from '../world/world.js';
 import { entities } from '../entities/entities.js';
 
 /* ============================================================
@@ -26,6 +26,19 @@ export function distXZ(a, b) {
 /* where guns auto-point on a target (torso height above its ground) */
 export function aimYOf(e) {
   return e.group.position.y + Math.min(3.5, e.hitHeight * 0.55);
+}
+
+/* where a player mech deploys, per team (multiplayer gives each side one).
+   Blue uses the level's P marker; red uses the first enemy-wave S marker,
+   falling back to just in front of the red base. `face` is what the mech
+   should look at on spawn (the enemy base). */
+export function spawnPointFor(team) {
+  if (team === 'blue') return { pos: LEVEL.playerSpawn, face: LEVEL.redBase };
+  const s = LEVEL.enemySpawns[0];
+  if (s) return { pos: s, face: LEVEL.blueBase };
+  const rb = LEVEL.redBase, bb = LEVEL.blueBase;
+  const d = Math.hypot(bb.x - rb.x, bb.z - rb.z) || 1;
+  return { pos: { x: rb.x + (bb.x - rb.x) / d * 16, z: rb.z + (bb.z - rb.z) / d * 16 }, face: bb };
 }
 
 /* 3D line of sight: blocked where the ray dips into terrain or walls.
@@ -95,9 +108,12 @@ export function separateMechs() {
       const dx = b.x - a.x, dz = b.z - a.z;
       const d = Math.hypot(dx, dz), min = 4.4;
       if (d < min && d > 1e-4) {
-        const push = (min - d) / 2;
-        a.x -= dx / d * push; a.z -= dz / d * push;
-        b.x += dx / d * push; b.z += dz / d * push;
+        // a network-driven mech can't be pushed — its position is authoritative
+        const ra = mechs[i].remote, rb = mechs[j].remote;
+        if (ra && rb) continue;
+        const push = ra || rb ? min - d : (min - d) / 2;
+        if (!ra) { a.x -= dx / d * push; a.z -= dz / d * push; }
+        if (!rb) { b.x += dx / d * push; b.z += dz / d * push; }
       }
     }
   }

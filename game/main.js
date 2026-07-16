@@ -9,12 +9,15 @@ import { updateProjectiles } from './entities/projectiles.js';
 import { updateParticles } from './entities/particles.js';
 import { updateTurret, updateEnemyMech, updateWaves } from './systems/ai.js';
 import { updateHud, drawMinimap } from './ui/hud.js';
+import { MP } from './net/net.js';
+import { remoteUpdate } from './systems/remote.js';
 import './systems/input.js';
 import './systems/mobile.js';
 import './core/flow.js';
+import './ui/lobby.js';
 
 createWorld(scene);
-window.__mech = { player, game, entities }; // console/testing hook
+window.__mech = { player, game, entities, MP }; // console/testing hook
 
 /* ============================================================
    Camera
@@ -49,23 +52,25 @@ function animate() {
     game.elapsed += dt;
 
     updatePlayer(dt);
-    updateWaves();
+    if (!MP.active) updateWaves(); // PvP has no AI waves
     for (const e of entities) {
       if (!e.alive) continue;
-      if (e.kind === 'turret') updateTurret(e, dt);
-      else if (e.kind === 'mech') updateEnemyMech(e, dt);
+      // remote entities are replicas driven by the network, never by local AI
+      if (e.kind === 'turret' && !e.remote) updateTurret(e, dt);
+      else if (e.kind === 'mech' && !MP.active) updateEnemyMech(e, dt);
     }
     separateMechs();
     updateProjectiles(dt);
 
-    // passive salvage income
+    // passive salvage income (fixed rate in PvP so both sides earn the same)
     salvageTrickle += dt;
     if (salvageTrickle >= 1) {
       salvageTrickle -= 1;
-      stats.salvage += 3 * difficulty().salvageMult;
+      stats.salvage += 3 * (MP.active ? 1 : difficulty().salvageMult);
       updateHud();
     }
   }
+  remoteUpdate(dt); // multiplayer: state send + opponent replica easing (no-op in SP)
 
   updateParticles(dt);
   if (game.state !== 'menu') {

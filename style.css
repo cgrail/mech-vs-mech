@@ -182,13 +182,15 @@ body.touch #touchControls { display: flex; }
 #diffRow { display: flex; gap: 10px; }
 #ctrlRow { display: none; gap: 10px; } /* touch devices only */
 body.touch #ctrlRow { display: flex; }
-#overlay #ctrlRow button, #overlay #diffRow button, #overlay #levelBtn, #overlay #levelBack {
+#overlay #ctrlRow button, #overlay #diffRow button, #overlay #levelBtn, #overlay #levelBack,
+#overlay #mpBtn, #overlay #mpBack, #overlay button.ghost {
   font-size: 13px; font-weight: 700; letter-spacing: 2px;
   color: #9fb4ff; background: rgba(20, 24, 40, .85);
   border: 1px solid #3a4468; border-radius: 6px; padding: 8px 22px;
   box-shadow: none;
 }
-#overlay #ctrlRow button:hover, #overlay #diffRow button:hover, #overlay #levelBtn:hover, #overlay #levelBack:hover {
+#overlay #ctrlRow button:hover, #overlay #diffRow button:hover, #overlay #levelBtn:hover, #overlay #levelBack:hover,
+#overlay #mpBtn:hover, #overlay #mpBack:hover, #overlay button.ghost:hover {
   border-color: #6f83c9; color: #cdd8ff; filter: none;
 }
 #overlay #ctrlRow button.selected, #overlay #diffRow button.selected {
@@ -230,3 +232,50 @@ body.touch #ctrlRow { display: flex; }
   font-size: 12px; font-weight: 400; letter-spacing: normal;
   color: #8a92ad; line-height: 1.4;
 }
+
+/* ---------- multiplayer lobby + match screens ---------- */
+.mpHidden { display: none !important; }
+#mpBtn .lbl { font-size: 11px; color: #8a92ad; }
+#mpBtn .chev { color: #8a92ad; }
+#overlay #mpBtn { display: flex; align-items: center; gap: 12px; padding: 8px 16px; }
+#mpStatus { font-size: 12px; letter-spacing: 2px; color: #8a92ad; max-width: 86vw; }
+#mpNameRow { display: flex; gap: 10px; }
+#mpNameInput {
+  font: inherit; font-size: 14px; font-weight: 700; letter-spacing: 2px;
+  color: #cdd8ff; background: rgba(20, 24, 40, .85);
+  border: 1px solid #3a4468; border-radius: 6px; padding: 10px 14px;
+  outline: none; width: 200px; text-transform: uppercase; user-select: text;
+}
+#mpNameInput:focus { border-color: #6f83c9; }
+#overlay #mpJoinBtn { font-size: 13px; letter-spacing: 2px; padding: 10px 18px; }
+#mpList {
+  display: flex; flex-direction: column; gap: 10px; width: min(440px, 86vw);
+  max-height: 46vh; overflow-y: auto; padding-right: 6px;
+  touch-action: pan-y; -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin; scrollbar-color: #3a4468 transparent;
+}
+.mpRow {
+  display: flex; align-items: center; gap: 14px; flex: none;
+  background: rgba(20, 24, 40, .5); border: 1px solid #3a4468; border-radius: 8px;
+  padding: 10px 16px;
+}
+.mpRow .name { flex: 1; text-align: left; font-size: 14px; font-weight: 700; letter-spacing: 2px; color: #cdd8ff; }
+.mpRow .st { font-size: 11px; letter-spacing: 1px; color: #8a92ad; }
+#overlay .mpRow button { font-size: 12px; letter-spacing: 2px; padding: 7px 16px; }
+.mpRow button:disabled { filter: grayscale(1) brightness(.6); cursor: default; }
+#mpBanner {
+  display: flex; align-items: center; gap: 14px; max-width: 86vw;
+  background: rgba(40, 32, 8, .9); border: 1px solid #ffd23c; border-radius: 8px;
+  padding: 12px 18px; font-size: 13px; letter-spacing: 1px; color: #ffe8a0;
+}
+#overlay #mpBanner button { font-size: 12px; letter-spacing: 2px; padding: 7px 14px; }
+#overlay button.ghost { padding: 7px 14px; font-size: 12px; }
+#matchInfo { text-align: center; line-height: 1.6; }
+#matchInfo .vs { font-size: 18px; font-weight: 800; letter-spacing: 3px; color: #ffd23c; }
+#matchInfo .sub { font-size: 12px; letter-spacing: 1px; color: #8a92ad; margin-top: 6px; }
+
+/* the guest fights as the red team — swap the base-bar colors to match */
+body.team-red #baseBlue { color: #ff9f9f; }
+body.team-red #baseRed { color: #9fc4ff; }
+body.team-red #baseBlue .fill { background: linear-gradient(90deg, #ff4a3d, #ff9a7d); }
+body.team-red #baseRed .fill { background: linear-gradient(90deg, #3d7bff, #7db5ff); }

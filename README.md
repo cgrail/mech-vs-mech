@@ -23,16 +23,30 @@ Good hunting, officer.
 
 ## How to Run
 
-No build step, no npm install — it's plain ES modules with three.js loaded from a CDN. You just need a local web server (browsers block module imports from `file://`):
+No build step — it's plain ES modules with three.js loaded from a CDN. For the full game **including multiplayer**, run the bundled Node server (it serves the files and hosts the WebSocket lobby):
 
 ```bash
-# from the repo root, pick whichever you have:
+npm install
+npm start        # → http://localhost:8080
+```
+
+Single player also works from any static server (browsers block module imports from `file://`):
+
+```bash
 python3 -m http.server 8080
 # or
 npx serve .
 ```
 
 Then open [http://localhost:8080](http://localhost:8080), pick a difficulty, and hit **DEPLOY**.
+
+## Multiplayer
+
+Hit **MULTIPLAYER** on the menu, give yourself a callsign, and enter the lobby. Every pilot on the server shows up in the list — pick one and **CHALLENGE** them. They get an accept/decline prompt; on accept, both of you drop into the challenger's currently selected level.
+
+It's a symmetric 1-v-1 base assault: the challenger fights for the blue team from the usual spawn, the challenged pilot fights for red from the enemy end. No AI waves, no pre-placed turrets — you earn salvage (fixed +3/s, plus kill bounties), build your own defenses, and win by destroying the other player's base. If you're destroyed you redeploy at your base after a few seconds, so the base is the only thing that decides the match.
+
+To play across machines, friends open `http://<your-ip>:8080` — the game connects its WebSocket to whatever host serves it (or override with `?server=host:port`).
 
 ## How to Play
 
@@ -81,13 +95,15 @@ Your choice is remembered between sessions.
 ```
 index.html          entry page (importmap + canvas + HUD markup)
 style.css           HUD and overlay styling
+server/             Node WebSocket server: static hosting + lobby + match relay
 game/
 ├── main.js         entry point & game loop
 ├── core/           game state, math helpers, start/end flow
 ├── world/          renderer, camera, arena and obstacles
 ├── entities/       player, enemies, projectiles, particles
-├── systems/        enemy AI, build mode, input, sound
-└── ui/             HUD, minimap, messages
+├── systems/        enemy AI, build mode, input, sound, multiplayer sync
+├── net/            WebSocket client transport + multiplayer session flags
+└── ui/             HUD, minimap, messages, multiplayer lobby
 ```
 
 ## Credits

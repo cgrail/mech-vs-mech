@@ -7,6 +7,7 @@ import { spawnProjectile } from '../entities/projectiles.js';
 import { beep, laserSfx } from './audio.js';
 import { player } from '../entities/player.js';
 import { showMessage } from '../ui/hud.js';
+import { MP } from '../net/net.js';
 
 /* ============================================================
    AI: turrets + enemy mechs + waves
@@ -54,8 +55,8 @@ export function updateTurret(e, dt) {
   if (Math.abs(diff) < 0.15 && e.cool <= 0) {
     e.cool = e.fireInterval;
     const muzzle = localToWorld(e, 0, 3.0, 2.2);
-    // red turrets lead moving targets on higher difficulties
-    const lead = e.team === 'red' ? difficulty().mech.aimLead : 0;
+    // red turrets lead moving targets on higher difficulties (never in PvP)
+    const lead = e.team === 'red' && !MP.active ? difficulty().mech.aimLead : 0;
     const tof = dXZ / 100;
     const ax = tp.x + (e.target.velX || 0) * tof * lead;
     const az = tp.z + (e.target.velZ || 0) * tof * lead;

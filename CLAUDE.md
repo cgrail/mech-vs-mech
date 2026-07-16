@@ -10,6 +10,12 @@ No test suite. Plain ES modules with three.js; runs unbundled straight from the 
 python3 -m http.server 8080   # then open http://localhost:8080
 ```
 
+Multiplayer needs the Node server instead ([server/server.js](server/server.js) — serves the same static files *and* the WebSocket lobby on `/ws`, so it fully replaces the python server):
+
+```bash
+npm install && npm start      # http://localhost:8080
+```
+
 Vite is set up for dist builds only — `npm run build` emits `dist/` (`npm run dev` / `npm run preview` also work). [vite.config.js](vite.config.js) copies `levels/` and `assets/` verbatim (they're runtime `fetch`es, invisible to the bundler), strips the CDN importmap from the built HTML (the bundle uses the pinned npm `three`), targets es2022 for `world.js`'s top-level await, and uses `appType: 'mpa'` so a missing level file is a real 404 instead of a 200 serving `index.html`. Keep the npm `three` version in lockstep with the importmap URL.
 
 Pick a level with a URL param: `?level=2` or `?level=<name>` (default `level1`). Levels live in the single bundle `levels/levels.txt`; a name not found there falls back to a standalone `levels/<name>.txt` (useful for drafts).
@@ -27,6 +33,15 @@ node --input-type=module --check < game/systems/ai.js
 ### Boot order — the level loads before everything else
 
 [game/world/world.js](game/world/world.js) has a **top-level await** that fetches and parses the level file. Every other module imports it (directly or via `core/helpers.js`), so by the time any module body runs, `ARENA`, `LEVEL` (spawn points, marker positions), and the terrain grid are populated. Entities are then created **at module scope**: `entities.js` builds the bases and red turrets from `LEVEL` markers on import, `player.js` builds the player. There is no reset logic — restart is `location.reload()` (see `flow.js`), which also preserves the `?level=` param.
+
+Multiplayer rides on this: a match is a reload into `?level=…&mp=1` with credentials in `sessionStorage`, so [game/net/net.js](game/net/net.js) can decide `MP` (active, myTeam/enemyTeam) **synchronously at module load** and the module-scope entity creation just branches on it (guest player is red, spawns via `spawnPointFor` at the first `S` marker, no marker turrets in PvP).
+
+### Multiplayer (PvP)
+
+- [server/server.js](server/server.js) is a dumb lobby + relay — it never simulates the game. Lobby: `join`(name)/`challenge`/`challengeResponse`; on accept it mints a match (two tokens, the **challenger's** level) and both clients reload into it, `rejoin` by token, and start on a mutual `ready` → `go` handshake ([game/ui/lobby.js](game/ui/lobby.js) drives all of this UI).
+- `net.js` is **import-clean** (no game imports) — anything may import it without cycles. It holds `MP`, the socket, and `netRegistry` (netId → entity; `registerEntity` auto-registers anything with a `netId`).
+- Ownership model ([game/systems/remote.js](game/systems/remote.js)): each client simulates only its own side. Opponent entities are replicas (`e.remote = true` — excluded from local AI and from `separateMechs` pushes). Projectiles replicate as `cosmetic` (visuals only); a hit on an opponent entity is sent as `hit` and **applied by its owner** (`projectiles.js` `applyHit`), who echoes authoritative `hp`/`die` back. Win = the enemy base's `die` event; both ends route through the same `killEntity`/`endGame`.
+- Keep PvP symmetric: no `applyDifficulty`, fixed salvage trickle, blue-profile turrets and zero turret aim-lead for both teams in MP. Anything difficulty-scaled must stay SP-only (`!MP.active`).
 
 ### Level files
 

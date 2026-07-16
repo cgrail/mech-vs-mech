@@ -2,6 +2,11 @@ import { ARENA, drawTerrainMinimap } from '../world/world.js';
 import { entities, blueBase, redBase } from '../entities/entities.js';
 import { game, stats, COSTS } from '../core/state.js';
 import { player } from '../entities/player.js';
+import { MP } from '../net/net.js';
+
+/* the "YOUR BASE" bar tracks whichever base is ours (guests play red) */
+const myBase = MP.myTeam === 'red' ? redBase : blueBase;
+const foeBase = MP.myTeam === 'red' ? blueBase : redBase;
 
 /* ============================================================
    HUD / minimap / messages
@@ -24,9 +29,9 @@ export function updateHud() {
   slotRocket.classList.toggle('active', game.weapon === 2);
   slotRocket.classList.toggle('dim', stats.salvage < COSTS.rocket);
   slotTurret.classList.toggle('dim', stats.salvage < COSTS.turret);
-  turretVal.textContent = entities.filter(e => e.alive && e.team === 'blue' && e.kind === 'turret').length;
-  baseBlueFill.style.width = `${Math.max(0, blueBase.hp / blueBase.maxHp * 100)}%`;
-  baseRedFill.style.width = `${Math.max(0, redBase.hp / redBase.maxHp * 100)}%`;
+  turretVal.textContent = entities.filter(e => e.alive && e.team === MP.myTeam && e.kind === 'turret').length;
+  baseBlueFill.style.width = `${Math.max(0, myBase.hp / myBase.maxHp * 100)}%`;
+  baseRedFill.style.width = `${Math.max(0, foeBase.hp / foeBase.maxHp * 100)}%`;
 }
 
 export function showMessage(text, color) {
