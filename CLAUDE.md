@@ -4,11 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Running
 
-No build step, no npm, no test suite. Plain ES modules with three.js from a CDN importmap ([index.html](index.html)). Serve statically (modules and level-file `fetch` don't work from `file://`):
+No test suite. Plain ES modules with three.js; runs unbundled straight from the repo (three.js comes from the CDN importmap in [index.html](index.html)). Serve statically (modules and level-file `fetch` don't work from `file://`):
 
 ```bash
 python3 -m http.server 8080   # then open http://localhost:8080
 ```
+
+Vite is set up for dist builds only — `npm run build` emits `dist/` (`npm run dev` / `npm run preview` also work). [vite.config.js](vite.config.js) copies `levels/` and `assets/` verbatim (they're runtime `fetch`es, invisible to the bundler), strips the CDN importmap from the built HTML (the bundle uses the pinned npm `three`), targets es2022 for `world.js`'s top-level await, and uses `appType: 'mpa'` so the level-probe loop in `flow.js` gets real 404s. Keep the npm `three` version in lockstep with the importmap URL.
 
 Pick a level with a URL param: `?level=2` or `?level=<name>` loads `levels/<name>.txt` (default `level1`).
 
