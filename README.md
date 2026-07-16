@@ -48,6 +48,38 @@ It's a symmetric 1-v-1 base assault: the challenger fights for the blue team fro
 
 To play across machines, friends open `http://<your-ip>:8080` — the game connects its WebSocket to whatever host serves it (or override with `?server=host:port`).
 
+## Deploying to the Internet
+
+The server is hardened for public exposure: strict security headers (CSP and friends), a WebSocket origin check, connection caps (total and per IP), per-socket rate limits, and a payload size cap. Two things it deliberately does **not** do — TLS and process supervision — belong to the platform:
+
+- **Terminate TLS in front of it** (a reverse proxy like [Caddy](https://caddyserver.com/) / nginx, or any PaaS — Fly.io, Railway, Render…). The game requires no code changes for HTTPS: served over `https://`, it connects with `wss://` automatically.
+- **Restart on crash** with the platform's supervisor (systemd, Docker `restart: always`, PaaS default).
+
+A complete Caddy setup is two lines — Caddy fetches the certificate and proxies WebSockets out of the box:
+
+```
+game.example.com {
+    reverse_proxy localhost:8080
+}
+```
+
+Run the server behind it with `TRUST_PROXY=1 npm start`.
+
+Everything is tuned with optional env vars:
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `PORT` | `8080` | Listen port |
+| `TRUST_PROXY` | off | Set to `1` behind a reverse proxy: client IPs are read from `X-Forwarded-For` (for the per-IP cap) and HSTS is sent on HTTPS |
+| `ALLOWED_ORIGINS` | — | Extra WebSocket origins, comma-separated (e.g. `https://mygame.github.io`). Same-origin as the served page is always allowed |
+| `MAX_CLIENTS` | `200` | Total simultaneous WebSocket connections |
+| `MAX_CONNS_PER_IP` | `8` | Connections per client address |
+
+Notes:
+
+- The WebSocket handshake requires a matching `Origin`, so other websites can't drive your lobby from their visitors' browsers. If you serve the game page from a *different* origin than the server (GitHub Pages + `?server=…`, for example), list that page's origin in `ALLOWED_ORIGINS` — and make sure your proxy forwards the original `Host` header (Caddy and nginx's `proxy_set_header Host $host` do).
+- The server holds no persistent state and writes nothing to disk — a restart just empties the lobby and any running matches.
+
 ## How to Play
 
 Destroy the red base in the north before the enemy destroys your blue base in the south. Enemy mechs spawn in waves that grow larger and more aggressive over time — you can't kill them forever, so push for the base.
