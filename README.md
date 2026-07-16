@@ -23,14 +23,14 @@ Good hunting, officer.
 
 ## How to Run
 
-No build step — it's plain ES modules with three.js loaded from a CDN. For the full game **including multiplayer**, run the bundled Node server (it serves the files and hosts the WebSocket lobby):
+For the full game **including multiplayer**, run the Node server — it builds the game (Vite) and serves the bundle alongside the WebSocket lobby:
 
 ```bash
 npm install
-npm start        # → http://localhost:8080
+npm start        # builds dist/ → http://localhost:8080
 ```
 
-Single player also works from any static server (browsers block module imports from `file://`):
+Single player needs no build at all — it's plain ES modules with three.js from a CDN, served by any static server (browsers block module imports from `file://`):
 
 ```bash
 python3 -m http.server 8080
@@ -95,7 +95,7 @@ Your choice is remembered between sessions.
 ```
 index.html          entry page (importmap + canvas + HUD markup)
 style.css           HUD and overlay styling
-server/             Node WebSocket server: static hosting + lobby + match relay
+server/             Node server (express + ws): serves dist/ + lobby + match relay
 game/
 ├── main.js         entry point & game loop
 ├── core/           game state, math helpers, start/end flow

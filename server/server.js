@@ -2,10 +2,11 @@
 /* ============================================================
    Multiplayer server
 
-   Serves the game statically AND runs the WebSocket lobby/match
-   relay on the same port:
+   Serves the built game (dist/, via express) AND runs the
+   WebSocket lobby/match relay on the same port:
 
      npm install && npm start      →  http://localhost:8080
+     (npm start builds dist/ first via the prestart script)
 
    The server never simulates the game — each client owns its own
    side's entities (player, turrets, base) and the server just
@@ -30,37 +31,22 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import express from 'express';
 import { WebSocketServer } from 'ws';
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const DIST = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'dist');
 const PORT = Number(process.env.PORT) || 8080;
 
-/* ---------- static files ---------- */
-const MIME = {
-  '.html': 'text/html; charset=utf-8',
-  '.js': 'text/javascript; charset=utf-8',
-  '.css': 'text/css; charset=utf-8',
-  '.txt': 'text/plain; charset=utf-8',
-  '.json': 'application/json',
-  '.mp3': 'audio/mpeg',
-  '.png': 'image/png',
-  '.jpg': 'image/jpeg',
-  '.svg': 'image/svg+xml',
-  '.ico': 'image/x-icon',
-};
+/* ---------- static files: the built game only ---------- */
+if (!fs.existsSync(path.join(DIST, 'index.html'))) {
+  console.error('dist/ is missing — run "npm run build" first ("npm start" does it automatically).');
+  process.exit(1);
+}
 
-const server = http.createServer((req, res) => {
-  let p;
-  try { p = decodeURIComponent(new URL(req.url, 'http://localhost').pathname); } catch { res.writeHead(400); res.end(); return; }
-  if (p.endsWith('/')) p += 'index.html';
-  const file = path.normalize(path.join(ROOT, p));
-  if (!file.startsWith(ROOT + path.sep)) { res.writeHead(403); res.end(); return; }
-  fs.readFile(file, (err, data) => {
-    if (err) { res.writeHead(404); res.end('not found'); return; }
-    res.writeHead(200, { 'Content-Type': MIME[path.extname(file).toLowerCase()] || 'application/octet-stream' });
-    res.end(data);
-  });
-});
+const app = express();
+app.use(express.static(DIST));
+
+const server = http.createServer(app);
 
 /* ---------- lobby + matches ---------- */
 const wss = new WebSocketServer({ server, path: '/ws' });

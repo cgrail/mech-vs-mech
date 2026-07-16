@@ -10,10 +10,10 @@ No test suite. Plain ES modules with three.js; runs unbundled straight from the 
 python3 -m http.server 8080   # then open http://localhost:8080
 ```
 
-Multiplayer needs the Node server instead ([server/server.js](server/server.js) — serves the same static files *and* the WebSocket lobby on `/ws`, so it fully replaces the python server):
+Multiplayer needs the Node server instead ([server/server.js](server/server.js) — express serving **only the built `dist/`**, plus the WebSocket lobby on `/ws`). `npm start` rebuilds `dist/` first via the `prestart` script, so source edits need a server restart to show up — keep using the python server for quick single-player iteration:
 
 ```bash
-npm install && npm start      # http://localhost:8080
+npm install && npm start      # vite build + http://localhost:8080
 ```
 
 Vite is set up for dist builds only — `npm run build` emits `dist/` (`npm run dev` / `npm run preview` also work). [vite.config.js](vite.config.js) copies `levels/` and `assets/` verbatim (they're runtime `fetch`es, invisible to the bundler), strips the CDN importmap from the built HTML (the bundle uses the pinned npm `three`), targets es2022 for `world.js`'s top-level await, and uses `appType: 'mpa'` so a missing level file is a real 404 instead of a 200 serving `index.html`. Keep the npm `three` version in lockstep with the importmap URL.
