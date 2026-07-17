@@ -26,7 +26,15 @@
 # In Cloudflare: proxy the DNS record (orange cloud), set SSL mode to
 # "Flexible" (the origin speaks HTTP), and leave WebSockets enabled.
 # Re-running the script is safe: it re-syncs the code, rebuilds,
-# restarts, and refreshes the Cloudflare IP rules.
+# restarts, and refreshes the Cloudflare IP rules. It also installs a
+# systemd timer that runs update.sh every 5 minutes, auto-deploying
+# whatever lands on origin/main.
+#
+# Testing around Cloudflare (http://<server-ip>/ directly):
+#
+#   sudo ./install.sh test-on 203.0.113.7   # open port 80 to one address
+#   sudo ./install.sh test-on               # …or to everyone (avoid)
+#   sudo ./install.sh test-off              # back to Cloudflare-only
 #
 # Tunables (README "Deploying to the Internet") live in
 # /etc/default/mech-vs-mech and survive re-runs.
@@ -44,6 +52,29 @@ die()  { printf '\n\033[1;31mERROR: %s\033[0m\n' "$*" >&2; exit 1; }
 
 # ---------- preflight ----------
 [[ $EUID -eq 0 ]] || die "run with sudo: sudo ./install.sh"
+
+# ---------- test-mode subcommands (skip the full install) ----------
+case "${1:-}" in
+  test-on)
+    if [[ -n ${2:-} ]]; then
+      ufw allow from "$2" to any port 80 proto tcp comment 'TESTING'
+      echo "port 80 open to $2 (past Cloudflare) — close with: sudo ./install.sh test-off"
+    else
+      ufw allow 80/tcp comment 'TESTING'
+      warn "port 80 open to EVERYONE — close with: sudo ./install.sh test-off"
+    fi
+    exit 0 ;;
+  test-off)
+    # delete every rule tagged TESTING, highest rule number first
+    while read -r num; do
+      ufw --force delete "$num"
+    done < <(ufw status numbered | grep -F TESTING | sed -E 's/^\[ *([0-9]+)\].*/\1/' | sort -rn)
+    echo "testing rules removed — port 80 is Cloudflare-only again"
+    exit 0 ;;
+  '') ;; # no subcommand → full install below
+  *) die "usage: sudo ./install.sh [test-on [ip] | test-off]" ;;
+esac
+
 [[ -f $SRC_DIR/package.json && -f $SRC_DIR/server/server.js ]] \
   || die "run this script from a checkout of the mech-vs-mech repo"
 grep -qi ubuntu /etc/os-release || warn "this doesn't look like Ubuntu — continuing anyway"
@@ -260,6 +291,37 @@ systemctl daemon-reload
 systemctl enable mech-vs-mech
 systemctl restart mech-vs-mech
 
+# record what's deployed so update.sh's timer doesn't redeploy it
+runuser -u "$(stat -c %U "$SRC_DIR")" -- git -C "$SRC_DIR" rev-parse HEAD \
+  > "$APP_HOME/deployed-rev" 2>/dev/null || true
+
+# ---------- auto-update: track origin/main every 5 min ----------
+log "Installing auto-update timer (update.sh)"
+cat > /etc/systemd/system/mech-vs-mech-update.service <<EOF
+[Unit]
+Description=mech-vs-mech auto-update (fetch origin, rebuild, restart)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/bash $SRC_DIR/update.sh
+EOF
+cat > /etc/systemd/system/mech-vs-mech-update.timer <<EOF
+[Unit]
+Description=mech-vs-mech update check every 5 minutes
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+RandomizedDelaySec=30
+
+[Install]
+WantedBy=timers.target
+EOF
+systemctl daemon-reload
+systemctl enable --now mech-vs-mech-update.timer
+
 # ---------- summary ----------
 sleep 2
 log "Done"
@@ -273,6 +335,7 @@ cat <<EOF
   tunables     : /etc/default/mech-vs-mech   (then: systemctl restart mech-vs-mech)
   logs         : journalctl -u mech-vs-mech -f
   quick check  : curl -sI http://localhost/ | head -1   (from this box)
-
-  To deploy an update: git pull in the checkout, then re-run: sudo ./install.sh
+  updates      : auto — pushes to origin/main go live within ~5 min
+                 (mech-vs-mech-update.timer → update.sh, discards local
+                 edits in this checkout); manual: sudo ./update.sh --force
 EOF
