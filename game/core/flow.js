@@ -36,6 +36,18 @@ const levelScreen = document.getElementById('levelScreen');
 const levelList = document.getElementById('levelList');
 const levelCur = document.getElementById('levelCur');
 
+/* mode select — the first screen offers only single or multiplayer;
+   SINGLE PLAYER opens the mission menu (briefing, level select, difficulty),
+   MULTIPLAYER is wired in lobby.js. Boot paths that skip the mode screen
+   (level switch, match boot, lobby return) hide it pre-paint in index.html. */
+const modeScreen = document.getElementById('modeScreen');
+function showModeScreen(show) {
+  modeScreen.classList.toggle('hidden', !show);
+  menuScreen.classList.toggle('hidden', show);
+}
+document.getElementById('spBtn').addEventListener('click', () => showModeScreen(false));
+document.getElementById('menuBack').addEventListener('click', () => showModeScreen(true));
+
 function showLevelScreen(show) {
   levelScreen.classList.toggle('hidden', !show);
   menuScreen.classList.toggle('hidden', show);
@@ -69,6 +81,11 @@ function flyLevel(from, to, ease, ms) {
 if (sessionStorage.getItem('mechLevelScreen')) {
   sessionStorage.removeItem('mechLevelScreen');
   showLevelScreen(true);
+}
+/* redeploy / next level is also a reload — stay in the single-player menu */
+if (sessionStorage.getItem('mechSpMenu')) {
+  sessionStorage.removeItem('mechSpMenu');
+  showModeScreen(false);
 }
 if (sessionStorage.getItem('mechLevelFly')) {
   sessionStorage.removeItem('mechLevelFly');
@@ -173,9 +190,11 @@ export function endGame(victory, reason) {
     overlay.querySelector('h2').textContent = reason || (victory
       ? 'ENEMY BASE DESTROYED — DISTRICT SECURED'
       : 'YOUR BASE WAS DESTROYED');
+    // the end screen reuses the menu — going back to mode select doesn't apply here
+    document.getElementById('menuBack').classList.add('mpHidden');
     if (MP.active) {
-      // the end screen reuses the menu — its single-player widgets don't apply here
-      for (const id of ['levelBtn', 'diffRow', 'ctrlRow', 'mpBtn']) {
+      // its single-player widgets don't apply here either
+      for (const id of ['levelBtn', 'diffRow', 'ctrlRow']) {
         document.getElementById(id).classList.add('mpHidden');
       }
       const esc = (s) => String(s).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
@@ -226,8 +245,10 @@ export function startGame() {
 
 document.getElementById('startBtn').addEventListener('click', (e) => {
   if (game.state === 'over') {
-    if (MP.active) backToLobby();
-    else if (nextLevelUrl) location.href = nextLevelUrl;
+    if (MP.active) { backToLobby(); return; }
+    // continuing the single-player session: skip mode select after the reload
+    sessionStorage.setItem('mechSpMenu', '1');
+    if (nextLevelUrl) location.href = nextLevelUrl;
     else location.reload();
     return;
   }

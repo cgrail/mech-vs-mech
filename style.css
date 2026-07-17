@@ -173,6 +173,19 @@ body.touch #touchControls { display: flex; }
 #overlay .screen.hidden { display: none; }
 #overlay .screenTitle { font-size: 15px; font-weight: 700; letter-spacing: 3px; color: #9fb4ff; }
 
+/* mode select — the first screen: single player or multiplayer */
+#overlay #modeScreen button {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  width: min(340px, 86vw); padding: 16px 20px;
+  font-size: 17px; letter-spacing: 3px;
+  color: #dfe6ff; background: rgba(20, 24, 40, .85);
+  border: 1px solid #3a4468; border-radius: 8px; box-shadow: none;
+}
+#overlay #modeScreen button:hover {
+  border-color: #6f83c9; background: rgba(30, 36, 60, .9); filter: none;
+}
+#modeScreen button .desc { font-size: 11px; font-weight: 600; letter-spacing: 1px; color: #8a92ad; }
+
 /* level-select mode: no game title, lighter dimming so the map shows through */
 #overlay.level h1, #overlay.level h2 { display: none; }
 #overlay.level { background: rgba(6, 6, 12, 0.1); }
@@ -183,14 +196,14 @@ body.touch #touchControls { display: flex; }
 #ctrlRow { display: none; gap: 10px; } /* touch devices only */
 body.touch #ctrlRow { display: flex; }
 #overlay #ctrlRow button, #overlay #diffRow button, #overlay #levelBtn, #overlay #levelBack,
-#overlay #mpBtn, #overlay #mpBack, #overlay button.ghost {
+#overlay #menuBack, #overlay #mpBack, #overlay button.ghost {
   font-size: 13px; font-weight: 700; letter-spacing: 2px;
   color: #9fb4ff; background: rgba(20, 24, 40, .85);
   border: 1px solid #3a4468; border-radius: 6px; padding: 8px 22px;
   box-shadow: none;
 }
 #overlay #ctrlRow button:hover, #overlay #diffRow button:hover, #overlay #levelBtn:hover, #overlay #levelBack:hover,
-#overlay #mpBtn:hover, #overlay #mpBack:hover, #overlay button.ghost:hover {
+#overlay #menuBack:hover, #overlay #mpBack:hover, #overlay button.ghost:hover {
   border-color: #6f83c9; color: #cdd8ff; filter: none;
 }
 #overlay #ctrlRow button.selected, #overlay #diffRow button.selected {
@@ -235,9 +248,6 @@ body.touch #ctrlRow { display: flex; }
 
 /* ---------- multiplayer lobby + match screens ---------- */
 .mpHidden { display: none !important; }
-#mpBtn .lbl { font-size: 11px; color: #8a92ad; }
-#mpBtn .chev { color: #8a92ad; }
-#overlay #mpBtn { display: flex; align-items: center; gap: 12px; padding: 8px 16px; }
 #mpStatus { font-size: 12px; letter-spacing: 2px; color: #8a92ad; max-width: 86vw; }
 #mpNameRow { display: flex; gap: 10px; }
 #mpNameInput {

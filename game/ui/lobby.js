@@ -7,7 +7,7 @@ import { audioCtx, beep } from '../systems/audio.js';
 /* ============================================================
    Multiplayer UI
 
-   Lobby (from the main menu): pick a callsign → join → see other
+   Lobby (from the mode select): pick a callsign → join → see other
    pilots → challenge one / answer a challenge. On accept the server
    deals out match credentials and both clients reload into
    ?level=<challenger's level>&mp=1 (see net.js).
@@ -15,7 +15,7 @@ import { audioCtx, beep } from '../systems/audio.js';
    Match boot (?mp=1): reconnect, rejoin by token, then a READY
    handshake so the fight starts for both players at once.
 ============================================================ */
-const menuScreen = document.getElementById('menuScreen');
+const modeScreen = document.getElementById('modeScreen');
 const mpScreen = document.getElementById('mpScreen');
 const matchScreen = document.getElementById('matchScreen');
 const statusEl = document.getElementById('mpStatus');
@@ -93,7 +93,7 @@ function matchFail(text) {
 }
 
 /* ============================================================
-   Lobby — reached from the menu's MULTIPLAYER button
+   Lobby — reached from the mode select's MULTIPLAYER button
 ============================================================ */
 let myId = null;
 let myName = '';
@@ -107,7 +107,7 @@ nameInput.value = localStorage.getItem('mechMpName') || '';
 
 function showMpScreen(open) {
   mpScreen.classList.toggle('hidden', !open);
-  menuScreen.classList.toggle('hidden', open);
+  modeScreen.classList.toggle('hidden', open);
   if (open) {
     manualClose = false;
     setStatus('CONNECTING TO SERVER…');
@@ -206,13 +206,13 @@ function onOpen() {
 }
 
 if (!MP.active) {
-  // ?mp=1 without match credentials (bookmark, reopened tab): back to the menu
+  // ?mp=1 without match credentials (bookmark, reopened tab): back to mode select
   if (new URLSearchParams(location.search).get('mp') === '1') {
     const url = new URL(location.href);
     url.searchParams.delete('mp');
     history.replaceState(null, '', url);
     matchScreen.classList.add('hidden');
-    menuScreen.classList.remove('hidden');
+    modeScreen.classList.remove('hidden');
   }
 
   document.getElementById('mpBtn').addEventListener('click', () => showMpScreen(true));

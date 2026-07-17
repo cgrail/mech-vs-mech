@@ -130,7 +130,11 @@
 <div id="overlay">
   <h1>MECH VS MECH</h1>
   <h2></h2>
-  <div class="screen" id="menuScreen">
+  <div class="screen" id="modeScreen">
+    <button id="spBtn"><span>SINGLE PLAYER</span><span class="desc">HOLD THE DISTRICT AGAINST THE MACHINES</span></button>
+    <button id="mpBtn"><span>MULTIPLAYER</span><span class="desc">CHALLENGE A PILOT</span></button>
+  </div>
+  <div class="screen hidden" id="menuScreen">
     <div class="panel" id="briefing">
       <b style="color:#ffd23c">MISSION:</b> Destroy the <b style="color:#ff8a7a">red enemy base</b> at the far end of the
       district before enemy assault mechs destroy <b style="color:#8ab4ff">yours</b>.<br>
@@ -151,8 +155,8 @@
       <button data-diff="hard">HARD</button>
     </div>
     <button id="startBtn">DEPLOY</button>
-    <button id="mpBtn"><span class="lbl">MULTIPLAYER</span><span>CHALLENGE A PILOT</span><span class="chev">▸</span></button>
     <div class="sub">Salvage is earned from kills · destroyed enemy turrets pay extra</div>
+    <button id="menuBack">◂ BACK</button>
   </div>
   <div class="screen hidden loading" id="levelScreen">
     <div class="screenTitle">SELECT LEVEL</div>
@@ -178,18 +182,31 @@
 </div>
 
 <script>
+  // continuing a single-player session (redeploy / next level): skip the mode
+  // select before first paint (flow.js reads and clears the flag once it's up)
+  if (sessionStorage.getItem('mechSpMenu')) {
+    document.getElementById('modeScreen').classList.add('hidden');
+    document.getElementById('menuScreen').classList.remove('hidden');
+  }
   // returning from a level switch: show the level screen before first paint,
-  // so the main menu doesn't flash while the game modules load (flow.js
+  // so the mode select doesn't flash while the game modules load (flow.js
   // reads and clears the flag once it's up)
   if (sessionStorage.getItem('mechLevelScreen')) {
+    document.getElementById('modeScreen').classList.add('hidden');
     document.getElementById('menuScreen').classList.add('hidden');
     document.getElementById('levelScreen').classList.remove('hidden');
     document.getElementById('overlay').classList.add('level');
   }
   // booting straight into a multiplayer match: show its screen before first paint
   if (new URLSearchParams(location.search).get('mp') === '1') {
-    document.getElementById('menuScreen').classList.add('hidden');
+    document.getElementById('modeScreen').classList.add('hidden');
     document.getElementById('matchScreen').classList.remove('hidden');
+  }
+  // returning from a match to the lobby: show it before first paint (lobby.js
+  // reads the flag and reconnects once it's up)
+  if (sessionStorage.getItem('mechMpReturn')) {
+    document.getElementById('modeScreen').classList.add('hidden');
+    document.getElementById('mpScreen').classList.remove('hidden');
   }
 </script>
 

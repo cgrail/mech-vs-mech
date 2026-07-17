@@ -42,7 +42,7 @@ Then open [http://localhost:8080](http://localhost:8080), pick a difficulty, and
 
 ## Multiplayer
 
-Hit **MULTIPLAYER** on the menu, give yourself a callsign, and enter the lobby. Every pilot on the server shows up in the list — pick one and **CHALLENGE** them. They get an accept/decline prompt; on accept, both of you drop into the challenger's currently selected level.
+Hit **MULTIPLAYER** on the start screen, give yourself a callsign, and enter the lobby. Every pilot on the server shows up in the list — pick one and **CHALLENGE** them. They get an accept/decline prompt; on accept, both of you drop into the challenger's currently selected level.
 
 It's a symmetric 1-v-1 base assault: the challenger fights for the blue team from the usual spawn, the challenged pilot fights for red from the enemy end. No AI waves, no pre-placed turrets — you earn salvage (fixed +3/s, plus kill bounties), build your own defenses, and win by destroying the other player's base. If you're destroyed you redeploy at your base after a few seconds, so the base is the only thing that decides the match.
 
