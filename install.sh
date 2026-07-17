@@ -402,6 +402,7 @@ if [[ -n $DOMAIN ]]; then
     apt-get install "${APT_OPTS[@]}" -q caddy
   fi
   log "Configuring Caddy → https://$DOMAIN (Let's Encrypt, auto-issued + auto-renewed)"
+  install -d -m 755 /etc/caddy/apps # site files of other apps sharing this box
   {
     echo '# managed by mech-vs-mech install.sh — re-runs overwrite this file'
     if [[ -n $EMAIL ]]; then
@@ -413,6 +414,9 @@ $DOMAIN {
 	# headers the app trusts via TRUST_PROXY=1
 	reverse_proxy 127.0.0.1:8080
 }
+
+# other apps on this box (e.g. calvo) manage their own site files here
+import /etc/caddy/apps/*.caddy
 EOF
   } > /etc/caddy/Caddyfile
   caddy validate --config /etc/caddy/Caddyfile > /dev/null 2>&1 \
