@@ -91,14 +91,15 @@ canvas { display: block; touch-action: none; }
   #ammoBar .key { display: none; }
 }
 
-/* base health, top */
+/* base health, top — width caps at half the screen so the bars never overlap */
 .baseBar {
-  position: absolute; top: 14px; width: 260px;
+  position: absolute; top: max(14px, env(safe-area-inset-top));
+  width: min(260px, calc(50% - 24px));
   font-size: 11px; font-weight: 700; letter-spacing: 2px;
   text-shadow: 1px 1px 0 #000;
 }
-#baseBlue { left: 16px; color: #9fc4ff; }
-#baseRed  { right: 16px; color: #ff9f9f; text-align: right; }
+#baseBlue { left: max(16px, env(safe-area-inset-left)); color: #9fc4ff; }
+#baseRed  { right: max(16px, env(safe-area-inset-right)); color: #ff9f9f; text-align: right; }
 .baseBar .track {
   margin-top: 4px; height: 12px; background: rgba(0,0,0,.6);
   border: 1px solid #888; border-radius: 3px; overflow: hidden;
@@ -133,6 +134,28 @@ canvas { display: block; touch-action: none; }
   position: absolute; left: 50%; top: 42%; transform: translateX(-50%);
   font-size: 22px; font-weight: 700; letter-spacing: 3px; color: #ff6a5a;
   text-shadow: 2px 2px 0 #000; display: none;
+}
+
+/* narrow (portrait phone) layout: the bottom-center minimap would cover the
+   player mech and the ammo row, and the big one-line message overflows */
+@media (max-width: 700px) {
+  #minimap {
+    bottom: auto;
+    top: calc(max(14px, env(safe-area-inset-top)) + 38px); /* below the base bars */
+    height: min(150px, 20vh);
+    background: rgba(8,10,16,.45);
+  }
+  #buildHint { bottom: calc(max(18px, env(safe-area-inset-bottom)) + 64px); }
+  #msg {
+    top: 30%; /* clear of the relocated minimap */
+    font-size: 22px; letter-spacing: 3px;
+    white-space: normal; width: 90vw; text-align: center;
+  }
+  #ammoBar {
+    left: 12px; right: 12px; gap: 10px; justify-content: space-between;
+    font-size: 18px; bottom: max(14px, env(safe-area-inset-bottom));
+  }
+  #ammoBar .ico { font-size: 20px; }
 }
 
 /* ---------- touch controls (shown on touch devices via body.touch) ---------- */
