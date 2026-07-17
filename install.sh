@@ -55,7 +55,7 @@
 # Tunables (README "Deploying to the Internet") live in
 # /etc/default/mech-vs-mech and survive re-runs.
 # ============================================================
-set -euo pipefail
+set -Eeuo pipefail # -E: the ERR trap below also fires inside functions
 
 APP_DIR=/opt/mech-vs-mech
 APP_USER=mech
@@ -65,6 +65,9 @@ SRC_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 log()  { printf '\n\033[1;32m==> %s\033[0m\n' "$*"; }
 warn() { printf '\n\033[1;33m!!  %s\033[0m\n' "$*"; }
 die()  { printf '\n\033[1;31mERROR: %s\033[0m\n' "$*" >&2; exit 1; }
+
+# set -e aborts on any failure — make sure it never does so silently
+trap 'die "install.sh failed at line $LINENO: $BASH_COMMAND"' ERR
 
 # ---------- preflight ----------
 [[ $EUID -eq 0 ]] || die "run with sudo: sudo ./install.sh"
@@ -181,7 +184,9 @@ systemctl enable --now fail2ban
 systemctl restart fail2ban
 
 # ---------- firewall: SSH + the web ports of the TLS mode ----------
-SSH_PORT="$(sshd -T 2>/dev/null | awk '/^port /{print $2; exit}')"
+# `|| true`: awk's early exit can SIGPIPE sshd, and sshd -T itself can fail
+# (stderr discarded) — under pipefail either would silently kill the script
+SSH_PORT="$(sshd -T 2>/dev/null | awk '/^port /{print $2; exit}' || true)"
 SSH_PORT="${SSH_PORT:-22}"
 log "Configuring UFW (deny inbound; allow ${SSH_PORT}/tcp rate-limited + web)"
 ufw default deny incoming
