@@ -19,12 +19,14 @@
 # TLS — two modes, picked by whether DOMAIN is set:
 #
 #   Let's Encrypt (DOMAIN set)
-#           Caddy on this box terminates HTTPS with an automatically
-#           issued and renewed Let's Encrypt certificate and proxies to
-#           the game server on 127.0.0.1:8080. UFW opens 80 (ACME
+#           Caddy on this box terminates HTTPS with automatically
+#           issued and renewed Let's Encrypt certificates and proxies to
+#           the game server on 127.0.0.1:8080. DOMAIN may list several
+#           hostnames (comma- or space-separated) — Caddy serves the game
+#           on all of them, one certificate each. UFW opens 80 (ACME
 #           challenges + redirect) and 443 to the world. Point a plain
-#           UN-proxied DNS A/AAAA record at this box; EMAIL is optional
-#           (Let's Encrypt expiry notices).
+#           UN-proxied DNS A/AAAA record for every name at this box;
+#           EMAIL is optional (Let's Encrypt expiry notices).
 #
 #   Cloudflare (DOMAIN empty/unset)
 #           No TLS on this box — Cloudflare (orange-cloud DNS, SSL mode
@@ -36,11 +38,16 @@
 #
 #   git clone <repo> && cd mech-vs-mech
 #   sudo DOMAIN=play.example.com EMAIL=you@example.com ./install.sh   # Let's Encrypt
+#   sudo DOMAIN=play.example.com,mech.example.org ./install.sh        # …several domains
 #   sudo ./install.sh                                                 # Cloudflare
 #
-# DOMAIN/EMAIL are remembered in /etc/default/mech-vs-mech, so re-runs
-# are plain `sudo ./install.sh`; an explicit `sudo DOMAIN= ./install.sh`
-# switches an existing box back to Cloudflare mode. Re-running is safe:
+# Instead of the command line, DOMAIN/EMAIL can live in a .env file next
+# to this script (see .env.example) — it's gitignored, and the
+# auto-update timer's hard reset leaves it alone. Precedence:
+# command line > .env > /etc/default/mech-vs-mech from a previous run,
+# so re-runs are plain `sudo ./install.sh`; an explicit
+# `sudo DOMAIN= ./install.sh` (or DOMAIN= in .env) switches an existing
+# box back to Cloudflare mode. Re-running is safe:
 # it re-syncs the code, rebuilds, restarts, and refreshes the firewall
 # rules. It also installs a systemd timer that runs update.sh every
 # 5 minutes, auto-deploying whatever lands on origin/main.
@@ -99,10 +106,22 @@ esac
 grep -qi ubuntu /etc/os-release || warn "this doesn't look like Ubuntu — continuing anyway"
 
 # ---------- TLS mode: Let's Encrypt (DOMAIN set) or Cloudflare ----------
-# DOMAIN/EMAIL unset on the command line reuse what a previous run stored
-# in /etc/default/mech-vs-mech; `DOMAIN=` (set but empty) explicitly
-# switches back to Cloudflare mode.
+# DOMAIN holds one or more hostnames, comma- or space-separated.
+# Resolution order: command line > .env next to this script > what a
+# previous run stored in /etc/default/mech-vs-mech; `DOMAIN=` (set but
+# empty) at any level explicitly switches back to Cloudflare mode.
 DEFAULTS_FILE=/etc/default/mech-vs-mech
+ENV_FILE="$SRC_DIR/.env"
+env_has() { [[ -f $ENV_FILE ]] && grep -qE "^[[:space:]]*(export[[:space:]]+)?$1=" "$ENV_FILE"; }
+env_get() { # last assignment wins; surrounding whitespace/quotes stripped
+  sed -nE "s/^[[:space:]]*(export[[:space:]]+)?$1=(.*)\$/\2/p" "$ENV_FILE" | tail -1 \
+    | sed -E "s/^[[:space:]]*[\"']?//; s/[\"']?[[:space:]]*\$//"
+}
+for var in DOMAIN EMAIL; do
+  if [[ -z ${!var+x} ]] && env_has "$var"; then
+    printf -v "$var" '%s' "$(env_get "$var")"
+  fi
+done
 if [[ -z ${DOMAIN+x} && -f $DEFAULTS_FILE ]]; then
   DOMAIN="$(sed -n 's/^DOMAIN=//p' "$DEFAULTS_FILE" | tail -1)"
 fi
@@ -111,12 +130,16 @@ if [[ -z ${EMAIL+x} && -f $DEFAULTS_FILE ]]; then
   EMAIL="$(sed -n 's/^EMAIL=//p' "$DEFAULTS_FILE" | tail -1)"
 fi
 EMAIL="${EMAIL-}"
+read -ra DOMAINS <<< "${DOMAIN//,/ }"        # split into an array of hostnames
+DOMAIN="$(IFS=,; echo "${DOMAINS[*]-}")"     # canonical comma-joined form
 if [[ -n $DOMAIN ]]; then
-  [[ $DOMAIN =~ ^[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?$ ]] \
-    || die "DOMAIN doesn't look like a hostname: $DOMAIN"
+  for d in "${DOMAINS[@]}"; do
+    [[ $d =~ ^[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?$ ]] \
+      || die "DOMAIN doesn't look like a hostname: $d"
+  done
   [[ -z $EMAIL || $EMAIL =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+$ ]] \
     || die "EMAIL doesn't look like an address: $EMAIL"
-  log "TLS mode: Let's Encrypt — Caddy on this box will serve https://$DOMAIN"
+  log "TLS mode: Let's Encrypt — Caddy on this box will serve ${DOMAINS[*]/#/https://}"
 else
   log "TLS mode: Cloudflare — origin speaks plain HTTP on port 80"
 fi
@@ -283,7 +306,7 @@ fi
 
 log "Syncing code to $APP_DIR and building"
 install -d -m 755 "$APP_DIR"
-rsync -a --delete --exclude .git --exclude node_modules --exclude dist "$SRC_DIR/" "$APP_DIR/"
+rsync -a --delete --exclude .git --exclude node_modules --exclude dist --exclude .env "$SRC_DIR/" "$APP_DIR/"
 chown -R "$APP_USER:$APP_USER" "$APP_DIR"
 runuser -u "$APP_USER" -- bash -c "cd '$APP_DIR' && HOME='$APP_HOME' npm ci --no-audit --no-fund && HOME='$APP_HOME' npm run build"
 # the service user may read the code but never write it
@@ -401,15 +424,17 @@ if [[ -n $DOMAIN ]]; then
     apt-get update -q
     apt-get install "${APT_OPTS[@]}" -q caddy
   fi
-  log "Configuring Caddy → https://$DOMAIN (Let's Encrypt, auto-issued + auto-renewed)"
+  log "Configuring Caddy → ${DOMAINS[*]/#/https://} (Let's Encrypt, auto-issued + auto-renewed)"
   install -d -m 755 /etc/caddy/apps # site files of other apps sharing this box
+  SITE_ADDRS="${DOMAINS[*]}"
+  SITE_ADDRS="${SITE_ADDRS// /, }" # Caddyfile site addresses: "a.com, b.com {"
   {
     echo '# managed by mech-vs-mech install.sh — re-runs overwrite this file'
     if [[ -n $EMAIL ]]; then
       printf '{\n\temail %s\n}\n' "$EMAIL"
     fi
     cat <<EOF
-$DOMAIN {
+$SITE_ADDRS {
 	# game server (HTTP + WebSocket /ws); Caddy adds the X-Forwarded-*
 	# headers the app trusts via TRUST_PROXY=1
 	reverse_proxy 127.0.0.1:8080
@@ -457,18 +482,20 @@ sleep 2
 log "Done"
 systemctl --no-pager --quiet is-active mech-vs-mech && echo "  game service : running on port $GAME_PORT" || warn "game service is NOT running — check: journalctl -u mech-vs-mech"
 if [[ -n $DOMAIN ]]; then
-  systemctl --no-pager --quiet is-active caddy && echo "  caddy        : running — terminates HTTPS for https://$DOMAIN" || warn "caddy is NOT running — check: journalctl -u caddy"
+  systemctl --no-pager --quiet is-active caddy && echo "  caddy        : running — terminates HTTPS for ${DOMAINS[*]/#/https://}" || warn "caddy is NOT running — check: journalctl -u caddy"
   cat <<EOF
 
-  dns          : point a plain UN-proxied A/AAAA record for $DOMAIN at this
-                 box — Caddy keeps retrying issuance until it resolves here
-  certificate  : Let's Encrypt via Caddy, requested at startup and renewed
-                 automatically; watch issuance: journalctl -u caddy -f
+  dns          : point a plain UN-proxied A/AAAA record at this box for
+                 each of: ${DOMAINS[*]}
+                 Caddy keeps retrying issuance until the names resolve here
+  certificate  : Let's Encrypt via Caddy (one per domain), requested at
+                 startup and renewed automatically; watch issuance:
+                 journalctl -u caddy -f
   firewall     : $(ufw status | head -1) — 80/443 open; the game port (8080)
                  is loopback-only, reachable through Caddy alone
   tunables     : /etc/default/mech-vs-mech   (then: systemctl restart mech-vs-mech)
   logs         : journalctl -u mech-vs-mech -f
-  quick check  : curl -sI https://$DOMAIN/ | head -1
+  quick check  : curl -sI https://${DOMAINS[0]}/ | head -1
   updates      : auto — pushes to origin/main go live within ~5 min
                  (mech-vs-mech-update.timer → update.sh, discards local
                  edits in this checkout); manual: sudo ./update.sh --force

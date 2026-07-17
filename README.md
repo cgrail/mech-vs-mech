@@ -87,10 +87,13 @@ For a dedicated Ubuntu box, [install.sh](install.sh) does all of the above in on
 
 ```bash
 sudo DOMAIN=play.example.com EMAIL=you@example.com ./install.sh   # HTTPS on the box: Caddy + Let's Encrypt
+sudo DOMAIN=play.example.com,mech.example.org ./install.sh        # …same, on several domains
 sudo ./install.sh                                                 # HTTP-only origin behind Cloudflare
 ```
 
-With `DOMAIN` set, Caddy is installed on the same box, obtains a Let's Encrypt certificate (point a plain, **un-proxied** DNS A/AAAA record at the server first — Caddy retries issuance until the name resolves there), renews it automatically, and proxies to the game server on `127.0.0.1:8080`. `EMAIL` is optional (certificate expiry notices). Without `DOMAIN`, the origin speaks plain HTTP on port 80, locked to Cloudflare's IP ranges, and Cloudflare (orange-cloud DNS, SSL mode "Flexible") terminates HTTPS. The choice is remembered in `/etc/default/mech-vs-mech`, so re-runs are just `sudo ./install.sh`; `sudo DOMAIN= ./install.sh` switches back to Cloudflare mode.
+With `DOMAIN` set, Caddy is installed on the same box, obtains a Let's Encrypt certificate per domain (point a plain, **un-proxied** DNS A/AAAA record at the server for each name first — Caddy retries issuance until the names resolve there), renews them automatically, and proxies to the game server on `127.0.0.1:8080`. `DOMAIN` accepts one or more hostnames, comma- or space-separated. `EMAIL` is optional (certificate expiry notices). Without `DOMAIN`, the origin speaks plain HTTP on port 80, locked to Cloudflare's IP ranges, and Cloudflare (orange-cloud DNS, SSL mode "Flexible") terminates HTTPS.
+
+Instead of the command line, `DOMAIN`/`EMAIL` can live in a `.env` file next to `install.sh` (copy [.env.example](.env.example)) — it's gitignored and survives the auto-update timer. Either way the choice is remembered in `/etc/default/mech-vs-mech`, so re-runs are just `sudo ./install.sh`; `sudo DOMAIN= ./install.sh` (or an empty `DOMAIN=` in `.env`) switches back to Cloudflare mode. Precedence: command line > `.env` > remembered values.
 
 ## How to Play
 

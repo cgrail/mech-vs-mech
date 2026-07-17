@@ -57,7 +57,7 @@ log "deploying ${deployed_rev:-nothing} → $remote_rev"
 git_src reset --hard "origin/$BRANCH"
 
 # mirror install.sh's deploy steps: sync, build unprivileged, lock down
-rsync -a --delete --exclude .git --exclude node_modules --exclude dist "$SRC_DIR/" "$APP_DIR/"
+rsync -a --delete --exclude .git --exclude node_modules --exclude dist --exclude .env "$SRC_DIR/" "$APP_DIR/"
 chown -R "$APP_USER:$APP_USER" "$APP_DIR"
 runuser -u "$APP_USER" -- bash -c "cd '$APP_DIR' && HOME='$APP_HOME' npm ci --no-audit --no-fund && HOME='$APP_HOME' npm run build"
 chown -R "root:$APP_USER" "$APP_DIR"
