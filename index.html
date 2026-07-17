@@ -75,18 +75,29 @@
       document.body.appendChild(ov);
     };
 
+    // Errors from browser extensions and browser-injected scripts land on
+    // window too (Safari masks their source as webkit-masked-url://hidden/).
+    // They are not game failures — ignore an error only when every source URL
+    // in its stack/filename is such a script, so mixed stacks still show.
+    const foreign = (src) => {
+      const urls = src && src.match(/[a-z][\w+.-]*:\/\/[^\s)]+/gi);
+      return !!urls && urls.every((u) => /^(webkit-masked-url|safari-extension|safari-web-extension|chrome-extension|moz-extension):/i.test(u));
+    };
+
     // capture phase so failed <script>/<link> loads (which don't bubble) land here too
     window.addEventListener('error', (e) => {
       const t = e.target;
       if (t && t !== window && (t.src || t.href)) { show('Failed to load: ' + (t.src || t.href)); return; }
       const text = (e.error && e.error.message) || e.message || 'Unknown error';
       if (/^ResizeObserver/.test(text)) return; // browser noise, not a failure
+      if (foreign((e.error && e.error.stack) || e.filename)) return;
       show(text, (e.error && e.error.stack) || (text + (e.filename ? `\n    at ${e.filename}:${e.lineno}` : '')));
     }, true);
 
     // top-level awaits in the module graph (the level fetch/parse) reject through here
     window.addEventListener('unhandledrejection', (e) => {
       const r = e.reason;
+      if (foreign(r && r.stack)) return;
       show((r && r.message) || String(r), r && r.stack);
     });
   })();
