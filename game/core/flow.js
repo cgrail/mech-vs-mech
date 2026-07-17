@@ -1,4 +1,4 @@
-import { renderer, scene } from '../world/scene.js';
+import { scene, lockPointer } from '../world/scene.js';
 import { levelName, levels } from '../world/world.js';
 import { game, stats, difficulty, touch } from './state.js';
 import { entities, redBase } from '../entities/entities.js';
@@ -163,7 +163,7 @@ function findNextLevel() {
 export function endGame(victory, reason) {
   if (game.state === 'over') return;
   game.state = 'over';
-  document.exitPointerLock();
+  if (document.exitPointerLock) document.exitPointerLock(); // undefined on iOS Safari
   setTimeout(() => {
     nextLevelUrl = victory && !MP.active ? findNextLevel() : null;
     showLevelScreen(false);
@@ -219,7 +219,7 @@ export function startGame() {
   overlay.classList.add('hidden');
   hud.classList.add('active');
   game.state = 'playing';
-  if (!touch.active) renderer.domElement.requestPointerLock();
+  if (!touch.active) lockPointer();
   showMessage('DESTROY THE ENEMY BASE', '#ffd23c');
   updateHud();
 }

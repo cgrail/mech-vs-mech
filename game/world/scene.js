@@ -18,6 +18,18 @@ scene.fog = new THREE.Fog(0x0b0d16, 90, 280);
 export const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 600);
 camera.position.set(0, 40, 140);
 
+/* Pointer lock is best-effort: browsers refuse it for benign reasons (no user
+   activation — e.g. the MP go-handshake, re-locking too soon after Esc, iPadOS)
+   as a sync throw or a rejected promise depending on engine. An unlocked
+   pointer is already a handled state (clicking the canvas retries), so a
+   refusal must never surface as a fatal error. */
+export function lockPointer() {
+  try {
+    const p = renderer.domElement.requestPointerLock();
+    if (p && typeof p.catch === 'function') p.catch(() => {});
+  } catch { /* stay unlocked */ }
+}
+
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();

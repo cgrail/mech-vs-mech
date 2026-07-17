@@ -1,4 +1,4 @@
-import { renderer } from '../world/scene.js';
+import { renderer, lockPointer } from '../world/scene.js';
 import { game, touch } from '../core/state.js';
 import { placeTurretDirect } from './build.js';
 import { player, fireRocket, selectWeapon } from '../entities/player.js';
@@ -25,7 +25,7 @@ document.addEventListener('contextmenu', (e) => e.preventDefault());
 
 renderer.domElement.addEventListener('mousedown', (e) => {
   if (game.state !== 'playing' || touch.active) return;
-  if (!game.pointerLocked) { renderer.domElement.requestPointerLock(); return; }
+  if (!game.pointerLocked) { lockPointer(); return; }
   if (e.button === 0) game.mouseDown = true;
   else if (e.button === 2) fireRocket();
 });
