@@ -51,6 +51,7 @@ terrainLayer.height = mini.height;
 drawTerrainMinimap(terrainLayer.getContext('2d'), mini.width, mini.height);
 
 export function drawMinimap() {
+  if (mini.offsetParent === null) return; // hidden (touch device or narrow window)
   const w = mini.width, h = mini.height;
   mctx.clearRect(0, 0, w, h);
   mctx.globalAlpha = 0.75;

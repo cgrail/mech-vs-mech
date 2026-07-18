@@ -147,18 +147,12 @@ body.touch #buildHint { bottom: calc(max(18px, env(safe-area-inset-bottom)) + 64
   text-shadow: 2px 2px 0 #000; display: none;
 }
 
-/* narrow (portrait phone) layout: the bottom-center minimap would cover the
-   player mech and the ammo row, and the big one-line message overflows */
+/* narrow (portrait phone) layout: no minimap (it would cover the player mech
+   and the ammo row), and the big one-line message overflows */
 @media (max-width: 700px) {
-  #minimap {
-    bottom: auto;
-    top: calc(max(14px, env(safe-area-inset-top)) + 38px); /* below the base bars */
-    height: min(150px, 20vh);
-    background: rgba(8,10,16,.45);
-  }
+  #minimap { display: none; }
   #buildHint { bottom: calc(max(18px, env(safe-area-inset-bottom)) + 64px); }
   #msg {
-    top: 30%; /* clear of the relocated minimap */
     font-size: 22px; letter-spacing: 3px;
     white-space: normal; width: 90vw; text-align: center;
   }
