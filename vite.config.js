@@ -25,8 +25,10 @@ export default defineConfig({
         handler: (html) => html.replace(/<script type="importmap">[\s\S]*?<\/script>\s*/, ''),
       },
       closeBundle() {
-        for (const dir of ['levels', 'assets']) {
-          cpSync(resolve(import.meta.dirname, dir), resolve(import.meta.dirname, 'dist', dir), { recursive: true });
+        // dirs copied recursively; privacy-policy.html is a standalone static
+        // page (inline CSS, no module scripts) Vite doesn't see, so ship it too
+        for (const path of ['levels', 'assets', 'privacy-policy.html']) {
+          cpSync(resolve(import.meta.dirname, path), resolve(import.meta.dirname, 'dist', path), { recursive: true });
         }
       },
     },
