@@ -66,6 +66,9 @@ final class GameEngine {
     let cameraNode = SCNNode()
 
     var phase: GamePhase = .menu
+    /// Single-player pause: freezes the sim while the in-game menu overlay is
+    /// open. Multiplayer never sets this (a networked match can't be paused).
+    var paused = false
     var elapsed = 0.0
 
     var entities: [Entity] = []
@@ -166,6 +169,8 @@ final class GameEngine {
     }
     func requestRocket() { enqueue { if self.phase == .playing { self.fireRocket() } } }
     func requestTurret() { enqueue { if self.phase == .playing { self.placeTurretDirect() } } }
+    func pauseSim()  { enqueue { self.paused = true } }
+    func resumeSim() { enqueue { self.paused = false } }
 
     /* the DEPLOY button (ports flow.js startGame); in multiplayer the
        ready-handshake's "go" drives this instead of a local button */
@@ -224,7 +229,7 @@ final class GameEngine {
         actionLock.unlock()
         for action in pending { action() }
 
-        if phase == .playing {
+        if phase == .playing && !paused {
             elapsed += dt
 
             updatePlayer(dt: dt)

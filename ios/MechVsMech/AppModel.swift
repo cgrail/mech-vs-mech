@@ -140,6 +140,22 @@ final class AppModel: ObservableObject {
         screen = .menu
     }
 
+    /* in-game menu QUIT: leave a match in progress with no win/lose result —
+       back to the mission menu in single player, back to the lobby in MP.
+       Mirrors continueFromEndScreen's bail-out path minus the level advance. */
+    func quitToMenu() {
+        gyro.stop()
+        if isMPMatch {
+            isMPMatch = false
+            rebuildEngine()          // drop the match engine back to a menu engine
+            screen = .lobby
+            lobby.backToLobby()
+            return
+        }
+        rebuildEngine()
+        screen = .menu
+    }
+
     // MARK: - Multiplayer
 
     func showLobby() {

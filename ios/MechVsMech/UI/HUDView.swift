@@ -16,6 +16,7 @@ extension Color {
 ============================================================ */
 struct HUDView: View {
     @EnvironmentObject var model: AppModel
+    @State private var showPause = false
 
     var body: some View {
         ZStack {
@@ -105,8 +106,70 @@ struct HUDView: View {
                 .padding(.trailing, 14)
                 .padding(.bottom, 10)
             }
+
+            // pause / quit button (top-right corner) — shown only in play
+            if model.screen == .playing {
+                VStack {
+                    HStack {
+                        Spacer()
+                        Button {
+                            if !model.isMPMatch { model.engine.pauseSim() }
+                            showPause = true
+                        } label: {
+                            Image(systemName: "pause.fill")
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundColor(.white)
+                                .frame(width: 42, height: 42)
+                                .background(Circle().fill(Color.black.opacity(0.45)))
+                                .overlay(Circle().stroke(Color.white.opacity(0.35), lineWidth: 1.5))
+                        }
+                        .padding(.top, 6)
+                        .padding(.trailing, 12)
+                    }
+                    Spacer()
+                }
+            }
+
+            // in-game menu overlay: resume, or bail to the menu / lobby
+            if showPause && model.screen == .playing {
+                pauseOverlay
+            }
         }
         .animation(.easeInOut(duration: 0.25), value: model.message)
+        .animation(.easeInOut(duration: 0.2), value: showPause)
+    }
+
+    private func resumeFromPause() {
+        if !model.isMPMatch { model.engine.resumeSim() }
+        showPause = false
+    }
+
+    private var pauseOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.72).ignoresSafeArea()
+            VStack(spacing: 16) {
+                Text("PAUSED")
+                    .font(.system(size: 30, weight: .black, design: .rounded))
+                    .kerning(4)
+                    .foregroundColor(.white)
+                    .shadow(color: .black, radius: 6)
+                Button { resumeFromPause() } label: {
+                    Text("▶ RESUME")
+                        .font(.system(size: 18, weight: .black, design: .rounded))
+                        .frame(width: 240)
+                }
+                .buttonStyle(MenuButtonStyle(prominent: true))
+                Button {
+                    showPause = false
+                    model.quitToMenu()
+                } label: {
+                    Text(model.isMPMatch ? "LEAVE MATCH" : "QUIT TO MENU")
+                        .font(.system(size: 16, weight: .heavy, design: .rounded))
+                        .frame(width: 240)
+                }
+                .buttonStyle(MenuButtonStyle())
+            }
+        }
     }
 
     private func baseBar(label: String, frac: Double, color: Color) -> some View {
