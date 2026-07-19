@@ -60,8 +60,8 @@ extension GameEngine {
         if abs(diff) < 0.15 && e.cool <= 0 {
             e.cool = e.fireInterval
             let muzzle = localToWorld(e, 0, 3.0, 2.2)
-            // red turrets lead moving targets on higher difficulties
-            let lead = e.team == .red ? difficulty.mech.aimLead : 0
+            // red turrets lead moving targets on higher difficulties (never in PvP)
+            let lead = (e.team == .red && !isMP) ? difficulty.mech.aimLead : 0
             let tof = dXZ / 100
             let ax = target.x + target.velX * tof * lead
             let az = target.z + target.velZ * tof * lead

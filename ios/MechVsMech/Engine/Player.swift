@@ -13,11 +13,16 @@ private let LOOK_SENS = 0.005   // radians per pt of horizontal look drag
 extension GameEngine {
 
     func setupPlayer() {
-        let model = makeMechModel(BLUE_PAL)
-        let sp = spawnPoint()
+        // in multiplayer my team comes from the lobby, and my spawn index keeps
+        // teammates off each other's spot
+        let idx = isMP ? teamIndexOf(playerId: myPlayerId, team: myTeam, roster: mp!.roster) : 0
+        let sp = spawnPointFor(team: myTeam, idx: idx)
         spawnPos = sp.pos
-        spawnYaw = sp.yaw
-        let e = Entity(kind: .player, team: .blue, node: model.group, hp: 300, hitRadius: 2.4, hitHeight: 7)
+        spawnYaw = atan2(sp.face.x - sp.pos.x, sp.face.z - sp.pos.z)   // face the enemy base
+        let model = makeMechModel(myTeam == .red ? RED_PAL : BLUE_PAL)
+        let e = Entity(kind: .player, team: myTeam, node: model.group, hp: 300, hitRadius: 2.4, hitHeight: 7)
+        e.netId = isMP ? "player:\(myPlayerId)" : nil
+        e.owner = myPlayerId
         e.legL = model.legL
         e.legR = model.legR
         e.lampR = model.lampR
@@ -25,7 +30,7 @@ extension GameEngine {
         e.x = sp.pos.x
         e.z = sp.pos.z
         e.y = level.groundHeightAt(sp.pos.x, sp.pos.z)
-        e.yaw = sp.yaw
+        e.yaw = spawnYaw
         e.bar = HealthBar(width: 5)
         e.syncNode()
         e.node.eulerAngles.y = Float(e.yaw)
@@ -158,6 +163,7 @@ extension GameEngine {
         player.node.eulerAngles.y = Float(player.yaw)
         scene.rootNode.addChildNode(player.node)
         delegate?.engineRespawnVisible(false)
+        if isMP { net?.sendGame(["t": "respawn"]) }
         delegate?.engineMessage("MECH REDEPLOYED", colorHex: 0x8ab4ff)
     }
 }

@@ -110,27 +110,75 @@ extension GameEngine {
                 let d = (dx * dx + dz * dz).squareRoot()
                 let minD = 4.4
                 if d < minD && d > 1e-4 {
-                    let push = (minD - d) / 2
-                    a.x -= dx / d * push
-                    a.z -= dz / d * push
-                    b.x += dx / d * push
-                    b.z += dz / d * push
-                    // sync the already-positioned nodes, preserving the walk bob in y
-                    a.node.position.x = Float(a.x)
-                    a.node.position.z = Float(a.z)
-                    b.node.position.x = Float(b.x)
-                    b.node.position.z = Float(b.z)
+                    // a network-driven mech can't be pushed — its position is authoritative
+                    let ra = a.remote, rb = b.remote
+                    if ra && rb { continue }
+                    let push = (ra || rb) ? (minD - d) : (minD - d) / 2
+                    if !ra {
+                        a.x -= dx / d * push
+                        a.z -= dz / d * push
+                        a.node.position.x = Float(a.x)
+                        a.node.position.z = Float(a.z)
+                    }
+                    if !rb {
+                        b.x += dx / d * push
+                        b.z += dz / d * push
+                        b.node.position.x = Float(b.x)
+                        b.node.position.z = Float(b.z)
+                    }
                 }
             }
         }
     }
 
-    /* single player: the player is always blue, deploying on the P marker
-       facing the red base (the team/roster fan-out of helpers.js is
-       multiplayer-only and not ported) */
+    /* fan teammates out around a shared spawn marker: idx 0 is the marker
+       itself, higher indices take the idx-th nearby spot on the same terrain
+       height. Deterministic, so every client places every player identically. */
+    private static let spawnRing: [(Double, Double)] =
+        [(-7, 0), (7, 0), (0, 7), (-7, 7), (7, 7), (0, -7), (-7, -7), (7, -7)]
+
+    private func offsetSpawn(_ p: P2, _ idx: Int) -> P2 {
+        if idx == 0 { return p }
+        let h = level.groundHeightAt(p.x, p.z)
+        var n = 0
+        for (ox, oz) in Self.spawnRing {
+            let q = P2(x: p.x + ox, z: p.z + oz)
+            if abs(level.groundHeightAt(q.x, q.z) - h) < 0.5 {
+                n += 1
+                if n == idx { return q }
+            }
+        }
+        return p   // every spot taken/invalid — mech separation nudges them apart
+    }
+
+    /* where a player mech deploys: team + index within that team. Blue fans
+       out around the level's P marker; red rotates through the enemy-wave S
+       markers, falling back to just in front of the red base. `face` is what
+       the mech should look at on spawn (the enemy base). */
+    func spawnPointFor(team: Team, idx: Int) -> (pos: P2, face: P2) {
+        if team == .blue {
+            return (offsetSpawn(level.playerSpawn, idx), level.redBase)
+        }
+        let s = level.enemySpawns
+        if !s.isEmpty {
+            return (offsetSpawn(s[idx % s.count], idx / s.count), level.blueBase)
+        }
+        let rb = level.redBase, bb = level.blueBase
+        let d = max(1, hypot(bb.x - rb.x, bb.z - rb.z))
+        let p = P2(x: rb.x + (bb.x - rb.x) / d * 16, z: rb.z + (bb.z - rb.z) / d * 16)
+        return (offsetSpawn(p, idx), bb)
+    }
+
+    /* my position within my team's roster (0 in single player), used to pick
+       a spawn spot that no teammate occupies */
+    func teamIndexOf(playerId: Int, team: Team, roster: [MPPlayer]) -> Int {
+        let sorted = roster.filter { $0.team == team }.sorted { $0.id < $1.id }
+        return max(0, sorted.firstIndex { $0.id == playerId } ?? 0)
+    }
+
+    /* single-player convenience: player is blue on the P marker facing red */
     func spawnPoint() -> (pos: P2, yaw: Double) {
-        let pos = level.playerSpawn
-        let face = level.redBase
-        return (pos, atan2(face.x - pos.x, face.z - pos.z))
+        let sp = spawnPointFor(team: .blue, idx: 0)
+        return (sp.pos, atan2(sp.face.x - sp.pos.x, sp.face.z - sp.pos.z))
     }
 }

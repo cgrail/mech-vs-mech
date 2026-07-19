@@ -37,7 +37,12 @@ extension GameEngine {
         }
         stats.salvage -= Costs.turret
         stats.turretsBuilt += 1
-        makeTurretEntity(team: player.team, x: p.x, z: p.z)
+        // netId carries my playerId so every client knows who owns (simulates) it
+        let netId = isMP ? "t:\(myPlayerId):\(stats.turretsBuilt)" : nil
+        let t = makeTurretEntity(team: player.team, x: p.x, z: p.z, netId: netId, owner: myPlayerId)
+        if isMP {
+            net?.sendGame(["t": "build", "id": t.netId ?? "", "x": wire(p.x, 1), "z": wire(p.z, 1)])
+        }
         spawnSpark(p.x, level.groundHeightAt(p.x, p.z) + 2, p.z)
         audio.beep(f: 500, f2: 1100, dur: 0.15, type: .sine, vol: 0.12)
         return true

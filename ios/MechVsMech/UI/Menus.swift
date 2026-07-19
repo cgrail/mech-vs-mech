@@ -7,74 +7,6 @@ import SwiftUI
    mission report, like the web version.
 ============================================================ */
 
-private struct MenuButtonStyle: ButtonStyle {
-    var prominent = false
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .padding(.horizontal, 18)
-            .padding(.vertical, 10)
-            .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(prominent ? Color(hex: 0x2b4fd8).opacity(0.85) : Color.white.opacity(0.08))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(Color.white.opacity(prominent ? 0.6 : 0.25), lineWidth: 1)
-            )
-            .foregroundColor(.white)
-            .scaleEffect(configuration.isPressed ? 0.96 : 1)
-    }
-}
-
-private struct PillToggle: View {
-    let label: String
-    let selected: Bool
-    let action: () -> Void
-    var body: some View {
-        Button(action: action) {
-            Text(label)
-                .font(.system(size: 13, weight: .heavy, design: .rounded))
-                .padding(.horizontal, 14)
-                .padding(.vertical, 7)
-                .background(Capsule().fill(selected ? Color(hex: 0x2b4fd8) : Color.white.opacity(0.08)))
-                .overlay(Capsule().stroke(Color.white.opacity(selected ? 0.8 : 0.25), lineWidth: 1))
-                .foregroundColor(.white)
-        }
-    }
-}
-
-private struct OverlayFrame<Content: View>: View {
-    private let content: Content
-    init(@ViewBuilder content: () -> Content) {
-        self.content = content()
-    }
-    var body: some View {
-        ZStack {
-            Color.black.opacity(0.55).ignoresSafeArea().allowsHitTesting(true)
-            content
-        }
-    }
-}
-
-struct TitleBlock: View {
-    var h1 = "MECH VS MECH"
-    var h1Color = Color.white
-    var h2 = "BASE STRIKE"
-    var body: some View {
-        VStack(spacing: 2) {
-            Text(h1)
-                .font(.system(size: 34, weight: .black, design: .rounded))
-                .kerning(3)
-                .foregroundColor(h1Color)
-                .shadow(color: .black, radius: 6)
-            Text(h2)
-                .font(.system(size: 13, weight: .bold, design: .rounded))
-                .kerning(4)
-                .foregroundColor(.white.opacity(0.7))
-        }
-    }
-}
-
 /* ---------- mode select (first screen) ---------- */
 struct ModeScreen: View {
     @EnvironmentObject var model: AppModel
@@ -94,15 +26,18 @@ struct ModeScreen: View {
                     .frame(width: 300)
                 }
                 .buttonStyle(MenuButtonStyle(prominent: true))
-                VStack(spacing: 2) {
-                    Text("MULTIPLAYER").font(.system(size: 18, weight: .black, design: .rounded))
-                    Text("PLAY THE WEB VERSION FOR TEAM BATTLES")
-                        .font(.system(size: 10, weight: .semibold, design: .rounded))
+                Button {
+                    model.showLobby()
+                } label: {
+                    VStack(spacing: 2) {
+                        Text("MULTIPLAYER").font(.system(size: 18, weight: .black, design: .rounded))
+                        Text("CHALLENGE OTHER PILOTS — UP TO 5 v 5")
+                            .font(.system(size: 10, weight: .semibold, design: .rounded))
+                            .foregroundColor(.white.opacity(0.6))
+                    }
+                    .frame(width: 300)
                 }
-                .foregroundColor(.white.opacity(0.35))
-                .frame(width: 300)
-                .padding(.vertical, 10)
-                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.white.opacity(0.15), lineWidth: 1))
+                .buttonStyle(MenuButtonStyle())
             }
         }
     }
@@ -118,9 +53,9 @@ struct MenuScreen: View {
             VStack(spacing: 12) {
                 if over {
                     TitleBlock(
-                        h1: model.victory ? "VICTORY" : "BASE LOST",
+                        h1: model.victory ? "VICTORY" : (model.isMPMatch ? "DEFEAT" : "BASE LOST"),
                         h1Color: model.victory ? Color(hex: 0x7CFF6B) : Color(hex: 0xff5040),
-                        h2: model.victory ? "ENEMY BASE DESTROYED — DISTRICT SECURED" : "YOUR BASE WAS DESTROYED"
+                        h2: model.endReason ?? (model.victory ? "ENEMY BASE DESTROYED — DISTRICT SECURED" : "YOUR BASE WAS DESTROYED")
                     )
                 } else {
                     TitleBlock()
@@ -168,7 +103,7 @@ struct MenuScreen: View {
                 Button {
                     if over { model.continueFromEndScreen() } else { model.deploy() }
                 } label: {
-                    Text(over ? (model.victory && model.hasNextLevel ? "NEXT LEVEL" : "REDEPLOY") : "DEPLOY")
+                    Text(endButtonLabel)
                         .font(.system(size: 20, weight: .black, design: .rounded))
                         .kerning(2)
                         .frame(width: 240)
@@ -188,6 +123,12 @@ struct MenuScreen: View {
         }
     }
 
+    private var endButtonLabel: String {
+        if !over { return "DEPLOY" }
+        if model.isMPMatch { return "BACK TO LOBBY" }
+        return model.victory && model.hasNextLevel ? "NEXT LEVEL" : "REDEPLOY"
+    }
+
     private var briefingPanel: some View {
         let controls = model.scheme == .gyro
             ? "🧭 Turn phone to rotate mech · 📱 lean forward/back to move\n📱 tilt sideways to strafe · 👆 touch the screen to fire"
@@ -197,6 +138,15 @@ struct MenuScreen: View {
 
     private var reportPanel: some View {
         let stats = model.engine.stats
+        if model.isMPMatch, let mp = model.engine.mp {
+            let mates = mp.roster.filter { $0.team == mp.myTeam && $0.id != mp.playerId }.map(\.name)
+            let foes = mp.roster.filter { $0.team != mp.myTeam }.map(\.name)
+            let flavor = model.victory
+                ? "District secured, officer. Head back to the lobby for the next battle."
+                : "The district has fallen. Return to the lobby and take the rematch."
+            let matesLine = mates.isEmpty ? "" : "Fought beside \(mates.joined(separator: " · "))\n"
+            return Text("MULTIPLAYER — \(mp.myTeam.wire.uppercased()) TEAM vs \(foes.joined(separator: " · "))\n\(matesLine)Kills: \(stats.kills) · Turrets built: \(stats.turretsBuilt)\n\(flavor)")
+        }
         let flavor = model.victory
             ? (model.hasNextLevel ? "Outstanding work, officer. The next district needs you."
                                   : "Outstanding work, officer. All districts secured.")

@@ -37,6 +37,11 @@ final class Entity {
     let hitHeight: Double
     var bar: HealthBar?
 
+    // multiplayer ownership (SP: netId nil, owner 0, remote false)
+    var netId: String?
+    var owner = 0            // playerId of the client that simulates this entity
+    var remote = false       // a replica driven by the network, not local sim
+
     // combat / AI (per-entity timers, like the JS object fields)
     var speed = 0.0
     var range = 0.0
@@ -324,6 +329,7 @@ extension GameEngine {
             bar.node.position.y = Float(barHeight)
             e.node.addChildNode(bar.node)
         }
+        if let id = e.netId { netRegistry[id] = e }  // addressable by multiplayer events
         return e
     }
 
@@ -332,6 +338,7 @@ extension GameEngine {
         let palette = team == .blue ? BLUE_PAL : RED_PAL
         let node = makeBaseModel(palette)
         let e = Entity(kind: .base, team: team, node: node, hp: 1200, hitRadius: 9.5, hitHeight: 14)
+        e.netId = "base:\(team.wire)"   // bases are shared and unowned
         e.x = x
         e.z = z
         e.y = level.groundHeightAt(x, z)
@@ -341,14 +348,18 @@ extension GameEngine {
     }
 
     @discardableResult
-    func makeTurretEntity(team: Team, x: Double, z: Double) -> Entity {
+    func makeTurretEntity(team: Team, x: Double, z: Double,
+                          netId: String? = nil, owner: Int = 0) -> Entity {
         let palette = team == .blue ? BLUE_PAL : RED_PAL
         let model = makeTurretModel(palette)
-        // blue turrets are the player-built profile; red marker turrets get
-        // their stats overwritten by applyDifficulty() on deploy
-        let mine = team == .blue
+        // in multiplayer every turret is player-built — both teams get the blue
+        // profile so the match stays symmetric (SP red marker turrets get their
+        // stats overwritten by applyDifficulty() on deploy)
+        let mine = team == .blue || isMP
         let e = Entity(kind: .turret, team: team, node: model.group,
                        hp: mine ? 260 : 320, hitRadius: 2.2, hitHeight: 4)
+        e.netId = netId
+        e.owner = owner
         e.head = model.head
         e.x = x
         e.z = z

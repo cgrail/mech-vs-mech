@@ -16,6 +16,7 @@ struct ContentView: View {
             case .mode: ModeScreen()
             case .menu: MenuScreen()
             case .levelSelect: LevelScreen()
+            case .lobby: LobbyView(lobby: model.lobby)
             case .over: MenuScreen(over: true)
             case .playing: EmptyView()
             }

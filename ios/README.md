@@ -1,7 +1,8 @@
 # MECH VS MECH — native iPhone port
 
-A native Swift/SceneKit port of the web game one directory up. Single player only
-(campaign vs. the AI waves) — multiplayer stays on the web version.
+A native Swift/SceneKit port of the web game one directory up. Single-player
+campaign (vs. the AI waves) **and** team multiplayer (up to 5 v 5) against the web
+game's own backend.
 
 ## Building
 
@@ -36,6 +37,27 @@ Adding a Swift file anywhere under `MechVsMech/` automatically joins the target
 | `MechVsMech/Engine/GameEngine.swift` | `game/main.js` + `world/scene.js` + `core/flow.js` |
 | `MechVsMech/TouchControls.swift` | `game/systems/mobile.js` |
 | `MechVsMech/UI/*`, `AppModel.swift` | `game/ui/hud.js` + the overlay screens |
+| `MechVsMech/Net/Net.swift`, `Net/Lobby.swift` | `game/net/net.js`, `game/ui/lobby.js` |
+| `MechVsMech/Engine/Remote.swift` | `game/systems/remote.js` |
+
+## Multiplayer
+
+MULTIPLAYER from the mode screen opens the lobby and connects to the web game's
+Node server at `wss://mech.grails.de/ws` (the same lobby the browser uses, so iOS
+and web players share rooms). Flow mirrors the web: enter a callsign → create or
+join a room → pick blue or red (max 5/side) → START MATCH once both sides have a
+pilot → a READY handshake deploys everyone at once.
+
+Point it at a different backend by setting the `mechServer` UserDefaults string
+(e.g. `ws://192.168.1.20:8080/ws` for a local `npm start`). ATS allows the
+default `wss://` (TLS); a plaintext `ws://` server needs an ATS exception.
+
+Ownership/replication is identical to the web build: each client simulates only
+its own mech, turrets and shots; everyone else is a network replica. Bases are
+shared and converge through mirrored `bhit` damage. The one structural difference
+is match entry — the browser reloads the page into `?mp=1`, whereas iOS keeps the
+same socket and `rejoin`s (the server has already released the lobby-client record
+by then).
 
 One `GameEngine` == one loaded level. Restart / level switch throws the engine
 away and builds a new one — the native analog of the web version's
@@ -64,11 +86,21 @@ not been compiled)
   conventions live in `TouchControls.swift` (`GyroController`) and are the one
   part of the port that could not be validated off-device — flip the sign on
   `dLean` / `dTilt` / `dYaw` there if a direction is inverted.
+- **Multiplayer** (needs two devices, or one device + the web client): open the
+  lobby on both, create/join the same room, take opposite teams, START MATCH,
+  DEPLOY on both. Check that the other pilot's mech moves smoothly (state easing),
+  name tags show, shots from the other side land, kills pay salvage to the whole
+  enemy team, and destroying a base ends the match for everyone. Also confirm the
+  `Origin` header is accepted — if the socket closes immediately with a 1008, the
+  server rejected the origin (see `Net.connect()`), which is the one networking
+  detail that can only be confirmed against the live server.
 
 ## Known deviations from the web version
 
-- Multiplayer, desktop keyboard/mouse controls, and the minimap are omitted
-  (the web build hides the minimap on phones anyway).
+- Desktop keyboard/mouse controls and the minimap are omitted (the web build
+  hides the minimap on phones anyway).
+- Multiplayer match entry keeps the socket and `rejoin`s instead of reloading
+  the page; there is no `?server=`/URL plumbing (use the `mechServer` default).
 - The level-switch fly-in/out animation is an instant switch.
 - Hemisphere light approximated with an ambient light; light intensities are
   eyeballed equivalents, not physically matched.

@@ -9,8 +9,15 @@ update the checklist as files land.
 - **SceneKit + SwiftUI**, iPhone only, **landscape only**, deployment target iOS 17.
   SceneKit maps 1:1 onto the three.js scene graph (same right-handed y-up axes,
   `eulerAngles.y = yaw` matches `group.rotation.y = yaw`, forward = `(sin yaw, 0, cos yaw)`).
-- **Single player only.** Multiplayer (lobby/relay/remote.js/net.js) is out of scope.
-  All `MP.active` branches resolve to the SP path.
+- **Single player + multiplayer.** MP was added in a second pass: it ports
+  net.js / remote.js / lobby.js and talks to the web game's own Node backend at
+  `wss://mech.grails.de/ws` (override with the `mechServer` UserDefaults key).
+  The engine takes an optional `MPConfig`; when nil the SP path runs unchanged.
+  Same ownership model as the web (per-player netIds `player:<pid>` / `t:<pid>:<n>`,
+  shared unowned bases via `bhit`, shooter-reported/owner-applied hits, 15 Hz
+  state ticks). iOS keeps one socket across lobby→match (the server releases the
+  lobby-client record when it mints the match, so we `rejoin` on the same socket
+  instead of reloading the page like the browser does).
 - Xcode project is hand-written with the Xcode 16 `objectVersion 77` format using a
   `PBXFileSystemSynchronizedRootGroup` — every file under `ios/MechVsMech/` is auto-added
   to the target, so new Swift files need **no pbxproj edits**. Info.plist is generated
@@ -53,9 +60,21 @@ update the checklist as files land.
 | [x] | `GameView.swift` | SCNView wrapper (UIViewRepresentable) + render delegate |
 | [x] | `UI/HUDView.swift` | hud.js (hp column, salvage, base bars, message, hint, respawn, buttons) |
 | [x] | `UI/Menus.swift` | flow.js screens (mode → menu → level select → end screen) |
-| [x] | `AppModel.swift` | screen state machine, engine lifecycle, persisted difficulty/scheme |
+| [x] | `AppModel.swift` | screen state machine, engine lifecycle, persisted difficulty/scheme, MP match start/end |
 | [x] | `MechVsMechApp.swift` + `ContentView.swift` | @main, layering game view + overlays |
-| [x] | `ios/README.md` | how to open/build/sync assets, what's not ported |
+| [x] | `Net/Net.swift` | net.js (URLSessionWebSocketTask transport, Origin header, MPConfig, wire helpers) |
+| [x] | `Net/Lobby.swift` | lobby.js (LobbyModel: callsign→rooms→teams→start, match-boot rejoin/ready/go) |
+| [x] | `Engine/Remote.swift` | remote.js (Peer replicas, s/shot/hit/hp/bhit/build/die/respawn, easing, name tags) |
+| [x] | `UI/LobbyView.swift` | lobby + match-boot screens (mpScreen/matchScreen in index.html) |
+| [x] | `UI/Styles.swift` | shared overlay button/pill/frame/title components (used by menus + lobby) |
+| [x] | `ios/README.md` | how to open/build/sync assets, MP setup, what's not ported |
+
+MP engine branches added to existing files: `Entities.swift` (netId/owner/remote,
+registry), `GameEngine.swift` (mp/net fields, team-relative HUD, AI/wave gates,
+remoteUpdate, requestMatchGo), `Projectiles.swift` (applyHit routing, cosmetic
+shots, hp/die echoes, team-relative bounty), `Player.swift` (team spawn + respawn
+broadcast), `Build.swift` (build event), `Helpers.swift` (spawnPointFor/teamIndexOf,
+remote-aware separation), `AI.swift` (zero turret aim-lead in PvP).
 
 ## Gameplay constants that must match the web version
 

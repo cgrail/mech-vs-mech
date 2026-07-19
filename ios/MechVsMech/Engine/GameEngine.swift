@@ -39,7 +39,7 @@ protocol EngineDelegate: AnyObject {
     func engineMessage(_ text: String, colorHex: Int)
     func engineBuildHint(_ text: String)
     func engineRespawnVisible(_ visible: Bool)
-    func engineGameOver(victory: Bool)
+    func engineGameOver(victory: Bool, reason: String?)
     func engineHud(_ hud: HudSnapshot)
 }
 
@@ -48,6 +48,19 @@ final class GameEngine {
     let levelInfo: LevelInfo
     let level: Level
     var difficulty: Difficulty
+
+    // multiplayer: nil in single player. When set, red-side AI/waves are off,
+    // the player joins mp.myTeam, and damage to the enemy team is network-routed.
+    let mp: MPConfig?
+    weak var net: Net?
+    var netRegistry: [String: Entity] = [:]  // netId -> entity, for hit/hp/die events
+    var peers: [Int: Peer] = [:]             // playerId -> replica of another player
+    var sendAcc = 0.0                        // state-tick pacing (remote.js SEND_DT)
+
+    var isMP: Bool { mp != nil }
+    var myTeam: Team { mp?.myTeam ?? .blue }
+    var enemyTeam: Team { mp?.enemyTeam ?? .red }
+    var myPlayerId: Int { mp?.playerId ?? 0 }
 
     let scene = SCNScene()
     let cameraNode = SCNNode()
@@ -78,10 +91,12 @@ final class GameEngine {
     private let actionLock = NSLock()
     private var lastHud: HudSnapshot?
 
-    init(levelInfo: LevelInfo, difficultyKey: DifficultyKey) throws {
+    init(levelInfo: LevelInfo, difficultyKey: DifficultyKey, mp: MPConfig? = nil, net: Net? = nil) throws {
         self.levelInfo = levelInfo
         self.level = try Level(text: levelInfo.text, name: levelInfo.name)
         self.difficulty = DIFFICULTIES[difficultyKey]!
+        self.mp = mp
+        self.net = net
 
         // renderer/scene/lights — ports world/scene.js
         scene.background.contents = UIColor(rgb: 0x0b0d16)
@@ -124,13 +139,17 @@ final class GameEngine {
 
         buildWorld(level: level, parent: scene.rootNode)
 
-        // bases + enemy defense turrets, placed by the level's markers
+        // bases are shared; enemy defense turrets are placed by the level's
+        // markers in single player only (PvP is pure: both sides build their own)
         blueBase = makeBaseEntity(team: .blue, x: level.blueBase.x, z: level.blueBase.z)
         redBase = makeBaseEntity(team: .red, x: level.redBase.x, z: level.redBase.z)
-        for t in level.redTurrets {
-            makeTurretEntity(team: .red, x: t.x, z: t.z)
+        if !isMP {
+            for t in level.redTurrets {
+                makeTurretEntity(team: .red, x: t.x, z: t.z)
+            }
         }
         setupPlayer()
+        if isMP { initMatch() }   // spawn replicas for every other player
     }
 
     /* UI-thread entry point: run `action` at the start of the next frame,
@@ -148,13 +167,14 @@ final class GameEngine {
     func requestRocket() { enqueue { if self.phase == .playing { self.fireRocket() } } }
     func requestTurret() { enqueue { if self.phase == .playing { self.placeTurretDirect() } } }
 
-    /* the DEPLOY button (ports flow.js startGame) */
+    /* the DEPLOY button (ports flow.js startGame); in multiplayer the
+       ready-handshake's "go" drives this instead of a local button */
     private func startGame(difficultyKey: DifficultyKey) {
         guard phase == .menu else { return }
         difficulty = DIFFICULTIES[difficultyKey]!
         scene.fogStartDistance = 90
         scene.fogEndDistance = 280
-        applyDifficulty()
+        if !isMP { applyDifficulty() }   // PvP is symmetric: no difficulty scaling
         phase = .playing
         delegate?.engineMessage("DESTROY THE ENEMY BASE", colorHex: 0xffd23c)
     }
@@ -174,14 +194,21 @@ final class GameEngine {
         redBase.maxHp = cfg.redBaseHp
     }
 
-    func endGame(victory: Bool) {
+    /* the ready-handshake's "go" starts a multiplayer match (no local
+       difficulty picker — PvP is symmetric) */
+    func requestMatchGo() {
+        audio.startMusic()
+        enqueue { self.startGame(difficultyKey: .medium) }
+    }
+
+    func endGame(victory: Bool, reason: String? = nil) {
         if phase == .over { return }
         phase = .over
         delegate?.engineMessage(victory ? "ENEMY BASE DESTROYED" : "YOUR BASE HAS FALLEN",
                                 colorHex: victory ? 0x7CFF6B : 0xff5040)
         audio.boom(vol: 0.5, dur: 1.2)
         audio.duckMusic()
-        delegate?.engineGameOver(victory: victory)   // delegate delays the overlay 1.4s
+        delegate?.engineGameOver(victory: victory, reason: reason)   // delegate delays the overlay 1.4s
     }
 
     /* ============================================================
@@ -201,21 +228,23 @@ final class GameEngine {
             elapsed += dt
 
             updatePlayer(dt: dt)
-            updateWaves()
+            if !isMP { updateWaves() }   // PvP has no AI waves
             for e in entities where e.alive {
-                if e.kind == .turret { updateTurret(e, dt: dt) }
-                else if e.kind == .mech { updateEnemyMech(e, dt: dt) }
+                // remote entities are replicas driven by the network, never local AI
+                if e.kind == .turret && !e.remote { updateTurret(e, dt: dt) }
+                else if e.kind == .mech && !isMP { updateEnemyMech(e, dt: dt) }
             }
             separateMechs()
             updateProjectiles(dt: dt)
 
-            // passive salvage income
+            // passive salvage income (fixed rate in PvP so both sides earn the same)
             salvageTrickle += dt
             if salvageTrickle >= 1 {
                 salvageTrickle -= 1
-                stats.salvage += 3 * difficulty.salvageMult
+                stats.salvage += 3 * (isMP ? 1 : difficulty.salvageMult)
             }
         }
+        remoteUpdate(dt: dt)   // MP: state send + replica easing (no-op in SP)
 
         updateParticles(dt: dt)
         if phase != .menu {
@@ -249,12 +278,15 @@ final class GameEngine {
     }
 
     private func pushHud() {
+        // team-relative: "YOUR BASE" tracks whichever base is ours (guests play red)
+        let myBase = myTeam == .red ? redBase! : blueBase!
+        let foeBase = myTeam == .red ? blueBase! : redBase!
         var hud = HudSnapshot()
         hud.hpFrac = max(0, player.hp / player.maxHp)
         hud.salvage = Int(stats.salvage)
-        hud.turrets = entities.filter { $0.alive && $0.team == .blue && $0.kind == .turret }.count
-        hud.myBaseFrac = max(0, blueBase.hp / blueBase.maxHp)
-        hud.foeBaseFrac = max(0, redBase.hp / redBase.maxHp)
+        hud.turrets = entities.filter { $0.alive && $0.team == myTeam && $0.kind == .turret }.count
+        hud.myBaseFrac = max(0, myBase.hp / myBase.maxHp)
+        hud.foeBaseFrac = max(0, foeBase.hp / foeBase.maxHp)
         hud.canRocket = stats.salvage >= Costs.rocket
         hud.canTurret = stats.salvage >= Costs.turret
         if hud != lastHud {

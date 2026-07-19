@@ -3,8 +3,9 @@ import SwiftUI
 
 /* ============================================================
    AppModel — the screen state machine (flow.js's overlay logic)
-   plus engine lifecycle. A level switch or redeploy replaces the
-   whole engine, the web version's location.reload() analog.
+   plus engine lifecycle. A level switch, redeploy, or match start
+   replaces the whole engine, the web version's location.reload()
+   analog.
 ============================================================ */
 
 struct GameMessage: Equatable {
@@ -28,7 +29,7 @@ wwwwwwwwww
 final class AppModel: ObservableObject {
 
     enum Screen {
-        case mode, menu, levelSelect, playing, over
+        case mode, menu, levelSelect, lobby, playing, over
     }
 
     let levels: [LevelInfo]
@@ -38,8 +39,11 @@ final class AppModel: ObservableObject {
     @Published var buildHint: String?
     @Published var respawnVisible = false
     @Published var victory = false
+    @Published var endReason: String?
     @Published private(set) var engine: GameEngine
     @Published var levelIndex: Int
+
+    private(set) var isMPMatch = false
 
     @Published var difficultyKey: DifficultyKey {
         didSet { UserDefaults.standard.set(difficultyKey.rawValue, forKey: "mechDifficulty") }
@@ -47,6 +51,8 @@ final class AppModel: ObservableObject {
     @Published var scheme: ControlScheme {
         didSet { UserDefaults.standard.set(scheme.rawValue, forKey: "mechControls") }
     }
+
+    var lobby: LobbyModel!
 
     private let gyro = GyroController()
     private var messageClearTask: DispatchWorkItem?
@@ -67,24 +73,27 @@ final class AppModel: ObservableObject {
         scheme = ControlScheme(rawValue: UserDefaults.standard.string(forKey: "mechControls") ?? "") ?? .joystick
         engine = Self.makeEngine(info: loaded.first ?? Self.fallbackInfo, difficultyKey: .medium)
         engine.delegate = self
+        lobby = LobbyModel(app: self)
     }
 
-    private static func makeEngine(info: LevelInfo, difficultyKey: DifficultyKey) -> GameEngine {
-        if let e = try? GameEngine(levelInfo: info, difficultyKey: difficultyKey) { return e }
+    private static func makeEngine(info: LevelInfo, difficultyKey: DifficultyKey,
+                                   mp: MPConfig? = nil, net: Net? = nil) -> GameEngine {
+        if let e = try? GameEngine(levelInfo: info, difficultyKey: difficultyKey, mp: mp, net: net) { return e }
         // a broken level in the bundle: fall back to the built-in map
-        return try! GameEngine(levelInfo: fallbackInfo, difficultyKey: difficultyKey)
+        return try! GameEngine(levelInfo: fallbackInfo, difficultyKey: difficultyKey, mp: mp, net: net)
     }
 
-    private func rebuildEngine() {
-        engine = Self.makeEngine(info: levelInfo, difficultyKey: difficultyKey)
+    private func rebuildEngine(mp: MPConfig? = nil, net: Net? = nil, info: LevelInfo? = nil) {
+        engine = Self.makeEngine(info: info ?? levelInfo, difficultyKey: difficultyKey, mp: mp, net: net)
         engine.delegate = self
         hud = HudSnapshot()
         respawnVisible = false
         message = nil
         buildHint = nil
+        endReason = nil
     }
 
-    // MARK: - Screen flow
+    // MARK: - Screen flow (single player)
 
     func showModeScreen() { screen = .mode }
     func showMenu() { screen = .menu }
@@ -108,9 +117,59 @@ final class AppModel: ObservableObject {
     /* end screen: NEXT LEVEL advances through the bundle, REDEPLOY replays */
     func continueFromEndScreen() {
         gyro.stop()
+        if isMPMatch {
+            isMPMatch = false
+            rebuildEngine()          // drop the match engine back to a menu engine
+            screen = .lobby
+            lobby.backToLobby()
+            return
+        }
         if victory && hasNextLevel { levelIndex += 1 }
         rebuildEngine()
         screen = .menu
+    }
+
+    // MARK: - Multiplayer
+
+    func showLobby() {
+        screen = .lobby
+        lobby.open()
+    }
+
+    func leaveLobby() {
+        lobby.close()
+        screen = .mode
+    }
+
+    /* the levelParam this client advertises when joining the lobby */
+    func currentLevelParam() -> String {
+        levelParam(levelInfo.name)
+    }
+
+    private func levelParam(_ name: String) -> String {
+        // numeric levels keep their short "N" form; named levels use the name
+        if name.hasPrefix("level") {
+            let rest = name.dropFirst(5)
+            if !rest.isEmpty && rest.allSatisfy(\.isNumber) { return String(rest) }
+        }
+        return name
+    }
+
+    private func resolveLevel(_ param: String) -> LevelInfo {
+        if param.allSatisfy(\.isNumber), let n = Int(param), levels.indices.contains(n - 1) {
+            return levels[n - 1]
+        }
+        return levels.first { $0.name == param } ?? levelInfo
+    }
+
+    /* the ready-handshake "go" fired: build the match engine and drop into play */
+    func startMatch(config: MPConfig, levelParam: String) {
+        let info = resolveLevel(levelParam)
+        rebuildEngine(mp: config, net: lobby.net, info: info)
+        isMPMatch = true
+        engine.requestMatchGo()
+        if scheme == .gyro { gyro.start(engine: engine) } else { gyro.stop() }
+        screen = .playing
     }
 }
 
@@ -149,12 +208,13 @@ extension AppModel: EngineDelegate {
         DispatchQueue.main.async { self.respawnVisible = visible }
     }
 
-    func engineGameOver(victory: Bool) {
+    func engineGameOver(victory: Bool, reason: String?) {
         DispatchQueue.main.async {
             self.gyro.stop()
             // the web end screen appears 1.4s after the base explodes
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.4) {
                 self.victory = victory
+                self.endReason = reason
                 self.screen = .over
             }
         }
