@@ -28,6 +28,8 @@ final class TouchControlView: UIView {
     private let joyKnob = UIView()
     private var joyTouch: UITouch?
     private var joyCenter = CGPoint.zero
+    private var moveActive = false      // hysteresis latch for the fwd/back axis
+    private var strafeActive = false    // hysteresis latch for the strafe axis
     private var lookTouch: UITouch?
     private var lookX: CGFloat = 0
 
@@ -58,6 +60,16 @@ final class TouchControlView: UIView {
     private var input: TouchInput? { engine?.touch }
     private var playing: Bool { engine?.phase == .playing }
 
+    /* one joystick axis with a hysteresis deadzone: must cross DEAD to engage,
+       then fall below half of DEAD to release — so hovering at the edge can't
+       flicker the walk animation on and off */
+    private func joyAxis(_ v: Double, active: inout Bool) -> Double {
+        let a = abs(v)
+        if active { if a < DEAD * 0.5 { active = false } }
+        else if a > DEAD { active = true }
+        return active ? v : 0
+    }
+
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard playing else { return }
         for t in touches {
@@ -66,6 +78,8 @@ final class TouchControlView: UIView {
                 // the joystick base appears wherever the left thumb lands
                 joyTouch = t
                 joyCenter = p
+                moveActive = false
+                strafeActive = false
                 joyBase.center = p
                 joyBase.isHidden = false
                 joyKnob.center = CGPoint(x: 55, y: 55)
@@ -89,8 +103,11 @@ final class TouchControlView: UIView {
                 }
                 joyKnob.center = CGPoint(x: 55 + dx, y: 55 + dy)
                 let nx = Double(dx / JOY_R), ny = Double(dy / JOY_R)
-                input?.strafe = abs(nx) > DEAD ? nx : 0
-                input?.move = abs(ny) > DEAD ? -ny : 0
+                // hysteresis deadzone: a thumb resting near the DEAD edge would
+                // otherwise flip move on/off every few frames (finger tremor
+                // crossing a single threshold) → feet "dribble" while standing
+                input?.strafe = joyAxis(nx, active: &strafeActive)
+                input?.move = -joyAxis(ny, active: &moveActive)
             } else if t === lookTouch && scheme() == .joystick {
                 if playing { input?.addLookDX(Double(p.x - lookX)) }
                 lookX = p.x
@@ -102,6 +119,8 @@ final class TouchControlView: UIView {
         for t in touches {
             if t === joyTouch {
                 joyTouch = nil
+                moveActive = false
+                strafeActive = false
                 input?.move = 0
                 input?.strafe = 0
                 joyBase.isHidden = true
