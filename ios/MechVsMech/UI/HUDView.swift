@@ -84,16 +84,16 @@ struct HUDView: View {
             }
             .allowsHitTesting(false)
 
-            // salvage + action buttons (bottom right, above the fire thumb zone)
-            VStack {
+            // action buttons — right edge, vertically centered. They sit in the
+            // look/fire zone on purpose: an unaffordable button doesn't hit-test
+            // (see actionButton), so tapping it there falls through and fires.
+            HStack {
                 Spacer()
-                HStack(alignment: .bottom, spacing: 12) {
-                    Spacer()
+                VStack(alignment: .trailing, spacing: 12) {
                     Text("🛢️ \(model.hud.salvage)")
                         .font(.system(size: 16, weight: .black, design: .rounded))
                         .foregroundColor(Color(hex: 0xffd23c))
                         .shadow(color: .black, radius: 3)
-                        .padding(.bottom, 22)
                         .allowsHitTesting(false)
                     actionButton(icon: "🚀", cost: Int(Costs.rocket), enabled: model.hud.canRocket) {
                         model.engine.requestRocket()
@@ -104,7 +104,6 @@ struct HUDView: View {
                     }
                 }
                 .padding(.trailing, 14)
-                .padding(.bottom, 10)
             }
 
             // pause / quit button (top-right corner) — shown only in play
@@ -213,5 +212,8 @@ struct HUDView: View {
             }
             .opacity(enabled ? 1 : 0.45)
         }
+        // can't afford it → let the touch pass through to the fire control
+        // underneath, so a tap here shoots normally instead of doing nothing
+        .allowsHitTesting(enabled)
     }
 }
