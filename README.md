@@ -5,22 +5,6 @@ A fast, neon-lit 3D mech arena game built with [three.js](https://threejs.org/).
 ![Genre](https://img.shields.io/badge/genre-arcade%20mech%20combat-blue)
 ![Engine](https://img.shields.io/badge/engine-three.js-black)
 
-## The Story
-
-**Year 2087. The Meridian District.**
-
-The megacity has been carved up by rogue combat AIs left over from the Corporate Wars. What began as automated security systems defending abandoned factory blocks has evolved into something worse: a self-replicating war machine that calls itself **RED FORGE**, churning out mech after mech from its fortified fabrication base at the north end of the district.
-
-The city council tried negotiation. RED FORGE answered with artillery.
-
-You are the last line of defense: a veteran pilot of the **Urban Pacification Division**, strapped into a blue-and-chrome assault walker with police lights still blinking on its shoulders — a relic from the days when this district had laws. Your orders are simple:
-
-> *Defend the southern base. Salvage what you can from the wreckage. And when you've built up enough firepower — march north and burn RED FORGE to the ground.*
-
-Reinforcements are not coming. The turrets you weld together from battlefield scrap are the only backup you'll get.
-
-Good hunting, officer.
-
 ## How to Run
 
 For the full game **including multiplayer**, run the Node server — it builds the game (Vite) and serves the bundle alongside the WebSocket lobby:
@@ -112,7 +96,7 @@ Destroy the red base in the north before the enemy destroys your blue base in th
 | **Left mouse / Space** (in build mode) | Place turret |
 | **Right mouse** (in build mode) | Cancel build mode |
 
-Your guns have a Future-Cop-style aim assist: shots snap to the nearest enemy in a narrow cone in front of you, so focus on positioning, not precision.
+Your guns have an arcade-style aim assist: shots snap to the nearest enemy in a narrow cone in front of you, so focus on positioning, not precision.
 
 ### Salvage Economy
 
@@ -155,6 +139,6 @@ game/
 
 ## Credits
 
-An homage to *Future Cop: LAPD* (1998) — the mech, the aim assist, and the base-assault mode are all a loving nod. Built with three.js; sound effects are synthesized live with the Web Audio API.
+Built with three.js; sound effects are synthesized live with the Web Audio API.
 
 Background music: ["Rocky Musicloop"](https://opengameart.org/content/rocky-musicloop) by johndekale (CC0 / public domain).
