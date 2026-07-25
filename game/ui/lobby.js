@@ -70,7 +70,14 @@ function previewMap(param) {
   const entry = levels.find((l) => levelParam(l.name) === param);
   if (!entry || entry.name === previewName) return;
   previewName = entry.name;
-  rebuildWorld(scene, entry.text, entry.name);
+  try {
+    rebuildWorld(scene, entry.text, entry.name);
+  } catch (err) {
+    // a level this page can't parse: keep the lobby usable, the match will
+    // fail loudly on its own page load
+    console.error(err);
+    return;
+  }
 
   // the old map's marker turrets stood on terrain that no longer exists
   for (const e of [...entities]) if (e.kind === 'turret') removeEntity(e);
