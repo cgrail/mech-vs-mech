@@ -76,22 +76,28 @@ struct MenuScreen: View {
                 .panelBox()
 
                 if !over {
-                    Button {
-                        model.showLevelSelect()
-                    } label: {
-                        HStack(spacing: 12) {
-                            Text("SELECT LEVEL")
-                                .font(.system(size: 11, weight: .bold)).kerning(2)
-                                .foregroundColor(Skin.dimText)
-                            Text("\(model.levelIndex + 1) · \(model.levelInfo.title)")
-                                .font(.system(size: 13, weight: .bold)).kerning(1)
-                                .foregroundColor(Skin.gold)
-                                .lineLimit(1)
-                            Text("▸").foregroundColor(Skin.dimText)
+                    // ◂ ▸ step straight to the neighbouring map; the middle
+                    // button opens the full list
+                    HStack(spacing: 8) {
+                        stepButton("◂") { model.stepLevel(-1) }
+                        Button {
+                            model.showLevelSelect()
+                        } label: {
+                            HStack(spacing: 12) {
+                                Text("SELECT LEVEL")
+                                    .font(.system(size: 11, weight: .bold)).kerning(2)
+                                    .foregroundColor(Skin.dimText)
+                                Text("\(model.levelIndex + 1) · \(model.levelInfo.title)")
+                                    .font(.system(size: 13, weight: .bold)).kerning(1)
+                                    .foregroundColor(Skin.gold)
+                                    .lineLimit(1)
+                                Text("▾").foregroundColor(Skin.dimText)
+                            }
+                            .frame(maxWidth: 300)
                         }
-                        .frame(maxWidth: 340)
+                        .buttonStyle(MenuButtonStyle())
+                        stepButton("▸") { model.stepLevel(1) }
                     }
-                    .buttonStyle(MenuButtonStyle())
 
                     HStack(spacing: 10) {
                         PillToggle(label: "🕹️ JOYSTICK", selected: model.scheme == .joystick) { model.scheme = .joystick }
@@ -125,6 +131,13 @@ struct MenuScreen: View {
             }
             .padding(8)
         }
+    }
+
+    private func stepButton(_ glyph: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(glyph).font(.system(size: 15, weight: .bold))
+        }
+        .buttonStyle(MenuButtonStyle())
     }
 
     private var endButtonLabel: String {

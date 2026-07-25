@@ -212,6 +212,11 @@ private struct LobbyBody: View {
                 .font(.system(size: 11, weight: .bold)).kerning(2)
                 .foregroundColor(Skin.dimText)
             if canPick {
+                // ◂ ▸ step to the neighbouring map without opening the list
+                Button { lobby.stepMap(-1) } label: {
+                    Text("◂").font(.system(size: 13, weight: .bold))
+                }
+                .buttonStyle(MenuButtonStyle())
                 Button { pickingMap.toggle() } label: {
                     HStack(spacing: 6) {
                         Text(lobby.roomMapTitle)
@@ -219,6 +224,10 @@ private struct LobbyBody: View {
                             .lineLimit(1)
                         Text(pickingMap ? "▴" : "▾").font(.system(size: 11, weight: .black))
                     }
+                }
+                .buttonStyle(MenuButtonStyle())
+                Button { lobby.stepMap(1) } label: {
+                    Text("▸").font(.system(size: 13, weight: .bold))
                 }
                 .buttonStyle(MenuButtonStyle())
             } else {

@@ -35,6 +35,8 @@ const createBtn = document.getElementById('mpCreateBtn');
 const roomBar = document.getElementById('mpRoomBar');
 const roomNameEl = document.getElementById('mpRoomName');
 const mapSelect = document.getElementById('mpMapSelect');
+const mapPrevBtn = document.getElementById('mpMapPrev');
+const mapNextBtn = document.getElementById('mpMapNext');
 const mapNameEl = document.getElementById('mpMapName');
 const leaveBtn = document.getElementById('mpLeaveBtn');
 const teamsEl = document.getElementById('mpTeams');
@@ -301,6 +303,8 @@ function renderList(state) {
   const map = room ? room.level : levelParam(levelName);
   const canPick = !!room && room.owner === myId && maps.some((m) => m.param === map);
   show(mapSelect, canPick);
+  show(mapPrevBtn, canPick);
+  show(mapNextBtn, canPick);
   show(mapNameEl, !canPick);
   // only when it actually differs: reassigning value closes an open dropdown
   if (canPick) { if (mapSelect.value !== map) mapSelect.value = map; }
@@ -384,6 +388,19 @@ if (!MP.active) {
   }
   // the server rejects this from anyone but the room's owner
   mapSelect.addEventListener('change', () => send({ type: 'setLevel', level: mapSelect.value }));
+  /* ◂ / ▸ step to the neighbouring map without opening the dropdown. The
+     select is moved along optimistically so repeated taps keep stepping —
+     the room broadcast is what confirms it (and corrects it if the server
+     refuses). */
+  const stepMap = (dir) => {
+    const i = maps.findIndex((m) => m.param === mapSelect.value);
+    if (i < 0 || maps.length < 2) return;
+    const next = maps[(i + dir + maps.length) % maps.length];
+    mapSelect.value = next.param;
+    send({ type: 'setLevel', level: next.param });
+  };
+  mapPrevBtn.addEventListener('click', () => stepMap(-1));
+  mapNextBtn.addEventListener('click', () => stepMap(1));
   for (const btn of teamsEl.querySelectorAll('button')) {
     btn.addEventListener('click', () => {
       // clicking my own team's button steps back off the roster

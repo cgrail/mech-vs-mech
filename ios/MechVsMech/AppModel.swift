@@ -126,6 +126,14 @@ final class AppModel: ObservableObject {
         screen = .levelSelect
     }
 
+    /* ◂ / ▸ on the mission menu: straight to the neighbouring map, wrapping
+       at both ends, without a trip through the level list */
+    func stepLevel(_ dir: Int) {
+        guard levels.count > 1 else { return }
+        levelIndex = ((levelIndex + dir) % levels.count + levels.count) % levels.count
+        rebuildEngine()
+    }
+
     /* end screen: NEXT LEVEL advances through the bundle, REDEPLOY replays */
     func continueFromEndScreen() {
         gyro.stop()

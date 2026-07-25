@@ -76,6 +76,50 @@ function reflectLevel() {
   }
 }
 
+/* Fly another map in behind the menu. `hideOverlay` reproduces the shape the
+   old reload-split animation had (used by the level list); the ◂ ▸ steppers
+   leave the menu up so maps can be toggled through quickly. */
+function goLevel(name, hideOverlay) {
+  if (name === levelName && !isSwitchingMap()) return;
+  if (hideOverlay) overlay.classList.add('hidden');
+  switchMap(name, () => {
+    if (hideOverlay) overlay.classList.remove('hidden');
+    stepTarget = null;
+    reflectLevel();
+    // REDEPLOY is a plain location.reload(), so keep ?level= truthful
+    const url = new URL(location.href);
+    url.searchParams.set('level', levelParam(levelName));
+    history.replaceState(null, '', url);
+  });
+}
+
+/* ◂ / ▸ : straight to the neighbouring map, wrapping at both ends. A press
+   during a fly is queued by switchMap (last one wins), so stepping counts
+   from where we are *heading*, not from the map still on screen. */
+let stepTarget = null;
+
+function stepLevel(dir) {
+  if (levels.length < 2) return;
+  const from = stepTarget || levelName;
+  const i = levels.findIndex((l) => l.name === from);
+  const next = levels[((i < 0 ? 0 : i) + dir + levels.length) % levels.length];
+  stepTarget = next.name;
+  const entry = levelBtns.find((e) => e.name === next.name);
+  if (entry) levelCur.textContent = entry.label;   // label leads, map follows
+  goLevel(next.name, false);
+}
+
+document.getElementById('levelPrev').addEventListener('click', () => stepLevel(-1));
+document.getElementById('levelNext').addEventListener('click', () => stepLevel(1));
+
+/* the same step on the keyboard, while the mission menu is the visible screen */
+document.addEventListener('keydown', (e) => {
+  if (game.state !== 'menu' || menuScreen.classList.contains('hidden')) return;
+  if (e.target.tagName === 'INPUT') return;
+  if (e.code === 'ArrowLeft') stepLevel(-1);
+  else if (e.code === 'ArrowRight') stepLevel(1);
+});
+
 {
   levels.forEach((entry, i) => {
     const { name } = entry;
@@ -102,17 +146,7 @@ function reflectLevel() {
     b.addEventListener('click', () => {
       if (isSwitchingMap()) return; // a switch is already flying
       if (name === levelName) { showLevelScreen(false); return; }
-      // hide the overlay for the fly-out, bring it back with the new map on
-      // its way down — the shape the old reload-split animation had
-      overlay.classList.add('hidden');
-      switchMap(name, () => {
-        overlay.classList.remove('hidden');
-        reflectLevel();
-        // REDEPLOY is a plain location.reload(), so keep ?level= truthful
-        const url = new URL(location.href);
-        url.searchParams.set('level', levelParam(levelName));
-        history.replaceState(null, '', url);
-      });
+      goLevel(name, true);
     });
     levelBtns.push({ b, name, label: `${n} · ${title}` });
     levelList.appendChild(b);

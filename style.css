@@ -224,6 +224,7 @@ body.touch #touchControls { display: flex; }
 #ctrlRow { display: none; gap: 10px; } /* touch devices only */
 body.touch #ctrlRow { display: flex; }
 #overlay #ctrlRow button, #overlay #diffRow button, #overlay #levelBtn, #overlay #levelBack,
+#overlay #levelPrev, #overlay #levelNext,
 #overlay #menuBack, #overlay #mpBack, #overlay button.ghost {
   font-size: 13px; font-weight: 700; letter-spacing: 2px;
   color: #9fb4ff; background: rgba(20, 24, 40, .85);
@@ -231,6 +232,7 @@ body.touch #ctrlRow { display: flex; }
   box-shadow: none;
 }
 #overlay #ctrlRow button:hover, #overlay #diffRow button:hover, #overlay #levelBtn:hover, #overlay #levelBack:hover,
+#overlay #levelPrev:hover, #overlay #levelNext:hover,
 #overlay #menuBack:hover, #overlay #mpBack:hover, #overlay button.ghost:hover {
   border-color: #6f83c9; color: #cdd8ff; filter: none;
 }
@@ -238,7 +240,12 @@ body.touch #ctrlRow { display: flex; }
   color: #101427; background: linear-gradient(#cdd8ff, #7d97e8);
   border-color: #e6ecff; box-shadow: 0 0 14px rgba(120, 150, 255, .45);
 }
-#overlay #levelBtn { display: flex; align-items: center; gap: 12px; padding: 8px 16px; }
+/* map row: ◂ ▸ step straight to the neighbouring map, the middle button
+   opens the full list */
+#levelRow { display: flex; align-items: stretch; gap: 8px; max-width: 92vw; }
+#overlay #levelPrev, #overlay #levelNext { padding: 8px 14px; font-size: 15px; line-height: 1; }
+#overlay #levelBtn { display: flex; align-items: center; gap: 12px; padding: 8px 16px; min-width: 0; }
+#levelBtn #levelCur { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #levelBtn .lbl { font-size: 11px; color: #8a92ad; }
 #levelBtn #levelCur { color: #ffd23c; }
 #levelBtn .chev { color: #8a92ad; }

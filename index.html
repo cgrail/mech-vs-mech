@@ -149,7 +149,11 @@
       <kbd>Q</kbd> / <kbd>RMB</kbd> quick rocket &nbsp; — machine guns are free, rockets &amp; turrets cost salvage<br>
       <kbd>Esc</kbd> release mouse — click canvas to re-engage
     </div>
-    <button id="levelBtn"><span class="lbl">SELECT LEVEL</span><span id="levelCur">…</span><span class="chev">▸</span></button>
+    <div id="levelRow">
+      <button id="levelPrev" aria-label="Previous map">◂</button>
+      <button id="levelBtn"><span class="lbl">SELECT LEVEL</span><span id="levelCur">…</span><span class="chev">▾</span></button>
+      <button id="levelNext" aria-label="Next map">▸</button>
+    </div>
     <div id="ctrlRow">
       <button data-ctrl="joystick">🕹️ JOYSTICK</button>
       <button data-ctrl="gyro">📱 GYRO</button>
@@ -184,7 +188,9 @@
       <span id="mpRoomName"></span>
       <span id="mpMapRow">
         <span class="lbl">MAP</span>
+        <button id="mpMapPrev" class="ghost mpHidden" aria-label="Previous map">◂</button>
         <select id="mpMapSelect" class="mpHidden"></select>
+        <button id="mpMapNext" class="ghost mpHidden" aria-label="Next map">▸</button>
         <span id="mpMapName"></span>
       </span>
       <button id="mpLeaveBtn" class="ghost">◂ LEAVE ROOM</button>

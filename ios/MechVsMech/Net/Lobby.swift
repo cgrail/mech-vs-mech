@@ -312,6 +312,15 @@ final class LobbyModel: ObservableObject {
     var iOwnRoom: Bool { myId != nil && myRoomInfo?.owner == myId }
     var roomMapParam: String { myRoomInfo?.level ?? "1" }
     var roomMapTitle: String { mapTitle(roomMapParam) }
+
+    /* ◂ / ▸ in the room: the neighbouring map in the server's list, wrapping
+       at both ends. The room broadcast is what confirms it (and corrects it
+       if the server refuses), exactly like picking from the list. */
+    func stepMap(_ dir: Int) {
+        guard maps.count > 1, let i = maps.firstIndex(where: { $0.param == roomMapParam }) else { return }
+        let n = maps.count
+        setLevel(maps[((i + dir) % n + n) % n].param)
+    }
     /* a map the server listed, or the bare param if this server never
        answered /levels (then the picker is hidden anyway) */
     func mapTitle(_ param: String) -> String {
