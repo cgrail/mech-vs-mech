@@ -152,6 +152,9 @@ final class LobbyModel: ObservableObject {
     func joinRoom(_ id: Int) { net.send(["type": "joinRoom", "roomId": id]) }
     func leaveRoom() { net.send(["type": "leaveRoom"]) }
     func startMatch() { net.send(["type": "startMatch"]) }
+    /* the end screen's NEXT MAP: the server mints a follow-up match for
+       everyone still connected, on the next map in its bundle */
+    func nextMatch() { net.send(["type": "nextMatch"]) }
     /* pick the room's map — the server rejects this from anyone but its owner */
     func setLevel(_ param: String) { net.send(["type": "setLevel", "level": param]) }
 
@@ -167,6 +170,10 @@ final class LobbyModel: ObservableObject {
         // during a live match, forward peer churn to the engine
         if app?.screen == .playing {
             switch type {
+            case "matchStart":
+                // another pilot's end screen already rolled the match on to
+                // the next map (ours is a beat behind) — go with them
+                startBoot(obj)
             case "peerLeft":
                 if let id = jInt(obj, "id") {
                     let nm = jStr(obj, "name") ?? ""
@@ -198,7 +205,8 @@ final class LobbyModel: ObservableObject {
 
         case "error":
             let msg = jStr(obj, "message") ?? "ERROR"
-            if phase == .matchBoot { failMatch(msg) }
+            if app?.screen == .over { app?.nextMapNote = msg }   // NEXT MAP turned down
+            else if phase == .matchBoot { failMatch(msg) }
             else if myId != nil { showBanner(msg) }
             else { setStatus(msg, error: true) }
 
@@ -334,6 +342,9 @@ final class LobbyModel: ObservableObject {
     private func startBoot(_ obj: [String: Any]) {
         guard let matchId = jStr(obj, "matchId"), let token = jStr(obj, "token"),
               let pid = jInt(obj, "playerId"), let team = Team(wire: jStr(obj, "team")) else { return }
+        // a follow-up match (NEXT MAP) arrives while the finished one is still
+        // on screen: throw it away and show the boot handshake instead
+        if app?.screen != .lobby { app?.enterMatchBoot() }
         var roster: [MPPlayer] = []
         for p in (obj["roster"] as? [[String: Any]]) ?? [] {
             if let id = jInt(p, "id"), let t = Team(wire: jStr(p, "team")) {

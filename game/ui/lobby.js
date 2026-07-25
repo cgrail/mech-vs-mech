@@ -143,7 +143,38 @@ if (MP.active) {
     matchScreen.classList.add('hidden');
     startGame();
   });
-  on('error', (m) => matchFail(m.message));
+  /* ---------- end screen: NEXT MAP ----------
+     The finished match's socket is still open, so the whole roster can roll
+     on to the next map in one step: the server mints a follow-up match and
+     everyone still connected reloads into it (see 'matchStart' below). */
+  const nextMapBtn = document.getElementById('nextMapBtn');
+  const subLine = document.querySelector('#menuScreen .sub');
+  nextMapBtn.addEventListener('click', () => {
+    if (!connected()) { subLine.textContent = 'NO CONNECTION TO THE SERVER'; return; }
+    send({ type: 'nextMatch' });
+    nextMapBtn.disabled = true;
+    subLine.textContent = 'WAITING FOR THE NEXT MAP…';
+  });
+
+  on('error', (m) => {
+    if (game.state === 'over') {   // a NEXT MAP that the server turned down
+      nextMapBtn.disabled = false;
+      subLine.textContent = m.message;
+      return;
+    }
+    matchFail(m.message);
+  });
+  /* the follow-up match: same credentials dance as the lobby's matchStart */
+  on('matchStart', (m) => {
+    sessionStorage.setItem('mechMpMatch', JSON.stringify({
+      matchId: m.matchId, token: m.token, playerId: m.playerId,
+      team: m.team, name: MP.name, roster: m.roster,
+    }));
+    const url = new URL(location.href);
+    url.searchParams.set('level', m.level);
+    url.searchParams.set('mp', '1');
+    location.href = url.href;
+  });
   on('peerLeft', (m) => {
     if (game.state !== 'menu' || matchDead) return;
     gone.add(m.id);

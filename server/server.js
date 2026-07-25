@@ -34,6 +34,10 @@
                                      ← go            (once every slot is ready)
      → relay {data}                  ← relay {from,data}  (fanned out to the others)
                                      ← peerLeft {id,name}
+     → nextMatch                     ← matchStart (a fresh match for the same
+                                       roster on the next map in the bundle —
+                                       the end screen's NEXT MAP; the first
+                                       request mints it, the rest join it)
 
    Plus two HTTP routes beside the static files, for clients that don't
    load their levels from this server (the iOS app):
@@ -180,6 +184,14 @@ const findLevel = (param) => levelByName.get(levelNameOf(cleanLevel(param))) || 
 /* a room's map: what was asked for if it exists here, else the first level —
    never a name this server can't serve, or the match would have no map */
 const roomLevel = (param) => (findLevel(param) || levelMenu[0])?.param ?? cleanLevel(param);
+
+/* the map after this one in bundle order, wrapping at the end — what a
+   finished match rolls on to (see the nextMatch message) */
+const nextLevelParam = (param) => {
+  if (!levelMenu.length) return param;
+  const i = levelMenu.findIndex((l) => l.param === param);
+  return levelMenu[(i + 1) % levelMenu.length].param;
+};
 
 const sendLevel = (res, text) => res
   .type('text/plain; charset=utf-8')
@@ -494,6 +506,50 @@ wss.on('connection', (ws, req) => {
         if (!mr) return;
         mr.slot.ready = true;
         tryGo(mr.match);
+        break;
+      }
+
+      /* the end screen's NEXT MAP: mint a follow-up match for whoever is
+         still here, on the next map in the bundle. The first request mints
+         it and everyone still connected to the finished match is sent
+         straight into it, so the roster carries over without a trip through
+         the lobby; later requests (or a second press) just re-send it. */
+      case 'nextMatch': {
+        if (!mr) return;
+        const m = mr.match;
+        if (!m.next) {
+          const active = m.slots.filter((s) => s.connected && !s.abandoned);
+          if (!active.some((s) => s.team === 'blue') || !active.some((s) => s.team === 'red')) {
+            send(ws, { type: 'error', message: 'NOT ENOUGH PILOTS LEFT FOR ANOTHER MATCH' });
+            return;
+          }
+          m.next = {
+            id: crypto.randomUUID(),
+            level: nextLevelParam(m.level),
+            created: Date.now(),
+            started: false,
+            slots: active.map((s) => ({
+              token: crypto.randomUUID(), pid: s.pid, team: s.team, name: s.name,
+              ws: null, ready: false, connected: false, abandoned: false,
+            })),
+          };
+          matches.set(m.next.id, m.next);
+        }
+        const next = m.next;
+        if (!next.slots.some((s) => s.pid === mr.slot.pid)) {
+          send(ws, { type: 'error', message: 'THE NEXT MATCH STARTED WITHOUT YOU' });
+          return;
+        }
+        const players = next.slots.map((s) => ({ id: s.pid, name: s.name, team: s.team }));
+        for (const s of next.slots) {
+          // reached over the finished match's socket; anyone who already left
+          // simply never hears about it
+          const old = m.slots.find((o) => o.pid === s.pid);
+          send(old && old.ws, {
+            type: 'matchStart', matchId: next.id, token: s.token,
+            playerId: s.pid, team: s.team, level: next.level, roster: players,
+          });
+        }
         break;
       }
 

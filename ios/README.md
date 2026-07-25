@@ -53,6 +53,11 @@ Point it at a different backend by setting the `mechServer` UserDefaults string
 (e.g. `ws://192.168.1.20:8080/ws` for a local `npm start`). ATS allows the
 default `wss://` (TLS); a plaintext `ws://` server needs an ATS exception.
 
+The result screen's **▸ NEXT MAP** asks the server for a follow-up match on
+the next map with the same roster (`nextMatch`); the answer is a plain
+`matchStart`, so the app drops the finished engine and runs the usual boot
+handshake — the web build does the same thing with a reload.
+
 Ownership/replication is identical to the web build: each client simulates only
 its own mech, turrets and shots; everyone else is a network replica. Bases are
 shared and converge through mirrored `bhit` damage. The one structural difference

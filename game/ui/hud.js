@@ -61,6 +61,7 @@ export function drawMinimap() {
   const pz = (z) => (z + ARENA.hd) / (ARENA.hd * 2) * h;
   for (const e of entities) {
     if (!e.alive) continue;
+    if (e.seen === false) continue; // fog of war: out of sight, off the map too
     const x = px(e.group.position.x), y = pz(e.group.position.z);
     const friendly = e.team === player.team; // relative colors: my side reads blue even when I fight as red
     if (e.kind === 'base') {

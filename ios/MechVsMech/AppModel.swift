@@ -51,6 +51,8 @@ final class AppModel: ObservableObject {
     @Published var respawnVisible = false
     @Published var victory = false
     @Published var endReason: String?
+    /* the end screen's NEXT MAP status line ("waiting…", or why not) */
+    @Published var nextMapNote: String?
     @Published private(set) var engine: GameEngine
     @Published var levelIndex: Int
 
@@ -61,6 +63,14 @@ final class AppModel: ObservableObject {
     }
     @Published var scheme: ControlScheme {
         didSet { UserDefaults.standard.set(scheme.rawValue, forKey: "mechControls") }
+    }
+    /* fog of war (Engine/Vision.swift): remembered like the difficulty, and
+       applied to a running match right away */
+    @Published var fogOfWar: Bool {
+        didSet {
+            UserDefaults.standard.set(fogOfWar, forKey: "mechFog")
+            engine.setFogOfWar(fogOfWar)
+        }
     }
 
     var lobby: LobbyModel!
@@ -82,6 +92,7 @@ final class AppModel: ObservableObject {
         levelIndex = 0
         difficultyKey = DifficultyKey(rawValue: UserDefaults.standard.string(forKey: "mechDifficulty") ?? "") ?? .medium
         scheme = ControlScheme(rawValue: UserDefaults.standard.string(forKey: "mechControls") ?? "") ?? .joystick
+        fogOfWar = UserDefaults.standard.bool(forKey: "mechFog")
         engine = Self.makeEngine(info: loaded.first ?? Self.fallbackInfo, difficultyKey: .medium)
         engine.delegate = self
         lobby = LobbyModel(app: self)
@@ -103,6 +114,7 @@ final class AppModel: ObservableObject {
         message = nil
         buildHint = nil
         endReason = nil
+        nextMapNote = nil
     }
 
     // MARK: - Screen flow (single player)
@@ -112,7 +124,7 @@ final class AppModel: ObservableObject {
     func showLevelSelect() { screen = .levelSelect }
 
     func deploy() {
-        engine.requestStart(difficultyKey: difficultyKey)
+        engine.requestStart(difficultyKey: difficultyKey, fogOfWar: fogOfWar)
         if scheme == .gyro { gyro.start(engine: engine) } else { gyro.stop() }
         screen = .playing
     }
@@ -147,6 +159,25 @@ final class AppModel: ObservableObject {
         if victory && hasNextLevel { levelIndex += 1 }
         rebuildEngine()
         screen = .menu
+    }
+
+    /* end screen: ▸ NEXT MAP asks the server to mint a follow-up match for
+       everyone still connected, on the next map in its bundle. The answer is
+       a matchStart, which drops us into the boot handshake (enterMatchBoot);
+       an error comes back as a note under the button. */
+    func requestNextMap() {
+        nextMapNote = "WAITING FOR THE NEXT MAP…"
+        lobby.nextMatch()
+    }
+
+    /* a matchStart landing while a finished (or still-running) match is on
+       screen: throw that engine away and show the boot handshake */
+    func enterMatchBoot() {
+        gyro.stop()
+        isMPMatch = false
+        nextMapNote = nil
+        rebuildEngine()
+        screen = .lobby
     }
 
     /* in-game menu QUIT: leave a match in progress with no win/lose result —
@@ -226,7 +257,7 @@ final class AppModel: ObservableObject {
         let info = level ?? resolveLevel(levelParam)
         rebuildEngine(mp: config, net: lobby.net, info: info)
         isMPMatch = true
-        engine.requestMatchGo()
+        engine.requestMatchGo(fogOfWar: fogOfWar)
         if scheme == .gyro { gyro.start(engine: engine) } else { gyro.stop() }
         screen = .playing
     }
@@ -272,8 +303,10 @@ extension AppModel: EngineDelegate {
             self.gyro.stop()
             // the web end screen appears 1.4s after the base explodes
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.4) {
+                guard self.screen == .playing else { return }  // already moved on
                 self.victory = victory
                 self.endReason = reason
+                self.nextMapNote = nil
                 self.screen = .over
             }
         }

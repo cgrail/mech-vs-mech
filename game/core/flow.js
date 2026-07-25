@@ -5,7 +5,8 @@ import { game, stats, difficulty, touch } from './state.js';
 import { entities, redBase } from '../entities/entities.js';
 import { audioCtx, boomSfx, startMusic, duckMusic } from '../systems/audio.js';
 import { updateHud, showMessage } from '../ui/hud.js';
-import { MP } from '../net/net.js';
+import { applyFog } from '../systems/vision.js';
+import { MP, connected } from '../net/net.js';
 
 /* ============================================================
    Game flow: difficulty select, start / end screens
@@ -27,6 +28,19 @@ for (const b of diffBtns) {
   });
 }
 reflectDifficulty();
+
+/* fog of war: a local view restriction (systems/vision.js), remembered like
+   the difficulty. Toggling it mid-game re-fogs the district right away. */
+const fogBtn = document.getElementById('fogBtn');
+function reflectFog() { fogBtn.classList.toggle('selected', game.fogOfWar); }
+fogBtn.addEventListener('click', () => {
+  game.fogOfWar = !game.fogOfWar;
+  localStorage.setItem('mechFog', game.fogOfWar ? '1' : '0');
+  reflectFog();
+  if (game.state === 'playing') applyFog();
+  fogBtn.blur();
+});
+reflectFog();
 
 /* level select screen — world.js already fetched the level bundle, so
    the whole list builds from the imported `levels` with no HTTP calls.
@@ -206,8 +220,15 @@ export function endGame(victory, reason) {
     document.getElementById('menuBack').classList.add('mpHidden');
     if (MP.active) {
       // its single-player widgets don't apply here either
-      for (const id of ['levelBtn', 'diffRow', 'ctrlRow']) {
+      for (const id of ['levelRow', 'diffRow', 'ctrlRow']) {
         document.getElementById(id).classList.add('mpHidden');
+      }
+      // roll the whole roster on to the next map without a trip through the
+      // lobby (wired in lobby.js, which owns the socket) — only worth
+      // offering while we can still reach the server
+      if (connected()) {
+        document.getElementById('nextMapBtn').classList.remove('mpHidden');
+        document.getElementById('startBtn').classList.add('ghost');
       }
       const esc = (s) => String(s).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
       const mates = MP.roster.filter((p) => p.team === MP.myTeam && p.id !== MP.playerId).map((p) => p.name);
@@ -248,8 +269,7 @@ export function backToLobby() {
 export function startGame() {
   audioCtx();
   startMusic();
-  scene.fog.near = 90;
-  scene.fog.far = 280;
+  applyFog(); // normal play fog, or the tight one when fog of war is on
   if (!MP.active) applyDifficulty(); // PvP is symmetric: no difficulty scaling
   overlay.classList.add('hidden');
   hud.classList.add('active');

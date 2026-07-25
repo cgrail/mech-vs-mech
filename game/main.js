@@ -8,6 +8,7 @@ import { separateMechs } from './core/helpers.js';
 import { updateProjectiles } from './entities/projectiles.js';
 import { updateParticles } from './entities/particles.js';
 import { updateTurret, updateEnemyMech, updateWaves } from './systems/ai.js';
+import { updateVision } from './systems/vision.js';
 import { updateHud, drawMinimap } from './ui/hud.js';
 import { MP } from './net/net.js';
 import { remoteUpdate } from './systems/remote.js';
@@ -61,6 +62,7 @@ function animate() {
     }
     separateMechs();
     updateProjectiles(dt);
+    updateVision(dt); // fog of war, if it's on: what is still worth drawing
 
     // passive salvage income (fixed rate in PvP so both sides earn the same)
     salvageTrickle += dt;

@@ -220,10 +220,11 @@ body.touch #touchControls { display: flex; }
 #levelScreen.loading { visibility: hidden; } /* nothing until the list is complete */
 
 /* ---------- difficulty picker, control scheme, level-select entry ---------- */
-#diffRow { display: flex; gap: 10px; }
+#diffRow, #optRow { display: flex; gap: 10px; }
 #ctrlRow { display: none; gap: 10px; } /* touch devices only */
 body.touch #ctrlRow { display: flex; }
-#overlay #ctrlRow button, #overlay #diffRow button, #overlay #levelBtn, #overlay #levelBack,
+#overlay #ctrlRow button, #overlay #diffRow button, #overlay #optRow button,
+#overlay #levelBtn, #overlay #levelBack,
 #overlay #levelPrev, #overlay #levelNext,
 #overlay #menuBack, #overlay #mpBack, #overlay button.ghost {
   font-size: 13px; font-weight: 700; letter-spacing: 2px;
@@ -231,12 +232,13 @@ body.touch #ctrlRow { display: flex; }
   border: 1px solid #3a4468; border-radius: 6px; padding: 8px 22px;
   box-shadow: none;
 }
-#overlay #ctrlRow button:hover, #overlay #diffRow button:hover, #overlay #levelBtn:hover, #overlay #levelBack:hover,
+#overlay #ctrlRow button:hover, #overlay #diffRow button:hover, #overlay #optRow button:hover,
+#overlay #levelBtn:hover, #overlay #levelBack:hover,
 #overlay #levelPrev:hover, #overlay #levelNext:hover,
 #overlay #menuBack:hover, #overlay #mpBack:hover, #overlay button.ghost:hover {
   border-color: #6f83c9; color: #cdd8ff; filter: none;
 }
-#overlay #ctrlRow button.selected, #overlay #diffRow button.selected {
+#overlay #ctrlRow button.selected, #overlay #diffRow button.selected, #overlay #optRow button.selected {
   color: #101427; background: linear-gradient(#cdd8ff, #7d97e8);
   border-color: #e6ecff; box-shadow: 0 0 14px rgba(120, 150, 255, .45);
 }

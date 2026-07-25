@@ -41,6 +41,7 @@ final class Entity {
     var netId: String?
     var owner = 0            // playerId of the client that simulates this entity
     var remote = false       // a replica driven by the network, not local sim
+    var seen = true          // fog of war: in sight right now (Vision.swift)
 
     // combat / AI (per-entity timers, like the JS object fields)
     var speed = 0.0

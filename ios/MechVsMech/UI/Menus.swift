@@ -109,6 +109,30 @@ struct MenuScreen: View {
                                 model.difficultyKey = key
                             }
                         }
+                        // sensors only: enemies vanish out of sight
+                        PillToggle(label: "🌫️ FOG OF WAR", selected: model.fogOfWar) {
+                            model.fogOfWar.toggle()
+                        }
+                    }
+                }
+
+                // a finished multiplayer match rolls the whole roster on to the
+                // next map without a trip through the lobby
+                if over && model.isMPMatch {
+                    Button {
+                        model.requestNextMap()
+                    } label: {
+                        Text("▸ NEXT MAP")
+                            .font(.system(size: 18, weight: .heavy))
+                            .kerning(3)
+                            .frame(minWidth: 200)
+                    }
+                    .buttonStyle(MenuButtonStyle(prominent: true))
+                    if let note = model.nextMapNote {
+                        Text(note)
+                            .font(.system(size: 11)).kerning(1)
+                            .foregroundColor(Skin.dimText)
+                            .multilineTextAlignment(.center)
                     }
                 }
 
@@ -120,7 +144,7 @@ struct MenuScreen: View {
                         .kerning(3)
                         .frame(minWidth: 200)
                 }
-                .buttonStyle(MenuButtonStyle(prominent: true))
+                .buttonStyle(MenuButtonStyle(prominent: !(over && model.isMPMatch)))
 
                 if !over {
                     Text("Salvage is earned from kills · destroyed enemy turrets pay extra")

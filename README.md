@@ -30,6 +30,8 @@ Hit **MULTIPLAYER** on the start screen, give yourself a callsign, and enter the
 
 It's a symmetric team base assault, from 1v1 up to 5v5: blue deploys around the usual player spawn, red around the enemy end's wave-spawn points. No AI waves, no pre-placed turrets — each pilot earns salvage (fixed +3/s, plus kill bounties for the whole team), builds their own defenses, and the match is won by destroying the other team's base. If you're destroyed you redeploy at your base after a few seconds, so the base is the only thing that decides the match.
 
+When a match ends, **▸ NEXT MAP** on the result screen takes the whole roster straight into a rematch on the next map in the list — no going back to the lobby, no re-picking teams. Whoever hits it first takes everyone who is still connected along; **BACK TO LOBBY** is still there for anyone who wants out.
+
 To play across machines, friends open `http://<your-ip>:8080` — the game connects its WebSocket to whatever host serves it (or override with `?server=host:port`).
 
 ## Deploying to the Internet
@@ -123,6 +125,10 @@ Turrets are the backbone of your defense — place them to cover your base and c
 | Salvage income | +25% | Normal | −20% |
 
 Your choice is remembered between sessions.
+
+### Fog of War
+
+🌫️ **FOG OF WAR** in the menu trades the god's-eye view for sensors: the district closes in around your mech, and enemy mechs and turrets only exist while they're within sensor range *and* in line of sight — break contact behind a wall and they vanish from the world and from your minimap. Bases and your own team are always visible. It's a view setting, not a rule: it only ever hides things from you, so it works in multiplayer too, and it's remembered between sessions.
 
 ## Project Structure
 

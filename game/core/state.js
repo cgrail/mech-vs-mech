@@ -40,6 +40,9 @@ export const game = {
   mouseDown: false,
   pointerLocked: false,
   difficulty: DIFFICULTIES[saved] ? saved : 'medium',
+  // fog of war: a local view restriction, remembered like the difficulty
+  // (systems/vision.js — never sent over the wire, so it is safe in PvP)
+  fogOfWar: localStorage.getItem('mechFog') === '1',
 };
 
 /* touch/mobile input, written by systems/mobile.js, read by the player update */

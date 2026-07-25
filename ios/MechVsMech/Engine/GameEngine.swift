@@ -89,6 +89,11 @@ final class GameEngine {
     var spawnPos = P2()
     var spawnYaw = 0.0
     var gunSide = 1.0
+    /* fog of war (Vision.swift): a local view restriction, set from the menu
+       when the match starts. Never sent over the wire. */
+    var fogOfWar = false
+    var visionAcc = 0.0
+    var visionHiding = false
     var nextWaveAt = 5.0
     private var salvageTrickle = 0.0
     private var lastTime: TimeInterval?
@@ -168,9 +173,20 @@ final class GameEngine {
         actionLock.unlock()
     }
 
-    func requestStart(difficultyKey: DifficultyKey) {
+    func requestStart(difficultyKey: DifficultyKey, fogOfWar: Bool) {
         audio.startMusic()   // must start from the user gesture path
-        enqueue { self.startGame(difficultyKey: difficultyKey) }
+        enqueue {
+            self.fogOfWar = fogOfWar
+            self.startGame(difficultyKey: difficultyKey)
+        }
+    }
+
+    /* the menu's fog-of-war pill, flipped while a match is running */
+    func setFogOfWar(_ on: Bool) {
+        enqueue {
+            self.fogOfWar = on
+            if self.phase == .playing { self.applyFog() }
+        }
     }
     /* the jump button: the flag is read by the player update, so a press
        lands on the render thread's next frame like every other touch input */
@@ -185,8 +201,7 @@ final class GameEngine {
     private func startGame(difficultyKey: DifficultyKey) {
         guard phase == .menu else { return }
         difficulty = DIFFICULTIES[difficultyKey]!
-        scene.fogStartDistance = 90
-        scene.fogEndDistance = 280
+        applyFog()   // normal play fog, or the tight one when fog of war is on
         if !isMP { applyDifficulty() }   // PvP is symmetric: no difficulty scaling
         phase = .playing
         delegate?.engineMessage("DESTROY THE ENEMY BASE", colorHex: 0xffd23c)
@@ -209,9 +224,12 @@ final class GameEngine {
 
     /* the ready-handshake's "go" starts a multiplayer match (no local
        difficulty picker — PvP is symmetric) */
-    func requestMatchGo() {
+    func requestMatchGo(fogOfWar: Bool) {
         audio.startMusic()
-        enqueue { self.startGame(difficultyKey: .medium) }
+        enqueue {
+            self.fogOfWar = fogOfWar
+            self.startGame(difficultyKey: .medium)
+        }
     }
 
     func endGame(victory: Bool, reason: String? = nil) {
@@ -250,6 +268,7 @@ final class GameEngine {
             }
             separateMechs()
             updateProjectiles(dt: dt)
+            updateVision(dt: dt)   // fog of war, if it's on: what is still drawn
 
             // passive salvage income (fixed rate in PvP so both sides earn the same)
             salvageTrickle += dt
