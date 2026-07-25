@@ -1,5 +1,5 @@
 import { scene, lockPointer } from '../world/scene.js';
-import { levelName, levels } from '../world/world.js';
+import { levelName, levels, levelMeta, levelParam } from '../world/world.js';
 import { game, stats, difficulty, touch } from './state.js';
 import { entities, redBase } from '../entities/entities.js';
 import { audioCtx, boomSfx, startMusic, duckMusic } from '../systems/audio.js';
@@ -94,16 +94,11 @@ if (sessionStorage.getItem('mechLevelFly')) {
 
 levelCur.textContent = levelName.toUpperCase(); // fallback for unlisted levels
 
-// numeric levels keep their short ?level=N form, named levels use the name
-const levelParam = (name) => name.match(/^level(\d+)$/)?.[1] ?? name;
-
 {
-  levels.forEach(({ name, text }, i) => {
+  levels.forEach((entry, i) => {
+    const { name } = entry;
     const n = i + 1;
-    // a level's title is its first comment line: "# TITLE — description"
-    const first = text.split('\n').find((l) => l.startsWith('#')) || '';
-    const m = first.match(/^#\s*(.+?)\s+—\s*(.*)/);
-    const title = m && m[1].length <= 20 ? m[1].toUpperCase() : name.toUpperCase();
+    const { title, desc } = levelMeta(entry);
     const current = name === levelName;
 
     const b = document.createElement('button');
@@ -116,10 +111,10 @@ const levelParam = (name) => name.match(/^level(\d+)$/)?.[1] ?? name;
     t.className = 'title';
     t.textContent = title;
     info.appendChild(t);
-    if (m && m[2]) {
+    if (desc) {
       const d = document.createElement('span');
       d.className = 'desc';
-      d.textContent = m[2];
+      d.textContent = desc;
       info.appendChild(d);
     }
     b.append(num, info);

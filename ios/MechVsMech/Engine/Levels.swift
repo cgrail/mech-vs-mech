@@ -108,6 +108,37 @@ func levelNameFor(param: String) -> String {
    `done` always fires on the main thread; nil means "the server had
    nothing usable" and the caller falls back to the bundled copy.
 ============================================================ */
+/* one entry of the server's map list (GET /levels) — metadata only, no
+   terrain. This is what the lobby's map picker offers, so a room can only
+   ever be pointed at a map the server can actually serve, whatever this
+   app happens to have in its own bundle. */
+struct ServerLevel: Identifiable, Equatable {
+    let param: String       // what setLevel / join send
+    let name: String
+    let title: String
+    let desc: String
+    var id: String { param }
+}
+
+func fetchServerLevelList(url: URL, done: @escaping ([ServerLevel]) -> Void) {
+    var req = URLRequest(url: url)
+    req.timeoutInterval = 8
+    req.cachePolicy = .reloadIgnoringLocalCacheData   // a deploy can add maps
+    URLSession.shared.dataTask(with: req) { data, resp, _ in
+        var out: [ServerLevel] = []
+        if (resp as? HTTPURLResponse)?.statusCode == 200, let data,
+           let arr = (try? JSONSerialization.jsonObject(with: data)) as? [[String: Any]] {
+            for e in arr {
+                guard let param = jStr(e, "param") else { continue }
+                out.append(ServerLevel(param: param, name: jStr(e, "name") ?? param,
+                                       title: jStr(e, "title") ?? param.uppercased(),
+                                       desc: jStr(e, "desc") ?? ""))
+            }
+        }
+        DispatchQueue.main.async { done(out) }
+    }.resume()
+}
+
 func fetchServerLevel(param: String, url: URL, done: @escaping (LevelInfo?) -> Void) {
     var req = URLRequest(url: url)
     req.timeoutInterval = 8          // bounded: the match start waits on this

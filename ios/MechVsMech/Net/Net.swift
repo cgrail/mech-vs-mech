@@ -93,6 +93,11 @@ final class Net: NSObject {
         origin()?.appendingPathComponent("level").appendingPathComponent(param)
     }
 
+    /* the map list the lobby picks from (see fetchServerLevelList) */
+    func levelsURL() -> URL? {
+        origin()?.appendingPathComponent("levels")
+    }
+
     func connect() {
         guard task == nil else { return }
         let url = serverURL()

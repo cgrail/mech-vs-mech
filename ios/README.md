@@ -72,11 +72,11 @@ cp levels/levels.txt ios/MechVsMech/Resources/levels.txt
 ```
 
 A **multiplayer** match doesn't use that copy: an installed app can be older
-than the deployed web build, so at match boot the app fetches the match's map
-from the lobby server (`GET /level/<param>`, which resolves the starter's level
-param against the server's own bundle and returns that one level's text) and
-plays that. The bundled copy is the fallback if the server can't be reached —
-and it is still what single player, level select and the menu preview read.
+than the deployed web build, so both the map list and the map itself come from
+the lobby server — `GET /levels` fills the room owner's map picker, and at match
+boot `GET /level/<param>` returns the chosen level's text, which the app plays.
+The bundled copy is the fallback if the server can't be reached — and it is
+still what single player, level select and the menu preview read.
 
 ## Manual test list (this machine has no Xcode — code is syntax-checked and the
 level parser is unit-run against all 56 bundle levels, but the app itself has
@@ -106,6 +106,12 @@ not been compiled)
   app bundle, restart the server, and start a match on that level — the phone
   should show the server's version. Cutting the network right at match boot
   should still deploy, on the bundled copy, after a short "LOADING THE MAP…".
+- **Map picker**: create a room and tap MAP — the list is the server's (`/levels`),
+  so it should match the web level select, and picking one updates the room for
+  everyone in it (check on a second device or the web client). A pilot who joins
+  a room sees the map but no picker; the match plays the room's map, not whatever
+  level the pilot who pressed START MATCH had selected. If the room's creator
+  leaves, the picker moves to whoever has been in the room longest.
 
 ## Known deviations from the web version
 

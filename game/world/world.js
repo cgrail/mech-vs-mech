@@ -335,6 +335,21 @@ export const levels = []; // [{ name, text }] in play order
   if (!levels.length) throw new Error('levels/levels.txt contains no levels — every level must start with a "=== <name>" line');
 }
 
+/* numeric levels keep their short ?level=N form, named levels use the name */
+export const levelParam = (name) => name.match(/^level(\d+)$/)?.[1] ?? name;
+
+/* a level's menu entry — its first comment line, "# TITLE — description".
+   Used by the level select (flow.js) and the lobby's map picker (lobby.js);
+   the server parses the same line for its /levels list. */
+export function levelMeta({ name, text }) {
+  const first = text.split('\n').find((l) => l.startsWith('#')) || '';
+  const m = first.match(/^#\s*(.+?)\s+—\s*(.*)/);
+  return {
+    title: m && m[1].length <= 20 ? m[1].toUpperCase() : name.toUpperCase(),
+    desc: m ? m[2] : '',
+  };
+}
+
 let levelText = levels.find((l) => l.name === levelName)?.text;
 if (levelText === undefined) {
   // not in the bundle — try a standalone file, so a draft level can be

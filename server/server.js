@@ -15,16 +15,18 @@
    Lobby protocol (JSON) — matches are staged in rooms, so several
    groups can set up and fight in parallel:
      → join {name, level}            ← joined {id,name} | error {message}
-                                     ← lobby {rooms:[{id,name,count}],
+                                     ← lobby {rooms:[{id,name,count,owner,level}],
                                          players:[{id,name,room,team}]}
-     → createRoom                    ← lobby (creator auto-joins) | error
+     → createRoom                    ← lobby (creator auto-joins; they own the
+                                       room and its map defaults to their level)
      → joinRoom {roomId}             ← lobby | error (room gone/full)
      → leaveRoom                     ← lobby
+     → setLevel {level}              ← lobby | error — room owner only
      → team {team:blue|red|null}     ← lobby | error (team full)  — in a room
      → startMatch                    ← matchStart {matchId,token,playerId,team,
                                          level,roster:[{id,name,team}]}
                                        (to everyone on a team in the starter's
-                                        room; the starter's level is played)
+                                        room; the room's map is played)
    Match protocol (players reload into ?mp=1, then):
      → rejoin {matchId, token}       ← rejoined {playerId,team,level,roster} | error
                                      ← peerJoined {id,name}  (to the others)
@@ -33,8 +35,10 @@
      → relay {data}                  ← relay {from,data}  (fanned out to the others)
                                      ← peerLeft {id,name}
 
-   Plus one HTTP route beside the static files, for clients that don't
+   Plus two HTTP routes beside the static files, for clients that don't
    load their levels from this server (the iOS app):
+     GET /levels                     → [{param,name,title,desc}] — the map
+                                       list the room owner picks from
      GET /level/<param>              → that one level's text, resolved the
                                        way the browser resolves ?level=
 
@@ -117,25 +121,23 @@ app.use((req, res, next) => {
   }
   next();
 });
-app.use(express.static(DIST, {
-  setHeaders(res, file) {
-    if (file.endsWith('.html')) res.setHeader('Cache-Control', 'no-cache'); // deploys show up on reload
-    else if (file.startsWith(LEVELS_DIR)) res.setHeader('Cache-Control', 'no-cache'); // an edited map must not linger in a browser cache: players in one match have to load the same terrain
-    else if (/-[\w-]{8,}\.(js|css)$/.test(file)) res.setHeader('Cache-Control', 'public, max-age=31536000, immutable'); // vite content-hashes these
-  },
-}));
-
-/* ---------- GET /level/<param>: one level's text ---------- */
+/* ---------- level routes: the map list, and one level's text ---------- */
 /* Native clients ship their own copy of levels/levels.txt, which can be
    older than what is deployed here — and a client that loads different
    terrain from the rest of the match walks through walls in everyone
-   else's game. So they fetch the match's map from us instead of trusting
-   their copy, one level per request rather than the whole 60-level bundle.
+   else's game. So they pick maps from our list and fetch the match's map
+   from us, one level per request rather than the whole 60-level bundle.
    Browsers need none of this: they already load the bundle from this
    server. Resolution matches the browser's ?level= handling — a number
    picks the entry named "levelN", anything else is an entry name, and a
    name that isn't in the bundle falls back to a standalone
-   levels/<name>.txt draft. */
+   levels/<name>.txt draft.
+
+   These sit before express.static because dist/ has a levels/ directory:
+   static would answer GET /levels with a redirect to the directory. */
+
+/* a lobby level param → the bundle entry it names ("3" → "level3") */
+const levelNameOf = (param) => (/^\d+$/.test(param) ? `level${Number(param)}` : param);
 
 // dist/ is fixed for the life of the process (a deploy restarts us, which is
 // also what re-hashes the CSP above), so the bundle is split exactly once
@@ -156,15 +158,42 @@ try {
   console.error('dist/levels/levels.txt could not be read — /level/<name> will 404:', err.message);
 }
 
+/* the map list the lobby picks from: every bundle entry's param + the
+   "# TITLE — description" first comment line, no terrain. The browser
+   builds this from the bundle it already has; native clients GET /levels
+   rather than ship a level list that could be out of date. */
+const levelMenu = [...bundleLevels].map(([name, text]) => {
+  const first = text.split('\n').find((l) => l.startsWith('#')) || '';
+  const m = first.match(/^#\s*(.+?)\s+—\s*(.*)/);
+  return {
+    param: name.match(/^level(\d+)$/)?.[1] ?? name,
+    name,
+    title: m && m[1].length <= 20 ? m[1].toUpperCase() : name.toUpperCase(),
+    desc: m ? m[2] : '',
+  };
+});
+const levelByName = new Map(levelMenu.map((l) => [l.name, l]));
+
+/* the menu entry a lobby level param names, or null if this server has no
+   such level (a client on a newer/older bundle, or a standalone draft) */
+const findLevel = (param) => levelByName.get(levelNameOf(cleanLevel(param))) || null;
+/* a room's map: what was asked for if it exists here, else the first level —
+   never a name this server can't serve, or the match would have no map */
+const roomLevel = (param) => (findLevel(param) || levelMenu[0])?.param ?? cleanLevel(param);
+
 const sendLevel = (res, text) => res
   .type('text/plain; charset=utf-8')
   .set('Cache-Control', 'no-cache') // a deploy can change a level under a client
   .send(text);
 
+app.get('/levels', (_req, res) => {
+  res.set('Cache-Control', 'no-cache').json(levelMenu);
+});
+
 app.get('/level/:param', (req, res) => {
   // cleanLevel strips path separators, so the name can't escape LEVELS_DIR
   const param = cleanLevel(req.params.param);
-  const name = /^\d+$/.test(param) ? `level${Number(param)}` : param;
+  const name = levelNameOf(param);
   const text = bundleLevels.get(name);
   if (text !== undefined) return sendLevel(res, text);
   fs.readFile(path.join(LEVELS_DIR, `${name}.txt`), 'utf8', (err, data) => {
@@ -172,6 +201,14 @@ app.get('/level/:param', (req, res) => {
     sendLevel(res, data);
   });
 });
+
+app.use(express.static(DIST, {
+  setHeaders(res, file) {
+    if (file.endsWith('.html')) res.setHeader('Cache-Control', 'no-cache'); // deploys show up on reload
+    else if (file.startsWith(LEVELS_DIR)) res.setHeader('Cache-Control', 'no-cache'); // an edited map must not linger in a browser cache: players in one match have to load the same terrain
+    else if (/-[\w-]{8,}\.(js|css)$/.test(file)) res.setHeader('Cache-Control', 'public, max-age=31536000, immutable'); // vite content-hashes these
+  },
+}));
 
 const server = http.createServer(app);
 
@@ -186,7 +223,7 @@ const MAX_ROOMS = 50;      // caps room-spam from a hostile client
 let nextId = 1;
 let nextRoomId = 1;
 const lobby = new Map();   // id -> {id, ws, name, level, room, team}
-const rooms = new Map();   // id -> {id, name} — exists while it has members
+const rooms = new Map();   // id -> {id, name, owner, level} — exists while it has members
 const matches = new Map(); // id -> {id, level, created, started, slots:[{token, pid, team, name, ws, ready, connected, abandoned}]}
 const ipConns = new Map(); // ip -> open connection count
 
@@ -198,17 +235,31 @@ const send = (ws, obj) => {
 
 const roomCount = (id) => [...lobby.values()].filter((c) => c.room === id).length;
 
+/* the map is the room owner's call, so a room must never be left without
+   one: when the owner goes (leaves, disconnects, deploys into the match)
+   the longest-standing member left inherits the room */
+function reassignOwner(id) {
+  const room = rooms.get(id);
+  if (!room) return;
+  const members = [...lobby.values()].filter((o) => o.room === id);
+  if (members.some((o) => o.id === room.owner)) return;
+  if (members[0]) room.owner = members[0].id;
+}
+
 function leaveRoom(c) {
   const id = c.room;
   c.room = null;
   c.team = null;
-  if (id != null && rooms.has(id) && roomCount(id) === 0) rooms.delete(id);
+  if (id == null || !rooms.has(id)) return;
+  if (roomCount(id) === 0) rooms.delete(id);
+  else reassignOwner(id);
 }
 
 function roster() {
   const players = [...lobby.values()].map((c) => ({ id: c.id, name: c.name, room: c.room, team: c.team }));
   const rms = [...rooms.values()].map((r) => ({
-    id: r.id, name: r.name, count: players.filter((p) => p.room === r.id).length,
+    id: r.id, name: r.name, owner: r.owner, level: r.level,
+    count: players.filter((p) => p.room === r.id).length,
   }));
   for (const c of lobby.values()) send(c.ws, { type: 'lobby', rooms: rms, players });
 }
@@ -321,9 +372,29 @@ wss.on('connection', (ws, req) => {
           send(ws, { type: 'error', message: 'THE SERVER IS FULL OF ROOMS — JOIN ONE INSTEAD' });
           return;
         }
-        const room = { id: nextRoomId++, name: `${c.name.toUpperCase()}'S ROOM` };
+        // the creator owns the room and picks its map — starting on whatever
+        // level they had loaded, as long as this server has it
+        const room = {
+          id: nextRoomId++, name: `${c.name.toUpperCase()}'S ROOM`,
+          owner: c.id, level: roomLevel(c.level),
+        };
         rooms.set(room.id, room);
         c.room = room.id;
+        roster();
+        break;
+      }
+
+      case 'setLevel': { // the room owner picks the map everyone will play
+        if (!c || c.room == null) return;
+        const room = rooms.get(c.room);
+        if (!room) return;
+        if (room.owner !== c.id) {
+          send(ws, { type: 'error', message: 'ONLY THE PILOT WHO CREATED THE ROOM PICKS THE MAP' });
+          return;
+        }
+        const level = findLevel(msg.level);
+        if (!level) { send(ws, { type: 'error', message: 'THIS SERVER HAS NO SUCH MAP' }); return; }
+        room.level = level.param;
         roster();
         break;
       }
@@ -369,7 +440,7 @@ wss.on('connection', (ws, req) => {
         }
         const match = {
           id: crypto.randomUUID(),
-          level: c.level, // the starter's level is played
+          level: rooms.get(roomId)?.level ?? c.level, // the room's map, picked by its owner
           created: Date.now(),
           started: false,
           slots: fighters.map((o) => ({
@@ -392,6 +463,7 @@ wss.on('connection', (ws, req) => {
           lobby.delete(o.id);
         }
         if (roomCount(roomId) === 0) rooms.delete(roomId);
+        else reassignOwner(roomId); // the owner may have deployed into the match
         roster();
         break;
       }

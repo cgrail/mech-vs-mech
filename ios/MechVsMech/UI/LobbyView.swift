@@ -7,6 +7,8 @@ import SwiftUI
 struct LobbyView: View {
     @EnvironmentObject var model: AppModel
     @ObservedObject var lobby: LobbyModel
+    /* the room owner's map list, shown in place of the team columns */
+    @State private var pickingMap = false
 
     var body: some View {
         OverlayFrame {
@@ -90,7 +92,12 @@ struct LobbyView: View {
                     } else {
                         ForEach(lobby.rooms) { r in
                             HStack {
-                                Text(r.name).font(.system(size: 13, weight: .heavy, design: .rounded))
+                                VStack(alignment: .leading, spacing: 1) {
+                                    Text(r.name).font(.system(size: 13, weight: .heavy, design: .rounded))
+                                    Text(lobby.mapTitle(r.level))
+                                        .font(.system(size: 10, weight: .medium, design: .rounded))
+                                        .foregroundColor(.white.opacity(0.55))
+                                }
                                 Spacer()
                                 Text("\(r.count) PILOT\(r.count == 1 ? "" : "S")")
                                     .font(.system(size: 11, weight: .bold, design: .rounded))
@@ -126,7 +133,7 @@ struct LobbyView: View {
         let members = lobby.players.filter { $0.room == lobby.myRoom }
         return VStack(spacing: 10) {
             HStack {
-                Text(lobby.rooms.first { $0.id == lobby.myRoom }?.name ?? "ROOM")
+                Text(lobby.myRoomInfo?.name ?? "ROOM")
                     .font(.system(size: 14, weight: .heavy, design: .rounded))
                 Spacer()
                 Button("◂ LEAVE ROOM") { lobby.leaveRoom() }
@@ -135,20 +142,115 @@ struct LobbyView: View {
             }
             .frame(width: 420)
 
-            HStack(alignment: .top, spacing: 14) {
-                teamColumn(.blue, members: members)
-                teamColumn(.red, members: members)
-            }
+            mapRow
 
-            statusText
+            if pickingMap {
+                mapList
+            } else {
+                HStack(alignment: .top, spacing: 14) {
+                    teamColumn(.blue, members: members)
+                    teamColumn(.red, members: members)
+                }
 
-            Button { lobby.startMatch() } label: {
-                Text("⚔ START MATCH").font(.system(size: 18, weight: .black, design: .rounded)).frame(width: 260)
+                statusText
+
+                Button { lobby.startMatch() } label: {
+                    Text("⚔ START MATCH").font(.system(size: 18, weight: .black, design: .rounded)).frame(width: 260)
+                }
+                .buttonStyle(MenuButtonStyle(prominent: true))
+                .disabled(!lobby.canStart)
+                .opacity(lobby.canStart ? 1 : 0.5)
             }
-            .buttonStyle(MenuButtonStyle(prominent: true))
-            .disabled(!lobby.canStart)
-            .opacity(lobby.canStart ? 1 : 0.5)
         }
+        // a room I don't own has no picker to leave open — and neither does one
+        // on a server that never answered /levels
+        .onChange(of: lobby.iOwnRoom) { if !$1 { pickingMap = false } }
+        .onChange(of: lobby.myRoom) { pickingMap = false }
+    }
+
+    /* the map this room plays: its creator taps to change it, everyone else
+       reads it. The list itself comes from the server (see LobbyModel.maps),
+       so it can only ever offer maps the server can serve. */
+    private var mapRow: some View {
+        let canPick = lobby.iOwnRoom && !lobby.maps.isEmpty
+        return HStack(spacing: 8) {
+            Text("MAP")
+                .font(.system(size: 11, weight: .bold, design: .rounded))
+                .foregroundColor(.white.opacity(0.5))
+            if canPick {
+                Button { pickingMap.toggle() } label: {
+                    HStack(spacing: 6) {
+                        Text(lobby.roomMapTitle)
+                            .font(.system(size: 13, weight: .heavy, design: .rounded))
+                        Text(pickingMap ? "▴" : "▾").font(.system(size: 11, weight: .black))
+                    }
+                }
+                .buttonStyle(MenuButtonStyle())
+            } else {
+                Text(lobby.roomMapTitle)
+                    .font(.system(size: 13, weight: .heavy, design: .rounded))
+                    .foregroundColor(.white)
+            }
+            Spacer()
+            if !lobby.iOwnRoom {
+                Text("PICKED BY THE ROOM'S CREATOR")
+                    .font(.system(size: 10, weight: .medium, design: .rounded))
+                    .foregroundColor(.white.opacity(0.45))
+            }
+        }
+        .frame(width: 420)
+    }
+
+    private var mapList: some View {
+        VStack(spacing: 8) {
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(spacing: 6) {
+                        ForEach(Array(lobby.maps.enumerated()), id: \.element.id) { i, m in
+                            mapRowButton(index: i, map: m)
+                        }
+                    }
+                    .padding(.horizontal, 8)
+                }
+                .frame(maxWidth: 440, maxHeight: 240)
+                .onAppear { proxy.scrollTo(lobby.roomMapParam, anchor: .center) }
+            }
+            Button("◂ DONE") { pickingMap = false }
+                .font(.system(size: 13, weight: .bold, design: .rounded))
+                .foregroundColor(.white.opacity(0.7))
+        }
+    }
+
+    private func mapRowButton(index: Int, map: ServerLevel) -> some View {
+        let selected = map.param == lobby.roomMapParam
+        return Button {
+            lobby.setLevel(map.param)     // the lobby broadcast confirms it
+            pickingMap = false
+        } label: {
+            HStack(spacing: 10) {
+                Text("\(index + 1)")
+                    .font(.system(size: 15, weight: .black, design: .rounded))
+                    .frame(width: 30, height: 30)
+                    .background(Circle().fill(Color.white.opacity(0.12)))
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(map.title).font(.system(size: 13, weight: .heavy, design: .rounded))
+                    if !map.desc.isEmpty {
+                        Text(map.desc)
+                            .font(.system(size: 10, weight: .medium, design: .rounded))
+                            .foregroundColor(.white.opacity(0.55))
+                            .lineLimit(1)
+                    }
+                }
+                Spacer()
+            }
+            .padding(8)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(selected ? Color(hex: 0x2b4fd8).opacity(0.5) : Color.white.opacity(0.06))
+            )
+            .foregroundColor(.white)
+        }
+        .id(map.param)
     }
 
     private func teamColumn(_ team: Team, members: [LobbyPlayer]) -> some View {

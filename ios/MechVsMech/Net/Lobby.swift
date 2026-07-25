@@ -6,7 +6,10 @@ import Combine
 
    Lobby: pick a callsign → join → create/join a room → pick a
    team (max 5/side) → START MATCH once both sides have a pilot.
-   The server mints a match and everyone gets `matchStart`.
+   The room's creator also picks its map (`setLevel`, offered from
+   the server's own list — see LobbyModel.maps); everyone in the
+   room fights on that one. The server mints a match and everyone
+   gets `matchStart`.
 
    Match boot: unlike the web (which reloads the page), iOS keeps
    the same socket — the server already released our lobby-client
@@ -20,6 +23,8 @@ struct RoomInfo: Identifiable {
     let id: Int
     let name: String
     let count: Int
+    let owner: Int       // the pilot who created it — only they pick the map
+    let level: String    // the map everyone in this room will play
 }
 
 struct LobbyPlayer: Identifiable {
@@ -49,6 +54,9 @@ final class LobbyModel: ObservableObject {
     @Published var myId: Int?
     @Published var myRoom: Int?
     @Published var myTeam: Team?
+    /* the maps this server offers — fetched from it, not read out of our
+       bundle, so the picker can't offer a map the server doesn't have */
+    @Published var maps: [ServerLevel] = []
 
     // match boot
     @Published var bootRoster: [MPPlayer] = []
@@ -89,6 +97,17 @@ final class LobbyModel: ObservableObject {
         phase = .connecting
         setStatus("CONNECTING TO SERVER…")
         if net.isConnected { handleOpen() } else { net.connect() }
+        fetchMaps()
+    }
+
+    /* the server's map list, refreshed each time the lobby opens — a deploy
+       can add or retitle maps while the app stays installed */
+    private func fetchMaps() {
+        guard let url = net.levelsURL() else { return }
+        fetchServerLevelList(url: url) { [weak self] list in
+            guard let self, !list.isEmpty else { return }   // keep the last good list
+            self.maps = list
+        }
     }
 
     func close() {
@@ -128,6 +147,8 @@ final class LobbyModel: ObservableObject {
     func joinRoom(_ id: Int) { net.send(["type": "joinRoom", "roomId": id]) }
     func leaveRoom() { net.send(["type": "leaveRoom"]) }
     func startMatch() { net.send(["type": "startMatch"]) }
+    /* pick the room's map — the server rejects this from anyone but its owner */
+    func setLevel(_ param: String) { net.send(["type": "setLevel", "level": param]) }
 
     func pickTeam(_ team: Team) {
         // tapping my own team steps back off the roster
@@ -221,7 +242,8 @@ final class LobbyModel: ObservableObject {
         var rs: [RoomInfo] = []
         for r in (obj["rooms"] as? [[String: Any]]) ?? [] {
             guard let id = jInt(r, "id") else { continue }
-            rs.append(RoomInfo(id: id, name: jStr(r, "name") ?? "ROOM", count: jInt(r, "count") ?? 0))
+            rs.append(RoomInfo(id: id, name: jStr(r, "name") ?? "ROOM", count: jInt(r, "count") ?? 0,
+                               owner: jInt(r, "owner") ?? 0, level: jStr(r, "level") ?? "1"))
         }
         var ps: [LobbyPlayer] = []
         for p in (obj["players"] as? [[String: Any]]) ?? [] {
@@ -244,7 +266,8 @@ final class LobbyModel: ObservableObject {
             let red = members.filter { $0.team == .red }.count
             if myTeam == nil { setStatus("PICK A TEAM — BLUE OR RED") }
             else if blue == 0 || red == 0 { setStatus("WAITING FOR PILOTS ON THE OTHER TEAM…") }
-            else { setStatus("READY — STARTING PLAYS YOUR LEVEL FOR EVERYONE IN THE ROOM") }
+            else if iOwnRoom { setStatus("READY — YOUR ROOM, YOUR MAP: EVERYONE FIGHTS ON \(roomMapTitle)") }
+            else { setStatus("READY — THE ROOM PLAYS \(roomMapTitle), PICKED BY ITS CREATOR") }
         }
     }
 
@@ -252,6 +275,19 @@ final class LobbyModel: ObservableObject {
         guard let myRoom, myTeam != nil else { return false }
         let members = players.filter { $0.room == myRoom }
         return members.contains { $0.team == .blue } && members.contains { $0.team == .red }
+    }
+
+    // MARK: - The room's map
+
+    var myRoomInfo: RoomInfo? { rooms.first { $0.id == myRoom } }
+    /* the map is the creator's call; everyone else just reads it */
+    var iOwnRoom: Bool { myId != nil && myRoomInfo?.owner == myId }
+    var roomMapParam: String { myRoomInfo?.level ?? "1" }
+    var roomMapTitle: String { mapTitle(roomMapParam) }
+    /* a map the server listed, or the bare param if this server never
+       answered /levels (then the picker is hidden anyway) */
+    func mapTitle(_ param: String) -> String {
+        maps.first { $0.param == param }?.title ?? param.uppercased()
     }
 
     // MARK: - Match boot
@@ -283,7 +319,7 @@ final class LobbyModel: ObservableObject {
     }
 
     /* pull the match's map off the server while the ready handshake runs —
-       the starter's level param is resolved against the *deployed* bundle,
+       the room's level param is resolved against the *deployed* bundle,
        not our bundled copy of it, so every client fights on one map */
     private func fetchMatchLevel(param: String, matchId: String) {
         matchLevel = nil

@@ -1,6 +1,6 @@
 import { MP, connect, disconnect, connected, on, send } from '../net/net.js';
 import { game } from '../core/state.js';
-import { levelName } from '../world/world.js';
+import { levelName, levels, levelMeta, levelParam } from '../world/world.js';
 import { startGame, backToLobby } from '../core/flow.js';
 import { audioCtx } from '../systems/audio.js';
 
@@ -12,8 +12,10 @@ import { audioCtx } from '../systems/audio.js';
    5 per side) → once both teams have at least one pilot, anyone
    on a team can START MATCH. Rooms are independent: each stages
    its own match, so several groups can fight in parallel. The
-   server deals out match credentials and every rostered player
-   reloads into ?level=<starter's level>&mp=1 (see net.js).
+   room's creator owns it and picks the map everyone plays (the
+   server holds that choice, so joiners just see it). The server
+   deals out match credentials and every rostered player reloads
+   into ?level=<the room's map>&mp=1 (see net.js).
 
    Match boot (?mp=1): reconnect, rejoin by token, then a READY
    handshake so the fight starts for everyone at once.
@@ -31,6 +33,8 @@ const roomListEl = document.getElementById('mpRoomList');
 const createBtn = document.getElementById('mpCreateBtn');
 const roomBar = document.getElementById('mpRoomBar');
 const roomNameEl = document.getElementById('mpRoomName');
+const mapSelect = document.getElementById('mpMapSelect');
+const mapNameEl = document.getElementById('mpMapName');
 const leaveBtn = document.getElementById('mpLeaveBtn');
 const teamsEl = document.getElementById('mpTeams');
 const listEl = document.getElementById('mpList');
@@ -40,8 +44,11 @@ const readyBtn = document.getElementById('readyBtn');
 
 const TEAM_MAX = 5; // mirrors the server's cap; the server enforces it
 const show = (el, on) => el.classList.toggle('mpHidden', !on);
-// numeric levels travel as their short ?level=N form
-const levelParam = (n) => n.match(/^level(\d+)$/)?.[1] ?? n;
+
+/* map picker: the level bundle this page loaded is the server's own, so the
+   options match what the server will accept in setLevel */
+const maps = levels.map((l) => ({ param: levelParam(l.name), ...levelMeta(l) }));
+const mapTitle = (param) => maps.find((m) => m.param === param)?.title || String(param).toUpperCase();
 
 function setStatus(text, color) {
   statusEl.textContent = text;
@@ -239,7 +246,7 @@ function renderList(state) {
       n.textContent = r.name;
       const st = document.createElement('span');
       st.className = 'st';
-      st.textContent = `${r.count} PILOT${r.count === 1 ? '' : 'S'}`;
+      st.textContent = `${r.count} PILOT${r.count === 1 ? '' : 'S'} · ${mapTitle(r.level)}`;
       const b = document.createElement('button');
       b.textContent = 'JOIN';
       b.addEventListener('click', () => send({ type: 'joinRoom', roomId: r.id }));
@@ -267,6 +274,17 @@ function renderList(state) {
   const room = rooms.find((r) => r.id === myRoom);
   roomNameEl.textContent = room ? room.name : 'ROOM';
   const members = players.filter((p) => p.room === myRoom);
+
+  /* the map: the owner picks it, everyone else reads it. (A level this page
+     doesn't know — a tab older than the deployed bundle — shows as a label,
+     so the picker can never send a param the page can't name.) */
+  const map = room ? room.level : levelParam(levelName);
+  const canPick = !!room && room.owner === myId && maps.some((m) => m.param === map);
+  show(mapSelect, canPick);
+  show(mapNameEl, !canPick);
+  // only when it actually differs: reassigning value closes an open dropdown
+  if (canPick) { if (mapSelect.value !== map) mapSelect.value = map; }
+  else mapNameEl.textContent = mapTitle(map);
 
   for (const team of ['blue', 'red']) {
     const col = document.getElementById(team === 'blue' ? 'mpTeamBlue' : 'mpTeamRed');
@@ -303,7 +321,8 @@ function renderList(state) {
   startBtn.disabled = !myTeam || !blue || !red;
   if (!myTeam) setStatus('PICK A TEAM — BLUE OR RED');
   else if (!blue || !red) setStatus('WAITING FOR PILOTS ON THE OTHER TEAM…');
-  else setStatus(`READY — STARTING PLAYS YOUR LEVEL (${levelName.toUpperCase()}) FOR EVERYONE IN THE ROOM`);
+  else if (canPick) setStatus(`READY — YOUR ROOM, YOUR MAP: EVERYONE FIGHTS ON ${mapTitle(map)}`);
+  else setStatus(`READY — THE ROOM PLAYS ${mapTitle(map)}, PICKED BY ITS CREATOR`);
 }
 
 function onOpen() {
@@ -335,6 +354,15 @@ if (!MP.active) {
   });
   createBtn.addEventListener('click', () => send({ type: 'createRoom' }));
   leaveBtn.addEventListener('click', () => send({ type: 'leaveRoom' }));
+
+  for (const [i, m] of maps.entries()) {
+    const opt = document.createElement('option');
+    opt.value = m.param;
+    opt.textContent = `${i + 1} · ${m.title}`;
+    mapSelect.appendChild(opt);
+  }
+  // the server rejects this from anyone but the room's owner
+  mapSelect.addEventListener('change', () => send({ type: 'setLevel', level: mapSelect.value }));
   for (const btn of teamsEl.querySelectorAll('button')) {
     btn.addEventListener('click', () => {
       // clicking my own team's button steps back off the roster
