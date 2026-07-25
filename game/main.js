@@ -16,6 +16,7 @@ import './systems/input.js';
 import './systems/mobile.js';
 import './core/flow.js';
 import './ui/lobby.js';
+import './ui/editor.js';
 
 createWorld(scene);
 window.__mech = { player, game, entities, MP }; // console/testing hook

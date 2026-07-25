@@ -283,6 +283,47 @@ body.touch #ctrlRow { display: flex; }
   color: #8a92ad; line-height: 1.4;
 }
 
+/* ---------- map editor ---------- */
+#editScreen { gap: 10px; width: min(1000px, 94vw); }
+#edPalette { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+#overlay #edPalette button {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 11px; font-weight: 700; letter-spacing: 1px;
+  color: #cdd8ff; background: rgba(20, 24, 40, .85);
+  border: 1px solid #3a4468; border-radius: 6px; padding: 6px 10px; box-shadow: none;
+}
+#overlay #edPalette button.selected { border-color: #ffd23c; color: #ffd23c; box-shadow: 0 0 12px rgba(255, 210, 60, .3); }
+.edSwatch { width: 14px; height: 14px; border-radius: 3px; border: 1px solid rgba(0,0,0,.5); }
+#edCanvasWrap {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; height: min(52vh, 520px);
+  background: rgba(10, 12, 20, .6); border: 1px solid #3a4468; border-radius: 8px;
+}
+#edCanvas { touch-action: none; cursor: crosshair; image-rendering: pixelated; }
+#edBar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: center; font-size: 11px; letter-spacing: 2px; color: #8a92ad; }
+#edBar input {
+  font: inherit; font-size: 12px; font-weight: 700; letter-spacing: 1px;
+  color: #cdd8ff; background: rgba(20, 24, 40, .85);
+  border: 1px solid #3a4468; border-radius: 6px; padding: 6px 10px;
+  outline: none; width: 150px; user-select: text;
+}
+#edBar input:focus { border-color: #6f83c9; }
+#edSize b { color: #cdd8ff; font-size: 13px; padding: 0 6px; }
+#overlay #edSize button {
+  font-size: 13px; font-weight: 700; color: #9fb4ff; background: rgba(20, 24, 40, .85);
+  border: 1px solid #3a4468; border-radius: 5px; padding: 2px 9px; box-shadow: none;
+}
+#edLoad {
+  font: inherit; font-size: 12px; letter-spacing: 1px; padding: 6px 8px; border-radius: 6px;
+  background: rgba(20, 24, 40, .9); border: 1px solid #3a4468; color: #cdd8ff; cursor: pointer;
+  max-width: min(260px, 40vw);
+}
+#edMsg { font-size: 12px; letter-spacing: 1px; color: #8fd0ff; min-height: 1.2em; text-align: center; }
+#edMsg.bad { color: #ff8a7a; }
+#edBtns { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+#overlay #edPlay { font-size: 15px; letter-spacing: 3px; padding: 10px 28px; }
+#overlay #edBtns button.ghost:disabled { filter: grayscale(1) brightness(.6); cursor: default; }
+
 /* ---------- multiplayer lobby + match screens ---------- */
 .mpHidden { display: none !important; }
 #mpStatus { font-size: 12px; letter-spacing: 2px; color: #8a92ad; max-width: 86vw; }

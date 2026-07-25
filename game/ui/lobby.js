@@ -50,7 +50,8 @@ const show = (el, on) => el.classList.toggle('mpHidden', !on);
 
 /* map picker: the level bundle this page loaded is the server's own, so the
    options match what the server will accept in setLevel */
-const maps = levels.map((l) => ({ param: levelParam(l.name), ...levelMeta(l) }));
+const maps = levels.filter((l) => !l.user) // editor maps are local: the server has no copy
+  .map((l) => ({ param: levelParam(l.name), ...levelMeta(l) }));
 const mapTitle = (param) => maps.find((m) => m.param === param)?.title || String(param).toUpperCase();
 
 /* ============================================================

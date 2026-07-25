@@ -34,8 +34,19 @@ export const LEVEL = {
 
 let cells = [];  // [row][col] -> {t:'flat'|'wall', h} | {t:'ramp', axis, h0, h1}
 
-function parseLevel(text, name) {
-  const lines = text.split('\n').map((l) => l.replace(/\s+$/, ''))
+const NEEDED = {
+  P: 'a "P" player-spawn marker',
+  B: 'a "B" blue-base marker',
+  R: 'an "R" red-base marker',
+  S: 'an "S" enemy-spawn marker',
+};
+
+/* Every check parseLevel makes, before it touches any global state. Returns
+   the level's terrain rows (comments and blank lines dropped). The map editor
+   (ui/editor.js) validates drafts with this, so a broken draft is reported
+   the same way a broken bundle entry is — and never half-loaded. */
+export function validateLevel(text, name) {
+  const lines = String(text).split('\n').map((l) => l.replace(/\s+$/, ''))
     .filter((l) => l && !l.startsWith('#'));
   const rows = lines.length;
   if (!rows) throw new Error(`Level "${name}" is empty — it has no terrain rows`);
@@ -50,6 +61,18 @@ function parseLevel(text, name) {
       }
     }
   }
+  for (const ch in NEEDED) {
+    if (!lines.some((l) => l.includes(ch))) {
+      throw new Error(`Level "${name}" has no ${NEEDED[ch]} — every level needs one`);
+    }
+  }
+  return lines;
+}
+
+function parseLevel(text, name) {
+  const lines = validateLevel(text, name);
+  const rows = lines.length;
+  const cols = lines[0].length;
   LEVEL.rows = rows; LEVEL.cols = cols;
   // markers accumulate — a rebuild (rebuildWorld) must not keep the old map's
   LEVEL.redTurrets.length = 0;
@@ -62,12 +85,10 @@ function parseLevel(text, name) {
 
   // pull out markers; the tile itself becomes plain terrain
   const chars = lines.map((l) => l.split(''));
-  const seen = new Set();
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       const ch = chars[r][c];
       if (!'PBRTS'.includes(ch)) continue;
-      seen.add(ch);
       const p = { x: cx(c), z: cz(r) };
       if (ch === 'P') LEVEL.playerSpawn = p;
       else if (ch === 'B') LEVEL.blueBase = p;
@@ -78,16 +99,6 @@ function parseLevel(text, name) {
       chars[r][c] = left in TIER ? left : right in TIER ? right : 'g';
     }
   }
-  const NEEDED = {
-    P: 'a "P" player-spawn marker',
-    B: 'a "B" blue-base marker',
-    R: 'an "R" red-base marker',
-    S: 'an "S" enemy-spawn marker',
-  };
-  for (const ch in NEEDED) {
-    if (!seen.has(ch)) throw new Error(`Level "${name}" has no ${NEEDED[ch]} — every level needs one`);
-  }
-
   cells = chars.map((row) => row.map((ch) => {
     if (ch === 'w') return { t: 'wall', h: WALL_H };
     if (ch === 'r') return { t: 'ramp', axis: 'x', h0: 0, h1: 0 };
@@ -366,6 +377,27 @@ export const levels = []; // [{ name, text }] in play order
     else if (cur) cur.text += line + '\n';
   }
   if (!levels.length) throw new Error('levels/levels.txt contains no levels — every level must start with a "=== <name>" line');
+}
+
+/* ---------- maps made in the in-game editor ----------
+   They live in localStorage, not in the bundle, and are appended to `levels`
+   so the level select, ?level=<name> and the next-level flow treat them like
+   any other map. They stay single player: the lobby only offers maps the
+   server can serve (ui/lobby.js filters `user` out), which is also what keeps
+   a match from being staged on a map only one player has. */
+export const USER_LEVELS_KEY = 'mechUserLevels';
+
+export function userLevels() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(USER_LEVELS_KEY));
+    return Array.isArray(raw)
+      ? raw.filter((l) => l && typeof l.name === 'string' && typeof l.text === 'string')
+      : [];
+  } catch { return []; } // corrupted store: behave as if there were none
+}
+
+for (const l of userLevels()) {
+  if (!levels.some((b) => b.name === l.name)) levels.push({ name: l.name, text: l.text, user: true });
 }
 
 /* numeric levels keep their short ?level=N form, named levels use the name */

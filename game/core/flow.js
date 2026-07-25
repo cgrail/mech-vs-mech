@@ -134,7 +134,12 @@ document.addEventListener('keydown', (e) => {
   else if (e.code === 'ArrowRight') stepLevel(1);
 });
 
-{
+/* the level list is rebuilt, not just marked, because the map editor can add,
+   rename and delete maps while the menu is up (ui/editor.js fires
+   `mech:levelchanged` once its map is in) */
+function buildLevelList() {
+  levelList.textContent = '';
+  levelBtns.length = 0;
   levels.forEach((entry, i) => {
     const { name } = entry;
     const n = i + 1;
@@ -166,6 +171,11 @@ document.addEventListener('keydown', (e) => {
     levelList.appendChild(b);
   });
   reflectLevel();
+}
+
+buildLevelList();
+window.addEventListener('mech:levelchanged', buildLevelList);
+{
   // start the scrollable list centered on the current level
   const sel = levelList.querySelector('button.selected');
   if (sel) levelList.scrollTop = sel.offsetTop - (levelList.clientHeight - sel.offsetHeight) / 2;

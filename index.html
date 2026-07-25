@@ -138,6 +138,7 @@
   <div class="screen" id="modeScreen">
     <button id="spBtn"><span>SINGLE PLAYER</span><span class="desc">HOLD THE DISTRICT AGAINST THE MACHINES</span></button>
     <button id="mpBtn"><span>MULTIPLAYER</span><span class="desc">CHALLENGE A PILOT</span></button>
+    <button id="edBtn"><span>MAP EDITOR</span><span class="desc">PAINT YOUR OWN DISTRICT</span></button>
   </div>
   <div class="screen hidden" id="menuScreen">
     <div class="panel" id="briefing">
@@ -175,6 +176,26 @@
     <div class="screenTitle">SELECT LEVEL</div>
     <div id="levelList"></div>
     <button id="levelBack">◂ BACK</button>
+  </div>
+  <div class="screen hidden" id="editScreen">
+    <div class="screenTitle">MAP EDITOR</div>
+    <div id="edPalette"></div>
+    <div id="edCanvasWrap"><canvas id="edCanvas"></canvas></div>
+    <div id="edBar">
+      <label>NAME <input id="edName" maxlength="20" placeholder="CUSTOM MAP" autocomplete="off" spellcheck="false"></label>
+      <label>DESC <input id="edDesc" maxlength="60" placeholder="made in the map editor" autocomplete="off" spellcheck="false"></label>
+      <span id="edSize">W <button data-size="w-">−</button><b id="edW">20</b><button data-size="w+">+</button>
+        &nbsp;H <button data-size="h-">−</button><b id="edH">24</b><button data-size="h+">+</button></span>
+      <select id="edLoad"></select>
+    </div>
+    <div id="edMsg"></div>
+    <div id="edBtns">
+      <button id="edPlay">▶ PLAY</button>
+      <button id="edSave" class="ghost">💾 SAVE</button>
+      <button id="edCopy" class="ghost">📋 COPY TEXT</button>
+      <button id="edDelete" class="ghost">🗑 DELETE</button>
+      <button id="edBack" class="ghost">◂ BACK</button>
+    </div>
   </div>
   <div class="screen hidden" id="mpScreen">
     <div class="screenTitle">MULTIPLAYER LOBBY</div>

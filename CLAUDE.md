@@ -77,6 +77,15 @@ All levels are in **one bundle, `levels/levels.txt`** — a `=== <name>` line st
 - The `S` markers double as red-team spawn points in multiplayer (blue fans out around `P`), so maps meant for 5v5 should carry ~5 spread-out `S` markers — the XL maps at the end of the bundle (level53+) are built that way
 - The bundle is shared with the iOS port and mismatches break cross-play — after editing it, copy it over as described in [Web and iOS must stay in lockstep](#web-and-ios-must-stay-in-lockstep)
 
+#### The map editor writes this same format
+
+[game/ui/editor.js](game/ui/editor.js) (MAP EDITOR on the mode screen, web only) paints the character grid directly — the level file *is* its document model. Two things it hooks into:
+
+- `validateLevel(text, name)` in `world.js` is every check `parseLevel` makes, hoisted out and made pure, so a draft is rejected with the same messages a broken bundle entry gets and is never half-loaded. `parseLevel` calls it first and only then touches `LEVEL`/`ARENA`/`cells`.
+- Saved maps go to `localStorage` (`mechUserLevels`) and are appended to the exported `levels` array at boot with `user: true`, so the level select, `?level=<name>`, `switchMap` and the next-level flow treat them like bundle maps. `lobby.js` filters `user` maps *out* of the map picker: the server serves its own bundle, so a match can never be staged on a map only one player has. COPY TEXT emits the `=== name` block to paste into `levels/levels.txt` (then copy to iOS) — that is the only way an editor map becomes real for multiplayer and for the iOS build.
+
+Because the list can change while the menu is up, `flow.js` **rebuilds** the level-select list on the `mech:levelchanged` event rather than only re-marking it.
+
 #### Base compounds
 
 Both bases sit in an identical walled fort so that **a base can only be shot from inside its own courtyard** — no sniping it across the map. Written relative to the base tile, with `dr` running toward the enemy:

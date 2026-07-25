@@ -81,6 +81,16 @@ With `DOMAIN` set, Caddy is installed on the same box, obtains a Let's Encrypt c
 
 Instead of the command line, `DOMAIN`/`EMAIL` can live in a `.env` file next to `install.sh` (copy [.env.example](.env.example)) — it's gitignored and survives the auto-update timer. Either way the choice is remembered in `/etc/default/mech-vs-mech`, so re-runs are just `sudo ./install.sh`; `sudo DOMAIN= ./install.sh` (or an empty `DOMAIN=` in `.env`) switches back to Cloudflare mode. Precedence: command line > `.env` > remembered values.
 
+## Map Editor
+
+**MAP EDITOR** on the start screen opens a tile painter for the level format itself — one character per 8×8 tile, the same thing `levels/levels.txt` holds. Pick ground, low ground, high ground, wall or ramp from the palette and paint with the left mouse button (the right button clears back to ground); the marker tools place the player spawn, both bases, red turrets and enemy spawn points. Width and height go from 10 to 64 tiles, and **START FROM…** loads any existing map as a starting point.
+
+- **▶ PLAY** saves the map and flies it in behind the mission menu, ready to deploy.
+- **💾 SAVE** keeps it in the browser (it shows up in the level select with a ★, and `?level=<name>` works).
+- **📋 COPY TEXT** copies the finished `=== name` block — paste it at the end of [levels/levels.txt](levels/levels.txt) (and copy that file to `ios/MechVsMech/Resources/`) to make the map part of the game for real.
+
+Editor maps live in your browser only, so they are single player: multiplayer matches are always staged on maps the server itself ships.
+
 ## How to Play
 
 Destroy the red base in the north before the enemy destroys your blue base in the south. Enemy mechs spawn in waves that grow larger and more aggressive over time — you can't kill them forever, so push for the base.
