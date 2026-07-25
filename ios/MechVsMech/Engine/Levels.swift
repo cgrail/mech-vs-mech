@@ -47,6 +47,22 @@ struct LevelInfo: Identifiable {
     var id: Int { index }
 }
 
+/* title/desc come from the level's first comment line
+   ("# TITLE — player-facing description"), like the web level menu */
+func makeLevelInfo(index: Int, name: String, text: String) -> LevelInfo {
+    let first = text.split(separator: "\n").first { $0.hasPrefix("#") }.map(String.init) ?? ""
+    var title = name.uppercased()
+    var desc = ""
+    // "# TITLE — description"
+    if let dashRange = first.range(of: " — ") {
+        let t = first[first.index(first.startIndex, offsetBy: 1)..<dashRange.lowerBound]
+            .trimmingCharacters(in: .whitespaces)
+        if !t.isEmpty && t.count <= 20 { title = t.uppercased() }
+        desc = String(first[dashRange.upperBound...]).trimmingCharacters(in: .whitespaces)
+    }
+    return LevelInfo(index: index, name: name, text: text, title: title, desc: desc)
+}
+
 func loadLevelBundle() -> [LevelInfo] {
     guard let url = Bundle.main.url(forResource: "levels", withExtension: "txt"),
           let raw = try? String(contentsOf: url, encoding: .utf8) else {
@@ -57,17 +73,7 @@ func loadLevelBundle() -> [LevelInfo] {
     var curText = ""
     func flush() {
         guard let name = curName else { return }
-        let first = curText.split(separator: "\n").first { $0.hasPrefix("#") }.map(String.init) ?? ""
-        var title = name.uppercased()
-        var desc = ""
-        // "# TITLE — description"
-        if let dashRange = first.range(of: " — ") {
-            let t = first[first.index(first.startIndex, offsetBy: 1)..<dashRange.lowerBound]
-                .trimmingCharacters(in: .whitespaces)
-            if !t.isEmpty && t.count <= 20 { title = t.uppercased() }
-            desc = String(first[dashRange.upperBound...]).trimmingCharacters(in: .whitespaces)
-        }
-        out.append(LevelInfo(index: out.count, name: name, text: curText, title: title, desc: desc))
+        out.append(makeLevelInfo(index: out.count, name: name, text: curText))
     }
     for line in raw.split(separator: "\n", omittingEmptySubsequences: false) {
         if line.hasPrefix("===") {
@@ -80,6 +86,43 @@ func loadLevelBundle() -> [LevelInfo] {
     }
     flush()
     return out
+}
+
+/* the bundle entry a lobby level param names — numeric params are the
+   short form of "levelN", the same mapping the server and the web use */
+func levelNameFor(param: String) -> String {
+    if !param.isEmpty, param.allSatisfy(\.isNumber), let n = Int(param) { return "level\(n)" }
+    return param
+}
+
+/* ============================================================
+   Match maps come from the server, not from Resources/levels.txt
+
+   Resources/levels.txt is a hand-copied snapshot of the web repo's
+   bundle and can be older than what is deployed — and a client that
+   loads different terrain from the rest of the match deploys onto a
+   different map: wrong spawns, replicas walking through walls. So a
+   multiplayer match fetches its one level from the server the lobby
+   runs on (GET /level/<param>) and plays that text.
+
+   `done` always fires on the main thread; nil means "the server had
+   nothing usable" and the caller falls back to the bundled copy.
+============================================================ */
+func fetchServerLevel(param: String, url: URL, done: @escaping (LevelInfo?) -> Void) {
+    var req = URLRequest(url: url)
+    req.timeoutInterval = 8          // bounded: the match start waits on this
+    req.cachePolicy = .reloadIgnoringLocalCacheData   // a deploy can change a level
+    URLSession.shared.dataTask(with: req) { data, resp, _ in
+        var info: LevelInfo? = nil
+        let name = levelNameFor(param: param)
+        if (resp as? HTTPURLResponse)?.statusCode == 200, let data,
+           let text = String(data: data, encoding: .utf8),
+           // a level this build can't parse is worse than the bundled copy
+           (try? Level(text: text, name: name)) != nil {
+            info = makeLevelInfo(index: 0, name: name, text: text)
+        }
+        DispatchQueue.main.async { done(info) }
+    }.resume()
 }
 
 /* ============================================================

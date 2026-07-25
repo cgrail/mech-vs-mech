@@ -71,6 +71,13 @@ in the web repo, re-sync:
 cp levels/levels.txt ios/MechVsMech/Resources/levels.txt
 ```
 
+A **multiplayer** match doesn't use that copy: an installed app can be older
+than the deployed web build, so at match boot the app fetches the match's map
+from the lobby server (`GET /level/<param>`, which resolves the starter's level
+param against the server's own bundle and returns that one level's text) and
+plays that. The bundled copy is the fallback if the server can't be reached —
+and it is still what single player, level select and the menu preview read.
+
 ## Manual test list (this machine has no Xcode — code is syntax-checked and the
 level parser is unit-run against all 56 bundle levels, but the app itself has
 not been compiled)
@@ -94,6 +101,11 @@ not been compiled)
   `Origin` header is accepted — if the socket closes immediately with a 1008, the
   server rejected the origin (see `Net.connect()`), which is the one networking
   detail that can only be confirmed against the live server.
+- **Match map comes from the server**: edit one level in `dist/levels/levels.txt`
+  on the server (move a wall somewhere obvious) *without* re-copying it into the
+  app bundle, restart the server, and start a match on that level — the phone
+  should show the server's version. Cutting the network right at match boot
+  should still deploy, on the bundled copy, after a short "LOADING THE MAP…".
 
 ## Known deviations from the web version
 

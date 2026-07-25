@@ -33,6 +33,11 @@
      → relay {data}                  ← relay {from,data}  (fanned out to the others)
                                      ← peerLeft {id,name}
 
+   Plus one HTTP route beside the static files, for clients that don't
+   load their levels from this server (the iOS app):
+     GET /level/<param>              → that one level's text, resolved the
+                                       way the browser resolves ?level=
+
    Internet hardening — everything is tuned by env vars, all optional:
      PORT               listen port (default 8080)
      HOST               listen address (default all interfaces; set
@@ -54,6 +59,7 @@ import express from 'express';
 import { WebSocketServer } from 'ws';
 
 const DIST = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'dist');
+const LEVELS_DIR = path.join(DIST, 'levels');
 const PORT = Number(process.env.PORT) || 8080;
 const HOST = process.env.HOST || undefined; // undefined → all interfaces
 
@@ -114,9 +120,58 @@ app.use((req, res, next) => {
 app.use(express.static(DIST, {
   setHeaders(res, file) {
     if (file.endsWith('.html')) res.setHeader('Cache-Control', 'no-cache'); // deploys show up on reload
+    else if (file.startsWith(LEVELS_DIR)) res.setHeader('Cache-Control', 'no-cache'); // an edited map must not linger in a browser cache: players in one match have to load the same terrain
     else if (/-[\w-]{8,}\.(js|css)$/.test(file)) res.setHeader('Cache-Control', 'public, max-age=31536000, immutable'); // vite content-hashes these
   },
 }));
+
+/* ---------- GET /level/<param>: one level's text ---------- */
+/* Native clients ship their own copy of levels/levels.txt, which can be
+   older than what is deployed here — and a client that loads different
+   terrain from the rest of the match walks through walls in everyone
+   else's game. So they fetch the match's map from us instead of trusting
+   their copy, one level per request rather than the whole 60-level bundle.
+   Browsers need none of this: they already load the bundle from this
+   server. Resolution matches the browser's ?level= handling — a number
+   picks the entry named "levelN", anything else is an entry name, and a
+   name that isn't in the bundle falls back to a standalone
+   levels/<name>.txt draft. */
+
+// dist/ is fixed for the life of the process (a deploy restarts us, which is
+// also what re-hashes the CSP above), so the bundle is split exactly once
+const bundleLevels = new Map(); // name -> text
+try {
+  let name = null;
+  let lines = [];
+  const flush = () => { if (name) bundleLevels.set(name, lines.join('\n')); };
+  for (const line of fs.readFileSync(path.join(LEVELS_DIR, 'levels.txt'), 'utf8').split('\n')) {
+    if (line.startsWith('===')) {
+      flush();
+      name = line.slice(3).trim();
+      lines = [];
+    } else if (name !== null) lines.push(line);
+  }
+  flush();
+} catch (err) {
+  console.error('dist/levels/levels.txt could not be read — /level/<name> will 404:', err.message);
+}
+
+const sendLevel = (res, text) => res
+  .type('text/plain; charset=utf-8')
+  .set('Cache-Control', 'no-cache') // a deploy can change a level under a client
+  .send(text);
+
+app.get('/level/:param', (req, res) => {
+  // cleanLevel strips path separators, so the name can't escape LEVELS_DIR
+  const param = cleanLevel(req.params.param);
+  const name = /^\d+$/.test(param) ? `level${Number(param)}` : param;
+  const text = bundleLevels.get(name);
+  if (text !== undefined) return sendLevel(res, text);
+  fs.readFile(path.join(LEVELS_DIR, `${name}.txt`), 'utf8', (err, data) => {
+    if (err) return res.status(404).type('text/plain').send(`no level "${name}"\n`);
+    sendLevel(res, data);
+  });
+});
 
 const server = http.createServer(app);
 

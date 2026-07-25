@@ -77,16 +77,28 @@ final class Net: NSObject {
         return URL(string: raw) ?? URL(string: Net.defaultURL)!
     }
 
+    /* the http(s) origin behind the ws(s) lobby URL — the same host serves
+       the built web game, so it also answers /level/<param> */
+    private func origin() -> URL? {
+        let url = serverURL()
+        var c = URLComponents(url: url, resolvingAgainstBaseURL: false) ?? URLComponents()
+        c.scheme = url.scheme == "ws" ? "http" : "https"
+        c.path = ""
+        c.query = nil
+        return c.url
+    }
+
+    /* where to fetch the match's map from (see fetchServerLevel) */
+    func levelURL(param: String) -> URL? {
+        origin()?.appendingPathComponent("level").appendingPathComponent(param)
+    }
+
     func connect() {
         guard task == nil else { return }
         let url = serverURL()
         var req = URLRequest(url: url)
         // the server rejects upgrades without a same-host Origin
-        var origin = URLComponents(url: url, resolvingAgainstBaseURL: false) ?? URLComponents()
-        origin.scheme = url.scheme == "ws" ? "http" : "https"
-        origin.path = ""
-        origin.query = nil
-        if let o = origin.url?.absoluteString {
+        if let o = origin()?.absoluteString {
             req.setValue(o, forHTTPHeaderField: "Origin")
         }
         let t = session.webSocketTask(with: req)

@@ -57,6 +57,11 @@ final class LobbyModel: ObservableObject {
 
     private var myName = ""
     private var pending: (config: MPConfig, levelParam: String)?
+    /* the match's map as the server has it — fetched during the boot
+       handshake, because our bundled levels.txt may be a stale copy */
+    private var matchLevel: LevelInfo?
+    private var levelPending = false     // fetch still in flight
+    private var goPending = false        // "go" landed before the map did
     private var goneIds = Set<Int>()
     private var autoJoin = false
     private var bannerTask: DispatchWorkItem?
@@ -78,6 +83,9 @@ final class LobbyModel: ObservableObject {
         self.autoJoin = autoJoin
         goneIds.removeAll()
         pending = nil
+        matchLevel = nil
+        levelPending = false
+        goPending = false
         phase = .connecting
         setStatus("CONNECTING TO SERVER…")
         if net.isConnected { handleOpen() } else { net.connect() }
@@ -180,7 +188,14 @@ final class LobbyModel: ObservableObject {
 
         case "go":
             guard phase == .matchBoot, !isDead, app?.screen != .playing else { return }
-            if let pending { app?.startMatch(config: pending.config, levelParam: pending.levelParam) }
+            // normally the map is long since here — it downloads while the
+            // pilots are still hitting DEPLOY
+            if levelPending {
+                goPending = true
+                bootStatus = "LOADING THE MAP…"
+            } else {
+                beginMatch()
+            }
 
         case "peerLeft":
             guard phase == .matchBoot, !isDead, let id = jInt(obj, "id") else { return }
@@ -254,7 +269,8 @@ final class LobbyModel: ObservableObject {
         }
         let config = MPConfig(playerId: pid, myTeam: team, name: myName,
                               roster: roster, matchId: matchId, token: token)
-        pending = (config, jStr(obj, "level") ?? "1")
+        let levelParam = jStr(obj, "level") ?? "1"
+        pending = (config, levelParam)
         bootRoster = roster
         goneIds.removeAll()
         readyShown = false
@@ -263,6 +279,29 @@ final class LobbyModel: ObservableObject {
         // the server already dropped our lobby-client record when it minted the
         // match, so we can rejoin on this same socket
         net.send(["type": "rejoin", "matchId": matchId, "token": token])
+        fetchMatchLevel(param: levelParam, matchId: matchId)
+    }
+
+    /* pull the match's map off the server while the ready handshake runs —
+       the starter's level param is resolved against the *deployed* bundle,
+       not our bundled copy of it, so every client fights on one map */
+    private func fetchMatchLevel(param: String, matchId: String) {
+        matchLevel = nil
+        goPending = false
+        guard let url = net.levelURL(param: param) else { levelPending = false; return }
+        levelPending = true
+        fetchServerLevel(param: param, url: url) { [weak self] info in
+            guard let self, self.pending?.config.matchId == matchId else { return }  // stale boot
+            self.levelPending = false
+            self.matchLevel = info      // nil → AppModel falls back to the bundle
+            if self.goPending { self.beginMatch() }
+        }
+    }
+
+    private func beginMatch() {
+        goPending = false
+        guard phase == .matchBoot, !isDead, app?.screen != .playing, let pending else { return }
+        app?.startMatch(config: pending.config, levelParam: pending.levelParam, level: matchLevel)
     }
 
     /* the DEPLOY button in the match-boot screen */

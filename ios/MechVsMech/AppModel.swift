@@ -182,6 +182,8 @@ final class AppModel: ObservableObject {
         return name
     }
 
+    /* last resort only: the same param resolved against our bundled copy of
+       levels.txt, which may not be the map the rest of the match is on */
     private func resolveLevel(_ param: String) -> LevelInfo {
         if param.allSatisfy(\.isNumber), let n = Int(param), levels.indices.contains(n - 1) {
             return levels[n - 1]
@@ -189,9 +191,12 @@ final class AppModel: ObservableObject {
         return levels.first { $0.name == param } ?? levelInfo
     }
 
-    /* the ready-handshake "go" fired: build the match engine and drop into play */
-    func startMatch(config: MPConfig, levelParam: String) {
-        let info = resolveLevel(levelParam)
+    /* the ready-handshake "go" fired: build the match engine and drop into play.
+       `level` is the server's own copy of the map (see fetchServerLevel) — it is
+       what everyone else in the match is loading, so it wins over anything in
+       this app's bundle; nil only if the server couldn't be reached. */
+    func startMatch(config: MPConfig, levelParam: String, level: LevelInfo?) {
+        let info = level ?? resolveLevel(levelParam)
         rebuildEngine(mp: config, net: lobby.net, info: info)
         isMPMatch = true
         engine.requestMatchGo()
