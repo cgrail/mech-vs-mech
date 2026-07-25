@@ -14,21 +14,80 @@ private func rotateY(_ v: SIMD3<Double>, _ a: Double) -> SIMD3<Double> {
     return SIMD3(v.x * c + v.z * s, v.y, -v.x * s + v.z * c)
 }
 
+/* ---------- navigation probes ----------
+   Mechs don't path-find; they look ahead along a heading and hug whatever
+   they run into. Every probe samples the mech's full width, not just a centre
+   ray — a ray-only probe calls a heading clear that clips the mech's shoulder
+   into a corner, which is how they used to grind to a halt. */
+private let MECH_R = 2.2       // collision radius the probes have to fit through
+private let PROBE = 12.0       // how far ahead a mech looks for a lane
+private let JUMP_REACH = 4.5   // tallest ledge jump jets clear (JUMP_V vs GRAVITY)
+
 extension GameEngine {
 
-    /* can e walk `dist` units along `yaw`? Ledges too tall to step up block;
-       walking down (dropping off an edge) is always allowed. */
+    /* how far e can walk along `yaw` before a wall or a too-tall ledge stops
+       it. Walking down (dropping off an edge) is always allowed. */
+    private func freeDist(_ e: Entity, yaw: Double, max maxD: Double) -> Double {
+        let sx = sin(yaw), cz = cos(yaw)
+        let rx = cz, rz = -sx   // perpendicular: the mech's width
+        var y = e.y
+        var s = 1.2
+        while s <= maxD {
+            let x = e.x + sx * s, z = e.z + cz * s
+            let hc = level.groundHeightAt(x, z)
+            let h = Swift.max(hc,
+                              level.groundHeightAt(x + rx * MECH_R, z + rz * MECH_R),
+                              level.groundHeightAt(x - rx * MECH_R, z - rz * MECH_R))
+            if h > y + STEP { return s - 1.2 }
+            y = hc              // ramps: the walking surface is the centre line
+            s += 1.2
+        }
+        return maxD
+    }
+
     private func clearDir(_ e: Entity, yaw: Double, dist: Double) -> Bool {
+        freeDist(e, yaw: yaw, max: dist) >= dist
+    }
+
+    /* the height of the ledge blocking the next few steps along `yaw`, or 0
+       when the way is walkable. Only the first tiles matter: a mech jumps when
+       it is about to hit the step, not when it spots one across the map. */
+    private func ledgeAhead(_ e: Entity, yaw: Double) -> Double {
         let sx = sin(yaw), cz = cos(yaw)
         var y = e.y
         var s = 1.2
-        while s <= dist {
+        while s <= 3.6 {
             let h = level.groundHeightAt(e.x + sx * s, e.z + cz * s)
-            if h > y + STEP { return false }
+            if h > y + STEP { return h - e.y }
             y = h
             s += 1.2
         }
-        return true
+        return 0
+    }
+
+    /* Steering: walk at the target, and when something is in the way commit to
+       one side and follow the obstacle until the straight line opens up again.
+       The commitment (e.detourSide, held for at least e.detourT) is what keeps
+       a mech from oscillating in front of a wall — the old code re-picked a
+       side every frame and jittered until the stuck timer fired a random turn. */
+    private func steerAround(_ e: Entity, desired: Double, dt: Double) -> Double {
+        if e.detourT > 0 { e.detourT -= dt }
+        if clearDir(e, yaw: desired, dist: PROBE) && e.detourT <= 0 {
+            e.detourSide = 0
+            return desired
+        }
+        if e.detourSide == 0 {
+            // take the roomier side; a tie is broken at random and then stuck with
+            let l = freeDist(e, yaw: desired + 1.2, max: PROBE)
+            let r = freeDist(e, yaw: desired - 1.2, max: PROBE)
+            e.detourSide = l > r ? 1 : (r > l ? -1 : (rand01() < 0.5 ? 1 : -1))
+            e.detourT = 0.8
+        }
+        for off in [0.45, 0.9, 1.35, 1.8, 2.25] {
+            let yaw = desired + e.detourSide * off
+            if clearDir(e, yaw: yaw, dist: PROBE * 0.7) { return yaw }
+        }
+        return desired + e.detourSide * .pi / 2   // boxed in: slide along the wall
     }
 
     func updateTurret(_ e: Entity, dt: Double) {
@@ -75,6 +134,7 @@ extension GameEngine {
         let cfg = difficulty.mech
         e.cool -= dt
         e.retargetT -= dt
+        e.jumpCool -= dt
         if e.aggroT > 0 {
             e.aggroT -= dt
             if e.aggro == nil || e.aggro?.alive != true {
@@ -113,21 +173,24 @@ extension GameEngine {
         let clear = !losBlocked(e.x, e.y + 4.5, e.z, target.x, aimY(target), target.z)
         let desired = atan2(target.x - e.x, target.z - e.z)
 
-        // steering: head for the target, swerving around obstacles in the way
-        var steerYaw = desired
-        if e.detourT > 0 {
-            e.detourT -= dt
-            steerYaw = e.detourYaw
-        } else if !clearDir(e, yaw: desired, dist: 10) {
-            for off in [0.5, -0.5, 1, -1, 1.5, -1.5, 2.1, -2.1] {
-                if clearDir(e, yaw: desired + off, dist: 9) {
-                    steerYaw = desired + off
-                    break
-                }
+        let shouldMove = d > attackRange * 0.85 || !clear
+
+        // steering: head for the target, hugging obstacles in the way. A ledge
+        // the jump jets clear is hopped instead of walked around, so high
+        // ground and pits stop being AI-proof; mid-jump the mech keeps its nose
+        // on the target so it lands where it aimed.
+        var steerYaw = desired   // mid-jump this stays put: fly on toward the target
+        if e.onGround {
+            let rise = shouldMove ? ledgeAhead(e, yaw: desired) : 0
+            if rise > STEP && rise <= JUMP_REACH && e.jumpCool <= 0 {
+                e.vy = JUMP_V
+                e.onGround = false
+                e.jumpCool = 1.4
+                e.detourSide = 0
+            } else {
+                steerYaw = steerAround(e, desired: desired, dt: dt)
             }
         }
-
-        let shouldMove = d > attackRange * 0.85 || !clear
         var stepYaw: Double? = nil
         if shouldMove {
             stepYaw = steerYaw
@@ -142,8 +205,10 @@ extension GameEngine {
             if clearDir(e, yaw: sy, dist: 5) { stepYaw = sy }
         }
 
-        // face the travel direction while marching, the target while fighting
-        let faceYaw = shouldMove ? steerYaw : desired
+        // in a firefight the guns stay on the target and the mech side-steps
+        // along its steering heading; out of contact it faces where it marches
+        let engaging = clear && d < fireRange
+        let faceYaw = shouldMove && !engaging ? steerYaw : desired
         let turn = 3.2 * dt
         let fd = angDiff(faceYaw, e.yaw)
         e.yaw += max(-turn, min(turn, fd))
@@ -151,7 +216,8 @@ extension GameEngine {
 
         if let stepYaw {
             let spd = shouldMove ? e.speed : e.speed * 0.6
-            let moveYaw = shouldMove ? e.yaw : stepYaw // strafing sidesteps without turning
+            // marching mechs walk where they look; anything else sidesteps
+            let moveYaw = shouldMove && !engaging ? e.yaw : stepYaw
             e.x += sin(moveYaw) * spd * dt
             e.z += cos(moveYaw) * spd * dt
             collideCircle(x: &e.x, z: &e.z, r: 2.2, y: e.y)
@@ -160,20 +226,22 @@ extension GameEngine {
             e.legL?.eulerAngles.x = Float(sw)
             e.legR?.eulerAngles.x = Float(-sw)
 
-            // barely moving? take a random detour instead of grinding into the wall
+            // barely moving? the side it committed to is a dead end — follow
+            // the wall the other way round instead of grinding into it
             let stepped = distXZ(e.x, e.z, e.px, e.pz)
             if shouldMove && stepped < spd * dt * 0.25 {
                 e.stuckT += dt
-                if e.stuckT > 0.7 {
+                if e.stuckT > 0.6 {
                     e.stuckT = 0
-                    e.detourT = 0.9
-                    e.detourYaw = e.yaw + (rand01() < 0.5 ? 1 : -1) * (1.6 + rand01())
+                    e.detourSide = -(e.detourSide == 0 ? (rand01() < 0.5 ? 1 : -1) : e.detourSide)
+                    e.detourT = 1.2
                 }
             } else {
                 e.stuckT = 0
             }
         }
         let onGround = updateVertical(e, dt: dt)
+        e.onGround = onGround
         e.syncNode(bob: stepYaw != nil && onGround ? abs(sin(e.walkPhase)) * 0.25 : 0)
         e.px = e.x
         e.pz = e.z

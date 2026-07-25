@@ -128,3 +128,13 @@ One flat `entities` array (everything with hp); `kind` is `player | mech | turre
 ### Frame loop
 
 `main.js` `animate()`: player → waves → per-entity AI → separation → projectiles → particles → HUD/minimap. AI is stateless-ish per frame with per-entity timers (`cool`, `retarget`, `detourT`…) stored on the entity object itself.
+
+### Enemy mechs navigate, they don't path-find
+
+`ai.js` steering is three probes plus one piece of memory, and all of it is mirrored in `AI.swift`:
+
+- `freeDist(e, yaw, max)` — how far the mech can walk along a heading. It samples the walker's **full width** (centre ±`MECH_R`), not a single ray; a centre-only probe calls a heading clear that clips a shoulder into a corner, which is what used to leave mechs grinding against walls.
+- `steerAround` — when the direct line is blocked, the mech commits to a side (`e.detourSide`, protected by `e.detourT`) and follows the obstacle until the straight line opens again. The commitment is the whole trick: re-picking a side per frame oscillates. Getting stuck anyway flips the side rather than turning at random.
+- `ledgeAhead` — a step within `JUMP_REACH` right in front is jumped (`JUMP_V`), not walked around, so high ground and pits are not AI-proof. Anything taller (walls are 10) is never jumpable, so compounds stay sealed.
+
+A mech that can see and reach its target (`engaging`) keeps its guns on it and side-steps along the steering heading; only out-of-contact marching turns the body toward where it is walking.

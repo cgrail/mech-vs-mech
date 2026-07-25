@@ -57,7 +57,7 @@ final class Entity {
     var strafeTimer = 0.0
     var stuckT = 0.0
     var detourT = 0.0
-    var detourYaw = 0.0
+    var detourSide = 0.0     // committed wall-following side: −1, 0 (none), 1
     var px = 0.0
     var pz = 0.0
     var velX = 0.0

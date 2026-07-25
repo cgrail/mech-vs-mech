@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { LEVEL, STEP, groundHeightAt } from '../world/world.js';
 import { entities, blueBase, redBase, makeEnemyMech } from '../entities/entities.js';
 import { game, stats, difficulty } from '../core/state.js';
-import { distXZ, losBlocked, localToWorld, nearestEnemyOf, collideCircle, updateVertical, aimYOf } from '../core/helpers.js';
+import { distXZ, losBlocked, localToWorld, nearestEnemyOf, collideCircle, updateVertical, aimYOf, JUMP_V } from '../core/helpers.js';
 import { spawnProjectile } from '../entities/projectiles.js';
 import { beep, laserSfx } from './audio.js';
 import { player } from '../entities/player.js';
@@ -17,18 +17,72 @@ const UP = new THREE.Vector3(0, 1, 0);
 
 function angDiff(a, b) { return Math.atan2(Math.sin(a - b), Math.cos(a - b)); }
 
-/* can e walk `dist` units along `yaw`? Ledges too tall to step up block;
-   walking down (dropping off an edge) is always allowed. */
-function clearDir(e, yaw, dist) {
+/* ---------- navigation probes ----------
+   Mechs don't path-find; they look ahead along a heading and hug whatever
+   they run into. Every probe samples the mech's full width, not just a
+   centre ray — a ray-only probe calls a heading clear that clips the mech's
+   shoulder into a corner, which is how they used to grind to a halt. */
+const MECH_R = 2.2;      // collision radius the probes have to fit through
+const PROBE = 12;        // how far ahead a mech looks for a lane
+const JUMP_REACH = 4.5;  // tallest ledge jump jets clear (JUMP_V vs GRAVITY)
+
+/* how far e can walk along `yaw` before a wall or a too-tall ledge stops it.
+   Walking down (dropping off an edge) is always allowed. */
+function freeDist(e, yaw, max) {
+  const p = e.group.position;
+  const sx = Math.sin(yaw), cz = Math.cos(yaw);
+  const rx = cz, rz = -sx;   // perpendicular: the mech's width
+  let y = e.y;
+  for (let s = 1.2; s <= max; s += 1.2) {
+    const x = p.x + sx * s, z = p.z + cz * s;
+    const hc = groundHeightAt(x, z);
+    const h = Math.max(hc,
+      groundHeightAt(x + rx * MECH_R, z + rz * MECH_R),
+      groundHeightAt(x - rx * MECH_R, z - rz * MECH_R));
+    if (h > y + STEP) return s - 1.2;
+    y = hc;                  // ramps: the walking surface is the centre line
+  }
+  return max;
+}
+
+function clearDir(e, yaw, dist) { return freeDist(e, yaw, dist) >= dist; }
+
+/* the height of the ledge blocking the next few steps along `yaw`, or 0 when
+   the way is walkable. Only the first tiles matter: a mech jumps when it is
+   about to hit the step, not when it spots one across the map. */
+function ledgeAhead(e, yaw) {
   const p = e.group.position;
   const sx = Math.sin(yaw), cz = Math.cos(yaw);
   let y = e.y;
-  for (let s = 1.2; s <= dist; s += 1.2) {
+  for (let s = 1.2; s <= 3.6; s += 1.2) {
     const h = groundHeightAt(p.x + sx * s, p.z + cz * s);
-    if (h > y + STEP) return false;
+    if (h > y + STEP) return h - e.y;
     y = h;
   }
-  return true;
+  return 0;
+}
+
+/* Steering: walk at the target, and when something is in the way commit to
+   one side and follow the obstacle until the straight line opens up again.
+   The commitment (e.detourSide, held for at least e.detourT) is what keeps a
+   mech from oscillating in front of a wall — the old code re-picked a side
+   every frame and jittered until the stuck timer fired a random turn. */
+function steerAround(e, desired, dt) {
+  if (e.detourT > 0) e.detourT -= dt;
+  if (clearDir(e, desired, PROBE)) {
+    if (e.detourT <= 0) { e.detourSide = 0; return desired; }
+  }
+  if (!e.detourSide) {
+    // take the roomier side; a tie is broken at random and then stuck with
+    const l = freeDist(e, desired + 1.2, PROBE), r = freeDist(e, desired - 1.2, PROBE);
+    e.detourSide = l > r ? 1 : r > l ? -1 : (Math.random() < 0.5 ? 1 : -1);
+    e.detourT = 0.8;
+  }
+  for (const off of [0.45, 0.9, 1.35, 1.8, 2.25]) {
+    const yaw = desired + e.detourSide * off;
+    if (clearDir(e, yaw, PROBE * 0.7)) return yaw;
+  }
+  return desired + e.detourSide * Math.PI / 2;  // boxed in: slide along the wall
 }
 
 export function updateTurret(e, dt) {
@@ -71,6 +125,7 @@ export function updateEnemyMech(e, dt) {
   const cfg = difficulty().mech;
   e.cool -= dt;
   e.retarget -= dt;
+  e.jumpCool -= dt;
   if (e.aggroT > 0) {
     e.aggroT -= dt;
     if (!e.aggro || !e.aggro.alive) { e.aggro = null; e.aggroT = 0; }
@@ -103,18 +158,24 @@ export function updateEnemyMech(e, dt) {
   const clear = !losBlocked(e.group.position.x, e.y + 4.5, e.group.position.z, tp.x, aimYOf(e.target), tp.z);
   const desired = Math.atan2(tp.x - e.group.position.x, tp.z - e.group.position.z);
 
-  // steering: head for the target, swerving around obstacles in the way
-  let steerYaw = desired;
-  if (e.detourT > 0) {
-    e.detourT -= dt;
-    steerYaw = e.detourYaw;
-  } else if (!clearDir(e, desired, 10)) {
-    for (const off of [0.5, -0.5, 1, -1, 1.5, -1.5, 2.1, -2.1]) {
-      if (clearDir(e, desired + off, 9)) { steerYaw = desired + off; break; }
+  const shouldMove = d > attackRange * 0.85 || !clear;
+
+  // steering: head for the target, hugging obstacles in the way. A ledge the
+  // jump jets clear is hopped instead of walked around, so high ground and
+  // pits stop being AI-proof; mid-jump the mech keeps its nose on the target
+  // so it lands where it aimed.
+  let steerYaw = desired;   // mid-jump this stays put: fly on toward the target
+  if (e.onGround) {
+    const rise = shouldMove ? ledgeAhead(e, desired) : 0;
+    if (rise > STEP && rise <= JUMP_REACH && e.jumpCool <= 0) {
+      e.vy = JUMP_V;
+      e.onGround = false;
+      e.jumpCool = 1.4;
+      e.detourSide = 0;
+    } else {
+      steerYaw = steerAround(e, desired, dt);
     }
   }
-
-  const shouldMove = d > attackRange * 0.85 || !clear;
   let stepYaw = null;
   if (shouldMove) {
     stepYaw = steerYaw;
@@ -129,8 +190,10 @@ export function updateEnemyMech(e, dt) {
     if (clearDir(e, sy, 5)) stepYaw = sy;
   }
 
-  // face the travel direction while marching, the target while fighting
-  const faceYaw = shouldMove ? steerYaw : desired;
+  // in a firefight the guns stay on the target and the mech side-steps along
+  // its steering heading; out of contact it faces where it is marching
+  const engaging = clear && d < fireRange;
+  const faceYaw = shouldMove && !engaging ? steerYaw : desired;
   const turn = 3.2 * dt;
   const fd = angDiff(faceYaw, e.yaw);
   e.yaw += Math.max(-turn, Math.min(turn, fd));
@@ -138,7 +201,8 @@ export function updateEnemyMech(e, dt) {
 
   if (stepYaw !== null) {
     const spd = shouldMove ? e.speed : e.speed * 0.6;
-    const moveYaw = shouldMove ? e.yaw : stepYaw; // strafing sidesteps without turning
+    // marching mechs walk where they look; anything else sidesteps
+    const moveYaw = shouldMove && !engaging ? e.yaw : stepYaw;
     e.group.position.x += Math.sin(moveYaw) * spd * dt;
     e.group.position.z += Math.cos(moveYaw) * spd * dt;
     collideCircle(e.group.position, 2.2, e.y);
@@ -147,20 +211,22 @@ export function updateEnemyMech(e, dt) {
     e.model.legL.rotation.x = sw;
     e.model.legR.rotation.x = -sw;
 
-    // barely moving? take a random detour instead of grinding into the wall
+    // barely moving? the side it committed to is a dead end — follow the wall
+    // the other way round instead of grinding into it
     const stepped = Math.hypot(e.group.position.x - e.px, e.group.position.z - e.pz);
     if (shouldMove && stepped < spd * dt * 0.25) {
       e.stuckT += dt;
-      if (e.stuckT > 0.7) {
+      if (e.stuckT > 0.6) {
         e.stuckT = 0;
-        e.detourT = 0.9;
-        e.detourYaw = e.yaw + (Math.random() < 0.5 ? 1 : -1) * (1.6 + Math.random());
+        e.detourSide = -(e.detourSide || (Math.random() < 0.5 ? 1 : -1));
+        e.detourT = 1.2;
       }
     } else {
       e.stuckT = 0;
     }
   }
   const onGround = updateVertical(e, dt);
+  e.onGround = onGround;
   e.group.position.y = e.y + (stepYaw !== null && onGround ? Math.abs(Math.sin(e.walkPhase)) * 0.25 : 0);
   e.px = e.group.position.x;
   e.pz = e.group.position.z;
