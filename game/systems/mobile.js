@@ -53,11 +53,12 @@ if (isTouchDevice) {
          <kbd>📱 Tilt sideways</kbd> strafe left / right &nbsp; <kbd>👆 Touch screen</kbd> machine guns<br>`
       : `<kbd>👈 Left thumb</kbd> joystick — move &amp; strafe<br>
          <kbd>👉 Right thumb</kbd> drag to turn · hold to fire machine guns<br>`;
+    const jump = `<kbd>⬆️</kbd> jump jets — clear a ledge onto high ground<br>`;
     document.getElementById('briefing').innerHTML =
       `<b style="color:#ffd23c">MISSION:</b> Destroy the <b style="color:#ff8a7a">red enemy base</b> at the far end of the
       district before enemy assault mechs destroy <b style="color:#8ab4ff">yours</b>.<br>
       Enemy waves march on your base — build turrets to hold them off.<br><br>` +
-      controls +
+      controls + jump +
       `<kbd>🚀</kbd> rockets (<span style="color:#ffd23c">🛢️ 20</span>) &nbsp;
       <kbd>${TURRET_ICO}</kbd> build turret in front of you (<span style="color:#ffd23c">🛢️ 100 salvage</span>)`;
   }
@@ -182,5 +183,9 @@ if (isTouchDevice) {
   document.getElementById('btnTurret').addEventListener('touchstart', (e) => {
     e.preventDefault();
     if (game.state === 'playing') placeTurretDirect();
+  }, { passive: false });
+  document.getElementById('btnJump').addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    if (game.state === 'playing') touch.jump = true; // updatePlayer consumes it
   }, { passive: false });
 }

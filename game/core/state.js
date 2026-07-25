@@ -50,6 +50,7 @@ export const touch = {
   move: 0,        // forward/back, −1..1 (sign is what matters)
   strafe: 0,      // strafe, −1..1 (sign is what matters)
   yaw: null,      // gyro target yaw in radians (null = yaw controlled directly)
+  jump: false,    // one-shot: set by the jump button, consumed by updatePlayer
 };
 
 export const stats = {

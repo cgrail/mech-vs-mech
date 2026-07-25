@@ -137,7 +137,7 @@ struct MenuScreen: View {
         let controls = model.scheme == .gyro
             ? "🧭 Turn phone to rotate mech · 📱 lean forward/back to move\n📱 tilt sideways to strafe · 👆 touch the screen to fire"
             : "👈 Left thumb — floating joystick, move & strafe\n👉 Right thumb — drag to turn · hold to fire machine guns"
-        return Text("MISSION: Destroy the red enemy base at the far end of the district before enemy assault mechs destroy yours. Enemy waves march on your base — build turrets to hold them off.\n\n\(controls)\n🚀 rockets (🛢️ 20) · 🛰️ build turret in front of you (🛢️ 100)")
+        return Text("MISSION: Destroy the red enemy base at the far end of the district before enemy assault mechs destroy yours. Enemy waves march on your base — build turrets to hold them off.\n\n\(controls)\n⬆️ jump jets — clear a ledge onto high ground\n🚀 rockets (🛢️ 20) · 🛰️ build turret in front of you (🛢️ 100)")
     }
 
     private var reportPanel: some View {

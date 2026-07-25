@@ -73,7 +73,7 @@ All levels are in **one bundle, `levels/levels.txt`** — a `=== <name>` line st
 - Markers: `P` player spawn · `B` blue base · `R` red base · `T` red turret · `S` enemy wave spawn — a marker sits on the same terrain as the tile to its **left**
 - Rows must be equal length; comment lines start with `#`
 - A level's first comment line doubles as its menu entry: `# TITLE — player-facing description`. The level-select screen (`flow.js`) builds from the imported `levels` array; picking one flies the chosen map in without a reload (`switchMap`, above) and syncs `?level=` behind it, and the menu's orbit camera previews that map. On victory, the next bundle entry is offered as the next level
-- Design rule: mechs can step up ramps and drop off ledges, but can never climb a ledge — any `l` region needs an `r` exit or things that drop in are stuck there forever
+- Design rule: AI mechs can step up ramps and drop off ledges, but can never climb a ledge — any `l` region needs an `r` exit or the mechs that drop in are stuck there forever. (Players can jump a tier since jump jets landed, so a pit is not a *player* trap — keep the ramps anyway, the AI has no jump)
 - The `S` markers double as red-team spawn points in multiplayer (blue fans out around `P`), so maps meant for 5v5 should carry ~5 spread-out `S` markers — the XL maps at the end of the bundle (level53+) are built that way
 - The bundle is shared with the iOS port and mismatches break cross-play — after editing it, copy it over as described in [Web and iOS must stay in lockstep](#web-and-ios-must-stay-in-lockstep)
 
@@ -113,7 +113,9 @@ Two traps worth knowing, both found by validating rather than by eye: the side w
 - `helpers.losBlocked(ax, ay, az, bx, by, bz)` — 3D line of sight, sampled against `groundHeightAt`; this is what makes a cliff rim block shots downward until the shooter reaches the edge
 - Projectiles die when they dip below `groundHeightAt` (`projectiles.js`), so terrain, walls, and cliff sides all stop shots with one check
 
-Walkers (player + mechs) carry `e.y`/`e.vy`; `helpers.updateVertical(e, dt)` glues them to the ground or applies gravity after a ledge drop. `e.group.position.y = e.y + walk bob`, so read heights from `group.position.y`, not a constant 0.
+Walkers (player + mechs) carry `e.y`/`e.vy`; `helpers.updateVertical(e, dt)` glues them to the ground or applies gravity after a ledge drop — except while `e.vy > 0`, which is a jump on its way up and must not be glued back down. `e.group.position.y = e.y + walk bob`, so read heights from `group.position.y`, not a constant 0.
+
+**Jump jets** (player only — `jump()` in `player.js` / `Player.swift`, Ctrl or the ⬆ button) are the one thing that beats a ledge: `JUMP_V`/`GRAVITY` in `helpers.js` peak at 4.84 units, just over the 4-unit tier step and far under `WALL_H`. Nothing else was needed to make it work — `collideTerrain` already tests the *walker's* height, so a tier stops blocking once the jump is above it, and multiplayer already replicates `y`.
 
 ### Vertical aiming is automatic
 

@@ -12,6 +12,12 @@ func distXZ(_ ax: Double, _ az: Double, _ bx: Double, _ bz: Double) -> Double {
 
 func distXZ(_ a: Entity, _ b: Entity) -> Double { distXZ(a.x, a.z, b.x, b.z) }
 
+/* jump-jet impulse: against GRAVITY it peaks 4.84 units up, just clearing the
+   4-unit step between terrain tiers — so a jump can climb any ledge but never
+   a 10-unit wall (mirrors core/helpers.js) */
+let GRAVITY = 50.0
+let JUMP_V = 22.0
+
 /* where guns auto-point on a target (torso height above its ground) */
 func aimY(_ e: Entity) -> Double {
     e.y + min(3.5, e.hitHeight * 0.55)
@@ -84,12 +90,13 @@ extension GameEngine {
        Returns true while on the ground. */
     func updateVertical(_ e: Entity, dt: Double) -> Bool {
         let gh = level.groundHeightAt(e.x, e.z)
-        if gh >= e.y - 0.9 { // ground contact, incl. walking up/down ramps
+        // e.vy > 0 is a mech on its way up out of a jump — don't glue it back down
+        if e.vy <= 0 && gh >= e.y - 0.9 { // ground contact, incl. walking up/down ramps
             e.y = gh
             e.vy = 0
             return true
         }
-        e.vy -= 50 * dt
+        e.vy -= GRAVITY * dt
         e.y = max(gh, e.y + e.vy * dt)
         if e.y == gh {
             e.vy = 0

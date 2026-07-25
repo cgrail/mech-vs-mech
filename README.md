@@ -92,6 +92,7 @@ Destroy the red base in the north before the enemy destroys your blue base in th
 | **Left mouse / Space** | Fire machine guns (hold for sustained fire) |
 | **Right mouse / Q** | Fire rocket (slow, heavy damage) |
 | **Shift** | Sprint boost |
+| **Ctrl** | Jump jets — clears a ledge onto high ground |
 | **B / T** | Toggle build mode |
 | **Left mouse / Space** (in build mode) | Place turret |
 | **Right mouse** (in build mode) | Cancel build mode |
@@ -106,6 +107,8 @@ Salvage 🛢️ is your only resource:
 - **+40** per enemy mech destroyed
 - **+80** per enemy turret destroyed
 - **−100** per defensive turret you build
+
+On touch devices the same jump sits on the ⬆️ button next to 🚀 and 🛰️. A jump peaks just under 5 units — enough to clear the 4-unit step between terrain tiers, so high ground is reachable anywhere and a pit is never a trap, but the 10-unit walls around the base compounds still are walls.
 
 Turrets are the backbone of your defense — place them to cover your base and choke points, then use the breathing room to assault the enemy base. Your mech slowly self-repairs after 5 seconds without taking damage, and if you're destroyed, you redeploy at your base after a short delay — but the enemy won't wait.
 

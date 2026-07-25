@@ -172,6 +172,9 @@ final class GameEngine {
         audio.startMusic()   // must start from the user gesture path
         enqueue { self.startGame(difficultyKey: difficultyKey) }
     }
+    /* the jump button: the flag is read by the player update, so a press
+       lands on the render thread's next frame like every other touch input */
+    func requestJump() { if phase == .playing { touch.requestJump() } }
     func requestRocket() { enqueue { if self.phase == .playing { self.fireRocket() } } }
     func requestTurret() { enqueue { if self.phase == .playing { self.placeTurretDirect() } } }
     func pauseSim()  { enqueue { self.paused = true } }

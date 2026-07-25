@@ -23,7 +23,8 @@ Adding a Swift file anywhere under `MechVsMech/` automatically joins the target
 - **Gyro** — physically turn around to rotate the mech (compass is 1:1 by
   design), lean the phone forward/back to move, tilt sideways to strafe, touch
   anywhere to fire. Calibrated to your pose at the moment you tap DEPLOY.
-- 🚀 / 🛰️ buttons fire rockets (🛢️ 20) and build a turret in front of you (🛢️ 100).
+- ⬆️ / 🚀 / 🛰️ buttons jump (free — the web build's Ctrl), fire rockets (🛢️ 20)
+  and build a turret in front of you (🛢️ 100).
 
 ## Project layout
 

@@ -91,6 +91,7 @@ final class TouchInput {
     private var _strafe = 0.0      // strafe, −1..1
     private var _yaw: Double?      // gyro target yaw in radians (nil = yaw controlled directly)
     private var _firing = false    // machine guns held
+    private var _jump = false      // one-shot jump request, consumed per frame
     private var _lookDX = 0.0      // accumulated look-drag pixels since last frame
 
     var move: Double {
@@ -108,6 +109,15 @@ final class TouchInput {
     var firing: Bool {
         get { lock.lock(); defer { lock.unlock() }; return _firing }
         set { lock.lock(); _firing = newValue; lock.unlock() }
+    }
+
+    /* one-shot jump request from the ⬆ button; the player update takes it */
+    func requestJump() {
+        lock.lock(); _jump = true; lock.unlock()
+    }
+    func takeJump() -> Bool {
+        lock.lock(); defer { _jump = false; lock.unlock() }
+        return _jump
     }
 
     func addLookDX(_ dx: Double) {

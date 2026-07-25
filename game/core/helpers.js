@@ -110,15 +110,22 @@ export function collideCircle(pos, r, y) {
   pos.z = Math.max(-ARENA.hd + r, Math.min(ARENA.hd - r, pos.z));
 }
 
+/* jump-jet impulse: with GRAVITY below it peaks 4.84 units up, just clearing
+   the 4-unit step between terrain tiers — so a jump can climb any ledge but
+   never a 10-unit wall */
+export const GRAVITY = 50;
+export const JUMP_V = 22;
+
 /* keep e.y glued to the ground, or fall once it walks off an edge.
    Returns true while on the ground. */
 export function updateVertical(e, dt) {
   const gh = groundHeightAt(e.group.position.x, e.group.position.z);
-  if (gh >= e.y - 0.9) { // ground contact, incl. walking up/down ramps
+  // e.vy > 0 is a mech on its way up out of a jump — don't glue it back down
+  if (e.vy <= 0 && gh >= e.y - 0.9) { // ground contact, incl. walking up/down ramps
     e.y = gh; e.vy = 0;
     return true;
   }
-  e.vy -= 50 * dt;
+  e.vy -= GRAVITY * dt;
   e.y = Math.max(gh, e.y + e.vy * dt);
   if (e.y === gh) { e.vy = 0; return true; }
   return false;

@@ -73,6 +73,8 @@ final class Entity {
     // player
     var gunCool = 0.0
     var rocketCool = 0.0
+    var jumpCool = 0.0
+    var onGround = true
     var lastDamaged = -99.0
     var respawnAt = 0.0
 

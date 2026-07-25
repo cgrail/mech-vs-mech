@@ -90,6 +90,23 @@ extension GameEngine {
         audio.beep(f: 160, f2: 40, dur: 0.35, type: .sawtooth, vol: 0.12)
     }
 
+    /* Jump jets — the ⬆ button (Ctrl on the web build). Only from the ground,
+       so it can't be chained mid-air; the impulse clears a 4-unit tier step
+       (see JUMP_V), which is how a mech gets onto high ground and out of a pit
+       it dropped into. Terrain collision tests the walker's height, so a ledge
+       simply stops blocking once the jump is above it. */
+    private func jump(dt: Double) {
+        player.jumpCool -= dt
+        // consumed even when it can't be used: a press while airborne is
+        // dropped, not queued
+        let wants = touch.takeJump()
+        if !wants || !player.onGround || player.jumpCool > 0 { return }
+        player.vy = JUMP_V
+        player.onGround = false
+        player.jumpCool = 0.3
+        audio.beep(f: 220, f2: 660, dur: 0.18, type: .sine, vol: 0.07)
+    }
+
     func updatePlayer(dt: Double) {
         let lookDX = touch.takeLookDX()   // drain even while dead, so respawn doesn't jump
         if !player.alive {
@@ -123,7 +140,9 @@ extension GameEngine {
         player.velX = moving ? move.x * speed : 0
         player.velZ = moving ? move.z * speed : 0
         collideCircle(x: &player.x, z: &player.z, r: 2.2, y: player.y)
+        jump(dt: dt)
         let onGround = updateVertical(player, dt: dt)
+        player.onGround = onGround
         player.node.eulerAngles.y = Float(player.yaw)
 
         // walk animation + bob

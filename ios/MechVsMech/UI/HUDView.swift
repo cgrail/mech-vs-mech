@@ -95,6 +95,9 @@ struct HUDView: View {
                         .foregroundColor(Color(hex: 0xffd23c))
                         .shadow(color: .black, radius: 3)
                         .allowsHitTesting(false)
+                    actionButton(icon: "⬆️", cost: nil, enabled: true) {
+                        model.engine.requestJump()
+                    }
                     actionButton(icon: "🚀", cost: Int(Costs.rocket), enabled: model.hud.canRocket) {
                         model.engine.requestRocket()
                     }
@@ -187,7 +190,7 @@ struct HUDView: View {
         }
     }
 
-    private func actionButton(icon: String, cost: Int, enabled: Bool, badge: Int? = nil,
+    private func actionButton(icon: String, cost: Int?, enabled: Bool, badge: Int? = nil,
                               action: @escaping () -> Void) -> some View {
         Button(action: action) {
             VStack(spacing: 1) {
@@ -205,10 +208,12 @@ struct HUDView: View {
                             .background(Circle().fill(Color(hex: 0x2b4fd8)))
                     }
                 }
-                Text("🛢️\(cost)")
-                    .font(.system(size: 10, weight: .bold, design: .rounded))
-                    .foregroundColor(Color(hex: 0xffd23c))
-                    .shadow(color: .black, radius: 2)
+                if let cost {   // free actions (jump) carry no salvage price
+                    Text("🛢️\(cost)")
+                        .font(.system(size: 10, weight: .bold, design: .rounded))
+                        .foregroundColor(Color(hex: 0xffd23c))
+                        .shadow(color: .black, radius: 2)
+                }
             }
             .opacity(enabled ? 1 : 0.45)
         }

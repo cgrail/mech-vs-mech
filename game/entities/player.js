@@ -4,7 +4,7 @@ import { BLUE, RED, entities, makeBar, makeMech, registerEntity } from './entiti
 import { game, stats, touch, COSTS } from '../core/state.js';
 import { keys } from '../systems/input.js';
 import { groundHeightAt } from '../world/world.js';
-import { forwardOf, localToWorld, losBlocked, collideCircle, updateVertical, aimYOf, spawnPointFor, teamIndexOf } from '../core/helpers.js';
+import { forwardOf, localToWorld, losBlocked, collideCircle, updateVertical, aimYOf, spawnPointFor, teamIndexOf, JUMP_V } from '../core/helpers.js';
 import { spawnProjectile } from './projectiles.js';
 import { beep, laserSfx } from '../systems/audio.js';
 import { updateHud, showMessage } from '../ui/hud.js';
@@ -25,8 +25,8 @@ export const player = registerEntity({
   hp: 300, maxHp: 300, alive: true,
   hitRadius: 2.4, hitHeight: 7, bar: playerBar, barHeight: 8.2,
   yaw: spawnYaw, walkPhase: 0, velX: 0, velZ: 0,
-  y: groundHeightAt(SPAWN.x, SPAWN.z), vy: 0,
-  gunCool: 0, rocketCool: 0, lastDamaged: -99, respawnAt: 0,
+  y: groundHeightAt(SPAWN.x, SPAWN.z), vy: 0, onGround: true,
+  gunCool: 0, rocketCool: 0, jumpCool: 0, lastDamaged: -99, respawnAt: 0,
 });
 player.group.position.set(SPAWN.x, player.y, SPAWN.z);
 
@@ -106,6 +106,22 @@ export function fireRocket() {
   updateHud();
 }
 
+/* Jump jets — Ctrl on the keyboard, the ⬆ button on touch. Only from the
+   ground, so it can't be chained mid-air; the impulse clears a 4-unit tier
+   step (see JUMP_V), which is how a mech gets onto high ground and out of a
+   pit it dropped into. Terrain collision uses the walker's height, so the
+   ledge simply stops blocking once the jump is above it. */
+function jump(dt) {
+  player.jumpCool -= dt;
+  const wants = touch.jump || keys['ControlLeft'] || keys['ControlRight'];
+  touch.jump = false; // consumed: a press while airborne is dropped, not queued
+  if (!wants || !player.onGround || player.jumpCool > 0) return;
+  player.vy = JUMP_V;
+  player.onGround = false;
+  player.jumpCool = 0.3;
+  beep(220, 660, 0.18, 'sine', 0.07);
+}
+
 export function updatePlayer(dt) {
   if (!player.alive) {
     if (game.elapsed >= player.respawnAt) respawnPlayer();
@@ -138,7 +154,9 @@ export function updatePlayer(dt) {
   player.velX = moving ? move.x * speed : 0;
   player.velZ = moving ? move.z * speed : 0;
   collideCircle(player.group.position, 2.2, player.y);
+  jump(dt);
   const onGround = updateVertical(player, dt);
+  player.onGround = onGround;
   player.group.rotation.y = player.yaw;
 
   // walk animation + bob
