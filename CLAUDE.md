@@ -28,6 +28,22 @@ node --input-type=module --check < game/systems/ai.js
 
 `window.__mech` (player, game, entities) is exposed in [main.js](game/main.js) as a console hook for the user's manual testing — keep it working.
 
+## Web and iOS must stay in lockstep
+
+[ios/](ios/) is a native Swift/SceneKit port of this same game ([ios/README.md](ios/README.md) has the file-by-file mapping to the JS modules) and it connects to **the same lobby server**, so web and iOS players share rooms and land in the same match. Treat them as one product: gameplay rules, the difficulty tables ([core/state.js](game/core/state.js) ↔ `Engine/State.swift`), relay message shapes and the ownership model all have to change on both sides in the same commit, or the two builds disagree mid-match.
+
+**Levels are the sharpest edge.** [ios/MechVsMech/Resources/levels.txt](ios/MechVsMech/Resources/levels.txt) is a verbatim copy of [levels/levels.txt](levels/levels.txt) — no build step copies it — so every level edit ends with:
+
+```bash
+cp levels/levels.txt ios/MechVsMech/Resources/levels.txt
+```
+
+(Same deal for [assets/](assets/) → `ios/MechVsMech/Resources/`.)
+
+Why it can't be skipped: the server relays only the **starter's** level param, and each client resolves it against its own bundle. A level the iOS bundle doesn't have won't announce itself — `resolveLevel` in [ios/MechVsMech/AppModel.swift](ios/MechVsMech/AppModel.swift) silently falls back to whatever level that player last had selected, so they deploy onto a *different map* inside a shared match: wrong terrain, wrong spawns, replicas walking through walls. The browser fails louder (an unknown name 404s on the `levels/<name>.txt` fallback fetch) but is just as broken.
+
+Copy, don't merge: numeric levels travel as `?level=N`, which the **web resolves by name** (the level called `levelN`) while **iOS resolves by position** (the N-th entry of its bundle). Those agree only while the two files are identical and bundle order still matches the level numbering — so append new levels at the end, and never reorder, renumber, or hand-edit one copy alone.
+
 ## Architecture
 
 ### Boot order — the level loads before everything else
@@ -53,6 +69,7 @@ All levels are in **one bundle, `levels/levels.txt`** — a `=== <name>` line st
 - A level's first comment line doubles as its menu entry: `# TITLE — player-facing description`. The level-select screen (`flow.js`) builds from the imported `levels` array; picking one reloads with `?level=N` (or `?level=<name>` for non-numeric names), and the menu's orbit camera previews that map. On victory, the next bundle entry is offered as the next level
 - Design rule: mechs can step up ramps and drop off ledges, but can never climb a ledge — any `l` region needs an `r` exit or things that drop in are stuck there forever
 - The `S` markers double as red-team spawn points in multiplayer (blue fans out around `P`), so maps meant for 5v5 should carry ~5 spread-out `S` markers — the XL maps at the end of the bundle (level53+) are built that way
+- The bundle is shared with the iOS port and mismatches break cross-play — after editing it, copy it over as described in [Web and iOS must stay in lockstep](#web-and-ios-must-stay-in-lockstep)
 
 #### Base compounds
 
