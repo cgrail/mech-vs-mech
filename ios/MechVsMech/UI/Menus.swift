@@ -4,41 +4,44 @@ import SwiftUI
    Menu screens — ports the flow.js overlay: mode select →
    mission menu (briefing, level select, difficulty, controls)
    → deploy; the end screen reuses the mission menu with a
-   mission report, like the web version.
+   mission report, like the web version. Styling follows
+   style.css (see UI/Styles.swift), and OverlayFrame scales the
+   whole screen down on small phones instead of clipping it.
 ============================================================ */
 
 /* ---------- mode select (first screen) ---------- */
 struct ModeScreen: View {
     @EnvironmentObject var model: AppModel
+
     var body: some View {
         OverlayFrame {
-            VStack(spacing: 22) {
+            VStack(spacing: 18) {
                 TitleBlock()
-                Button {
-                    model.showMenu()
-                } label: {
-                    VStack(spacing: 2) {
-                        Text("SINGLE PLAYER").font(.system(size: 18, weight: .black, design: .rounded))
-                        Text("HOLD THE DISTRICT AGAINST THE MACHINES")
-                            .font(.system(size: 10, weight: .semibold, design: .rounded))
-                            .foregroundColor(.white.opacity(0.6))
-                    }
-                    .frame(width: 300)
-                }
-                .buttonStyle(MenuButtonStyle(prominent: true))
-                Button {
-                    model.showLobby()
-                } label: {
-                    VStack(spacing: 2) {
-                        Text("MULTIPLAYER").font(.system(size: 18, weight: .black, design: .rounded))
-                        Text("CHALLENGE OTHER PILOTS — UP TO 5 v 5")
-                            .font(.system(size: 10, weight: .semibold, design: .rounded))
-                            .foregroundColor(.white.opacity(0.6))
-                    }
-                    .frame(width: 300)
-                }
-                .buttonStyle(MenuButtonStyle())
+                modeButton(title: "SINGLE PLAYER",
+                           desc: "HOLD THE DISTRICT AGAINST THE MACHINES") { model.showMenu() }
+                modeButton(title: "MULTIPLAYER",
+                           desc: "CHALLENGE OTHER PILOTS — UP TO 5 v 5") { model.showLobby() }
             }
+        }
+    }
+
+    private func modeButton(title: String, desc: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 6) {
+                Text(title)
+                    .font(.system(size: 17, weight: .heavy))
+                    .kerning(3)
+                    .foregroundColor(Color(hex: 0xdfe6ff))
+                Text(desc)
+                    .font(.system(size: 11, weight: .semibold))
+                    .kerning(1)
+                    .foregroundColor(Skin.dimText)
+            }
+            .frame(width: 340)
+            .padding(.vertical, 16)
+            .padding(.horizontal, 20)
+            .background(RoundedRectangle(cornerRadius: 8).fill(Skin.panel))
+            .overlay(RoundedRectangle(cornerRadius: 8).stroke(Skin.border, lineWidth: 1))
         }
     }
 }
@@ -50,12 +53,12 @@ struct MenuScreen: View {
 
     var body: some View {
         OverlayFrame {
-            VStack(spacing: 12) {
+            VStack(spacing: 14) {
                 if over {
                     TitleBlock(
                         eyebrow: nil,
                         h1: model.victory ? "VICTORY" : (model.isMPMatch ? "DEFEAT" : "BASE LOST"),
-                        h1Color: model.victory ? Color(hex: 0x7CFF6B) : Color(hex: 0xff5040),
+                        h1Color: model.victory ? Skin.green : Skin.danger,
                         h2: model.endReason ?? (model.victory ? "ENEMY BASE DESTROYED — DISTRICT SECURED" : "YOUR BASE WAS DESTROYED")
                     )
                 } else {
@@ -65,34 +68,36 @@ struct MenuScreen: View {
                 Group {
                     if over { reportPanel } else { briefingPanel }
                 }
-                .font(.system(size: 12, weight: .medium, design: .rounded))
-                .foregroundColor(.white.opacity(0.85))
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(Skin.lightText)
+                .lineSpacing(4)
                 .multilineTextAlignment(.center)
-                .padding(12)
-                .frame(maxWidth: 460)
-                .background(RoundedRectangle(cornerRadius: 8).fill(Color.black.opacity(0.45)))
+                .frame(maxWidth: 480)
+                .panelBox()
 
                 if !over {
                     Button {
                         model.showLevelSelect()
                     } label: {
-                        HStack {
-                            Text("SELECT LEVEL").font(.system(size: 13, weight: .heavy, design: .rounded))
-                            Spacer()
+                        HStack(spacing: 12) {
+                            Text("SELECT LEVEL")
+                                .font(.system(size: 11, weight: .bold)).kerning(2)
+                                .foregroundColor(Skin.dimText)
                             Text("\(model.levelIndex + 1) · \(model.levelInfo.title)")
-                                .font(.system(size: 13, weight: .bold, design: .rounded))
-                                .foregroundColor(Color(hex: 0xffd23c))
-                            Text("▸")
+                                .font(.system(size: 13, weight: .bold)).kerning(1)
+                                .foregroundColor(Skin.gold)
+                                .lineLimit(1)
+                            Text("▸").foregroundColor(Skin.dimText)
                         }
-                        .frame(width: 320)
+                        .frame(maxWidth: 340)
                     }
                     .buttonStyle(MenuButtonStyle())
 
-                    HStack(spacing: 8) {
+                    HStack(spacing: 10) {
                         PillToggle(label: "🕹️ JOYSTICK", selected: model.scheme == .joystick) { model.scheme = .joystick }
                         PillToggle(label: "📱 GYRO", selected: model.scheme == .gyro) { model.scheme = .gyro }
                     }
-                    HStack(spacing: 8) {
+                    HStack(spacing: 10) {
                         ForEach(DifficultyKey.allCases, id: \.self) { key in
                             PillToggle(label: DIFFICULTIES[key]!.label, selected: model.difficultyKey == key) {
                                 model.difficultyKey = key
@@ -105,22 +110,20 @@ struct MenuScreen: View {
                     if over { model.continueFromEndScreen() } else { model.deploy() }
                 } label: {
                     Text(endButtonLabel)
-                        .font(.system(size: 20, weight: .black, design: .rounded))
-                        .kerning(2)
-                        .frame(width: 240)
+                        .font(.system(size: 18, weight: .heavy))
+                        .kerning(3)
+                        .frame(minWidth: 200)
                 }
                 .buttonStyle(MenuButtonStyle(prominent: true))
 
                 if !over {
                     Text("Salvage is earned from kills · destroyed enemy turrets pay extra")
-                        .font(.system(size: 10, weight: .medium, design: .rounded))
-                        .foregroundColor(.white.opacity(0.5))
-                    Button("◂ BACK") { model.showModeScreen() }
-                        .font(.system(size: 12, weight: .bold, design: .rounded))
-                        .foregroundColor(.white.opacity(0.6))
+                        .font(.system(size: 11))
+                        .foregroundColor(Skin.dimText)
+                    GhostButton(label: "◂ BACK") { model.showModeScreen() }
                 }
             }
-            .padding()
+            .padding(8)
         }
     }
 
@@ -161,58 +164,66 @@ struct LevelScreen: View {
     @EnvironmentObject var model: AppModel
 
     var body: some View {
-        OverlayFrame {
-            VStack(spacing: 10) {
-                Text("SELECT LEVEL")
-                    .font(.system(size: 20, weight: .black, design: .rounded))
-                    .kerning(3)
-                ScrollViewReader { proxy in
-                    ScrollView {
-                        VStack(spacing: 6) {
-                            ForEach(model.levels) { info in
-                                levelRow(info)
-                            }
-                        }
-                        .padding(.horizontal, 8)
-                    }
-                    .frame(maxWidth: 480, maxHeight: 240)
-                    .onAppear { proxy.scrollTo(model.levelIndex, anchor: .center) }
-                }
-                Button("◂ BACK") { model.showMenu() }
-                    .font(.system(size: 13, weight: .bold, design: .rounded))
-                    .foregroundColor(.white.opacity(0.7))
-            }
-            .padding()
+        // lighter dimming than the other screens: the map orbits behind it
+        OverlayFrame(dim: 0.1) {
+            LevelScreenBody()
         }
+    }
+}
+
+/* split out so it can read the overlaySize OverlayFrame publishes */
+private struct LevelScreenBody: View {
+    @EnvironmentObject var model: AppModel
+    @Environment(\.overlaySize) private var size
+
+    var body: some View {
+        VStack(spacing: 12) {
+            ScreenTitle(text: "SELECT LEVEL")
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(spacing: 8) {
+                        ForEach(model.levels) { info in
+                            levelRow(info)
+                        }
+                    }
+                    .padding(.horizontal, 6)
+                }
+                .frame(maxWidth: 460, maxHeight: max(140, size.height * 0.58))
+                .onAppear { proxy.scrollTo(model.levelIndex, anchor: .center) }
+            }
+            GhostButton(label: "◂ BACK") { model.showMenu() }
+        }
+        .padding(8)
     }
 
     private func levelRow(_ info: LevelInfo) -> some View {
-        Button {
+        let selected = info.index == model.levelIndex
+        return Button {
             model.selectLevel(info.index)
         } label: {
-            HStack(spacing: 10) {
+            HStack(spacing: 14) {
                 Text("\(info.index + 1)")
-                    .font(.system(size: 15, weight: .black, design: .rounded))
-                    .frame(width: 30, height: 30)
-                    .background(Circle().fill(Color.white.opacity(0.12)))
-                VStack(alignment: .leading, spacing: 1) {
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(selected ? Skin.gold : Color(hex: 0x8a97b6))
+                    .padding(.horizontal, 7).padding(.vertical, 3)
+                    .overlay(RoundedRectangle(cornerRadius: 4)
+                        .stroke(selected ? Skin.gold : Skin.borderLit, lineWidth: 1))
+                VStack(alignment: .leading, spacing: 3) {
                     Text(info.title)
-                        .font(.system(size: 13, weight: .heavy, design: .rounded))
+                        .font(.system(size: 14, weight: .bold)).kerning(2)
+                        .foregroundColor(selected ? Skin.gold : Skin.lightText)
                     if !info.desc.isEmpty {
                         Text(info.desc)
-                            .font(.system(size: 10, weight: .medium, design: .rounded))
-                            .foregroundColor(.white.opacity(0.55))
-                            .lineLimit(1)
+                            .font(.system(size: 12))
+                            .foregroundColor(Skin.dimText)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
                     }
                 }
-                Spacer()
+                Spacer(minLength: 0)
             }
-            .padding(8)
-            .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(info.index == model.levelIndex ? Color(hex: 0x2b4fd8).opacity(0.5) : Color.white.opacity(0.06))
-            )
-            .foregroundColor(.white)
+            .padding(.horizontal, 16).padding(.vertical, 12)
+            .listRowBox(selected: selected)
         }
         .id(info.index)
     }
