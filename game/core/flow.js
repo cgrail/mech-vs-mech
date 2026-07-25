@@ -1,5 +1,6 @@
 import { scene, lockPointer } from '../world/scene.js';
 import { levelName, levels, levelMeta, levelParam } from '../world/world.js';
+import { switchMap, isSwitchingMap } from './mapswitch.js';
 import { game, stats, difficulty, touch } from './state.js';
 import { entities, redBase } from '../entities/entities.js';
 import { audioCtx, boomSfx, startMusic, duckMusic } from '../systems/audio.js';
@@ -29,8 +30,9 @@ reflectDifficulty();
 
 /* level select screen — world.js already fetched the level bundle, so
    the whole list builds from the imported `levels` with no HTTP calls.
-   Picking a level reloads with ?level=…: back on the menu, the orbit
-   camera shows that map rotating behind the overlay as the preview. */
+   Picking a level swaps the map in place (core/mapswitch.js, the same
+   call the multiplayer lobby previews a room's map with): the orbit
+   camera keeps running and the new map flies in behind the overlay. */
 const menuScreen = document.getElementById('menuScreen');
 const levelScreen = document.getElementById('levelScreen');
 const levelList = document.getElementById('levelList');
@@ -56,50 +58,29 @@ function showLevelScreen(show) {
 document.getElementById('levelBtn').addEventListener('click', () => showLevelScreen(true));
 document.getElementById('levelBack').addEventListener('click', () => showLevelScreen(false));
 
-/* level switch transition — a level change is a page reload, so the
-   animation is split across it: the old map sinks away before we
-   navigate, and the new map drops in from above after the reload.
-   Everything (terrain + entities) sits directly in the scene, so
-   flying the whole level is just animating scene.position.y. */
-const FLY_DIST = 500;
-let leaving = false;
-
-function flyLevel(from, to, ease, ms) {
-  return new Promise((resolve) => {
-    const t0 = performance.now();
-    (function step() {
-      const t = Math.min((performance.now() - t0) / ms, 1);
-      scene.position.y = from + (to - from) * ease(t);
-      if (t < 1) requestAnimationFrame(step);
-      else resolve();
-    })();
-  });
-}
-
-/* picking a level reloads the page — reopen this screen so the player
-   sees the chosen map rotating before heading back to the main menu */
-if (sessionStorage.getItem('mechLevelScreen')) {
-  sessionStorage.removeItem('mechLevelScreen');
-  showLevelScreen(true);
-}
-/* redeploy / next level is also a reload — stay in the single-player menu */
+/* redeploy / next level is a reload — stay in the single-player menu */
 if (sessionStorage.getItem('mechSpMenu')) {
   sessionStorage.removeItem('mechSpMenu');
   showModeScreen(false);
 }
-if (sessionStorage.getItem('mechLevelFly')) {
-  sessionStorage.removeItem('mechLevelFly');
-  flyLevel(FLY_DIST, 0, (t) => 1 - (1 - t) ** 3, 1000);
-}
 
 levelCur.textContent = levelName.toUpperCase(); // fallback for unlisted levels
+
+const levelBtns = []; // [{ b, name, label }] — the list's current-map marks
+
+function reflectLevel() {
+  for (const { b, name, label } of levelBtns) {
+    const current = name === levelName;
+    b.classList.toggle('selected', current);
+    if (current) levelCur.textContent = label;
+  }
+}
 
 {
   levels.forEach((entry, i) => {
     const { name } = entry;
     const n = i + 1;
     const { title, desc } = levelMeta(entry);
-    const current = name === levelName;
 
     const b = document.createElement('button');
     const num = document.createElement('span');
@@ -118,27 +99,29 @@ levelCur.textContent = levelName.toUpperCase(); // fallback for unlisted levels
       info.appendChild(d);
     }
     b.append(num, info);
-    b.classList.toggle('selected', current);
-    b.addEventListener('click', async () => {
-      if (current) { showLevelScreen(false); return; }
-      if (leaving) return; // a fly-out is already running
-      leaving = true;
-      sessionStorage.setItem('mechLevelScreen', '1');
-      sessionStorage.setItem('mechLevelFly', '1');
-      overlay.classList.add('hidden'); // clear the view for the fly-out
-      await flyLevel(0, -FLY_DIST, (t) => t * t * t, 800);
-      const url = new URL(location.href);
-      url.searchParams.set('level', levelParam(name));
-      location.href = url.href;
+    b.addEventListener('click', () => {
+      if (isSwitchingMap()) return; // a switch is already flying
+      if (name === levelName) { showLevelScreen(false); return; }
+      // hide the overlay for the fly-out, bring it back with the new map on
+      // its way down — the shape the old reload-split animation had
+      overlay.classList.add('hidden');
+      switchMap(name, () => {
+        overlay.classList.remove('hidden');
+        reflectLevel();
+        // REDEPLOY is a plain location.reload(), so keep ?level= truthful
+        const url = new URL(location.href);
+        url.searchParams.set('level', levelParam(levelName));
+        history.replaceState(null, '', url);
+      });
     });
+    levelBtns.push({ b, name, label: `${n} · ${title}` });
     levelList.appendChild(b);
-    if (current) levelCur.textContent = `${n} · ${title}`;
   });
+  reflectLevel();
   // start the scrollable list centered on the current level
   const sel = levelList.querySelector('button.selected');
   if (sel) levelList.scrollTop = sel.offsetTop - (levelList.clientHeight - sel.offsetHeight) / 2;
-  // the screen stays invisible until every level entry is in place — plus
-  // a beat longer, so the map fly-in isn't immediately covered by the list
+  // the screen stays invisible until every level entry is in place
   setTimeout(() => levelScreen.classList.remove('loading'), 1200);
 }
 

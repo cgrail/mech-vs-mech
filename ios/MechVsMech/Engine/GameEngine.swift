@@ -70,6 +70,11 @@ final class GameEngine {
     /// open. Multiplayer never sets this (a networked match can't be paused).
     var paused = false
     var elapsed = 0.0
+    /// Seconds since this engine was built. A level switch — the level select
+    /// or the lobby following a room's map — is a whole new engine here, so
+    /// this is what lets a freshly built map ease into frame (see step).
+    private var age = 0.0
+    private let menuSettle = 1.1   // seconds the menu camera takes to settle
 
     var entities: [Entity] = []
     var projectiles: [Projectile] = []
@@ -222,6 +227,7 @@ final class GameEngine {
     func step(time: TimeInterval) {
         let dt = min(lastTime.map { time - $0 } ?? 0, 0.05)
         lastTime = time
+        age += dt
 
         actionLock.lock()
         let pending = actions
@@ -258,7 +264,13 @@ final class GameEngine {
             // idle menu camera orbit, scaled so the whole map stays in frame
             let t = time * 0.2
             let r = (max(level.arenaHW, level.arenaHD) * 1.1 + 25) / min(1, viewAspect)
-            cameraNode.position = SCNVector3(sin(t) * r, r * 0.85, cos(t) * r)
+            // a just-built map eases down into that orbit — the native stand-in
+            // for the web's map fly-in, which flies the world instead of the
+            // camera (the whole scene hangs off rootNode here, camera included)
+            let settle = max(0, 1 - age / menuSettle)
+            let drop = settle * settle * settle
+            let rr = r * (1 + 0.8 * drop)
+            cameraNode.position = SCNVector3(sin(t) * rr, rr * 0.85 + 220 * drop, cos(t) * rr)
             cameraNode.look(at: SCNVector3(0, 0, 0),
                             up: SCNVector3(0, 1, 0), localFront: SCNVector3(0, 0, -1))
         }

@@ -218,15 +218,8 @@
     document.getElementById('modeScreen').classList.add('hidden');
     document.getElementById('menuScreen').classList.remove('hidden');
   }
-  // returning from a level switch: show the level screen before first paint,
-  // so the mode select doesn't flash while the game modules load (flow.js
-  // reads and clears the flag once it's up)
-  if (sessionStorage.getItem('mechLevelScreen')) {
-    document.getElementById('modeScreen').classList.add('hidden');
-    document.getElementById('menuScreen').classList.add('hidden');
-    document.getElementById('levelScreen').classList.remove('hidden');
-    document.getElementById('overlay').classList.add('level');
-  }
+  // (a level switch needs nothing here: it swaps the map in place, without
+  // a reload — see core/mapswitch.js)
   // booting straight into a multiplayer match: show its screen before first paint
   if (new URLSearchParams(location.search).get('mp') === '1') {
     document.getElementById('modeScreen').classList.add('hidden');

@@ -123,7 +123,11 @@ not been compiled)
   hides the minimap on phones anyway).
 - Multiplayer match entry keeps the socket and `rejoin`s instead of reloading
   the page; there is no `?server=`/URL plumbing (use the `mechServer` default).
-- The level-switch fly-in/out animation is an instant switch.
+- The level-switch fly-in/out animation is a camera settle: the web flies the
+  whole world out and back in (its camera sits outside the scene), while here
+  terrain, entities and camera all hang off `rootNode`, so a newly built map
+  eases down into the menu orbit instead. Same trigger on both — level select
+  and the lobby following a room's map go through one path per platform.
 - Hemisphere light approximated with an ambient light; light intensities are
   eyeballed equivalents, not physically matched.
 - Sound effects are pre-rendered to buffers with the same synth parameters

@@ -331,10 +331,11 @@ export function createWorld(parent) {
 /* Swap in another map without reloading the page: re-parse into the same
    LEVEL / ARENA / grid every other module reads, then rebuild the terrain
    meshes. The entities are the caller's problem — they are standing on the
-   old map's ground until it puts them back (flow.js `previewLevel`). */
+   old map's ground until it puts them back (core/mapswitch.js). */
 export function rebuildWorld(parent, text, name) {
   parseLevel(text, name);
   createWorld(parent);
+  levelName = name;
 }
 
 /* ============================================================
@@ -342,7 +343,10 @@ export function rebuildWorld(parent, text, name) {
    (top-level await: every module importing this one waits)
 ============================================================ */
 const param = new URLSearchParams(location.search).get('level') || '1';
-export const levelName = /^\d+$/.test(param) ? `level${param}` : param;
+/* the map the world is currently built on. A `let`, because the level
+   select and the lobby swap maps in place (see core/mapswitch.js) and
+   ES module bindings are live — every importer follows it. */
+export let levelName = /^\d+$/.test(param) ? `level${param}` : param;
 
 /* one request fetches every level; the level-select menu (flow.js)
    reads titles from this list without any further HTTP calls */
