@@ -70,6 +70,10 @@ final class LobbyModel: ObservableObject {
     private var matchLevel: LevelInfo?
     private var levelPending = false     // fetch still in flight
     private var goPending = false        // "go" landed before the map did
+    /* the map the lobby is previewing, and the terrain fetched for it —
+       cached so flipping through the picker doesn't refetch every map */
+    private var previewParam: String?
+    private var levelCache: [String: LevelInfo] = [:]
     private var goneIds = Set<Int>()
     private var autoJoin = false
     private var bannerTask: DispatchWorkItem?
@@ -94,6 +98,7 @@ final class LobbyModel: ObservableObject {
         matchLevel = nil
         levelPending = false
         goPending = false
+        previewParam = nil
         phase = .connecting
         setStatus("CONNECTING TO SERVER…")
         if net.isConnected { handleOpen() } else { net.connect() }
@@ -257,6 +262,7 @@ final class LobbyModel: ObservableObject {
         myRoom = me?.room
         myTeam = me?.team
         phase = (myRoom == nil) ? .rooms : .inRoom
+        updatePreview()
 
         if myRoom == nil {
             setStatus("CREATE A ROOM OR JOIN ONE — EACH ROOM STAGES ITS OWN MATCH")
@@ -278,6 +284,28 @@ final class LobbyModel: ObservableObject {
     }
 
     // MARK: - The room's map
+
+    /* show the room's map behind the lobby: fetch its terrain from the server
+       and let AppModel rebuild the menu scene on it. Outside a room the
+       preview goes back to the single-player choice. */
+    private func updatePreview() {
+        guard app?.screen == .lobby else { return }   // never swap a match's engine
+        guard let param = myRoom == nil ? nil : myRoomInfo?.level else {
+            previewParam = nil
+            app?.clearPreview()
+            return
+        }
+        guard param != previewParam else { return }
+        previewParam = param
+        if let cached = levelCache[param] { app?.previewLevel(cached); return }
+        guard let url = net.levelURL(param: param) else { return }
+        fetchServerLevel(param: param, url: url) { [weak self] info in
+            guard let self, let info, self.previewParam == param,   // moved on
+                  self.app?.screen == .lobby else { return }
+            self.levelCache[param] = info
+            self.app?.previewLevel(info)
+        }
+    }
 
     var myRoomInfo: RoomInfo? { rooms.first { $0.id == myRoom } }
     /* the map is the creator's call; everyone else just reads it */

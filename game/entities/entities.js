@@ -151,6 +151,16 @@ export function registerEntity(e) {
   return e;
 }
 
+/* take an entity out of the world for good — no death animation, no salvage:
+   used when the map itself is replaced (flow.js `previewLevel`) */
+export function removeEntity(e) {
+  const i = entities.indexOf(e);
+  if (i >= 0) entities.splice(i, 1);
+  scene.remove(e.group);
+  if (e.netId) netRegistry.delete(e.netId);
+  e.alive = false;
+}
+
 export function makeBaseEntity(team, x, z) {
   const palette = team === 'blue' ? BLUE : RED;
   const model = makeBaseModel(palette);

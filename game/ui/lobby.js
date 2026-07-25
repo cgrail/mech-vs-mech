@@ -1,6 +1,10 @@
 import { MP, connect, disconnect, connected, on, send } from '../net/net.js';
 import { game } from '../core/state.js';
-import { levelName, levels, levelMeta, levelParam } from '../world/world.js';
+import { scene } from '../world/scene.js';
+import { levelName, levels, levelMeta, levelParam, LEVEL, rebuildWorld, groundHeightAt } from '../world/world.js';
+import { entities, blueBase, redBase, makeTurretEntity, removeEntity } from '../entities/entities.js';
+import { player } from '../entities/player.js';
+import { spawnPointFor } from '../core/helpers.js';
 import { startGame, backToLobby } from '../core/flow.js';
 import { audioCtx } from '../systems/audio.js';
 
@@ -49,6 +53,38 @@ const show = (el, on) => el.classList.toggle('mpHidden', !on);
    options match what the server will accept in setLevel */
 const maps = levels.map((l) => ({ param: levelParam(l.name), ...levelMeta(l) }));
 const mapTitle = (param) => maps.find((m) => m.param === param)?.title || String(param).toUpperCase();
+
+/* ============================================================
+   Map preview — the room's map is what orbits behind the lobby
+
+   No reload and no ?level= in the URL: the terrain is rebuilt in
+   place and the bases, marker turrets and my mech are put back on
+   the new ground. The choice lives only in this module, so a page
+   refresh drops it and the page is back on its own level — fine,
+   because the match itself boots from a fresh load (?level=…&mp=1)
+   and single player still picks its level the reloading way.
+============================================================ */
+let previewName = levelName;
+
+function previewMap(param) {
+  const entry = levels.find((l) => levelParam(l.name) === param);
+  if (!entry || entry.name === previewName) return;
+  previewName = entry.name;
+  rebuildWorld(scene, entry.text, entry.name);
+
+  // the old map's marker turrets stood on terrain that no longer exists
+  for (const e of [...entities]) if (e.kind === 'turret') removeEntity(e);
+  for (const [base, at] of [[blueBase, LEVEL.blueBase], [redBase, LEVEL.redBase]]) {
+    base.group.position.set(at.x, groundHeightAt(at.x, at.z), at.z);
+  }
+  for (const t of LEVEL.redTurrets) makeTurretEntity('red', t.x, t.z);
+
+  const { pos, face } = spawnPointFor(player.team);
+  player.y = groundHeightAt(pos.x, pos.z);
+  player.vy = 0;
+  player.group.position.set(pos.x, player.y, pos.z);
+  player.yaw = Math.atan2(face.x - pos.x, face.z - pos.z);
+}
 
 function setStatus(text, color) {
   statusEl.textContent = text;
@@ -176,6 +212,7 @@ function resetLobbyUi() {
   myId = null;
   myRoom = null;
   myTeam = null;
+  previewMap(levelParam(levelName)); // leaving the lobby: back to my own map
   show(nameRow, false);
   show(roomsEl, false);
   show(roomBar, false);
@@ -267,6 +304,7 @@ function renderList(state) {
     }
     renderIdle(players.filter((p) => p.room == null && p.id !== myId), 'BROWSING');
     setStatus('CREATE A ROOM OR JOIN ONE — EACH ROOM STAGES ITS OWN MATCH');
+    previewMap(levelParam(levelName)); // outside a room: my own map again
     return;
   }
 
@@ -285,6 +323,7 @@ function renderList(state) {
   // only when it actually differs: reassigning value closes an open dropdown
   if (canPick) { if (mapSelect.value !== map) mapSelect.value = map; }
   else mapNameEl.textContent = mapTitle(map);
+  previewMap(map); // the room's map is what orbits behind the overlay
 
   for (const team of ['blue', 'red']) {
     const col = document.getElementById(team === 'blue' ? 'mpTeamBlue' : 'mpTeamRed');

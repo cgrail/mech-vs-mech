@@ -95,6 +95,7 @@ final class AppModel: ObservableObject {
     }
 
     private func rebuildEngine(mp: MPConfig? = nil, net: Net? = nil, info: LevelInfo? = nil) {
+        previewName = nil   // any rebuild drops the lobby's map preview
         engine = Self.makeEngine(info: info ?? levelInfo, difficultyKey: difficultyKey, mp: mp, net: net)
         engine.delegate = self
         hud = HudSnapshot()
@@ -165,7 +166,25 @@ final class AppModel: ObservableObject {
 
     func leaveLobby() {
         lobby.close()
+        clearPreview()
         screen = .mode
+    }
+
+    /* The map orbiting behind the lobby is the room's, not the one picked in
+       single player: LobbyModel fetches the room's level from the server and
+       hands it here, and the engine is rebuilt on it — the same throw-away-
+       and-rebuild the level select does. `levelIndex` is untouched, so
+       leaving the lobby drops straight back to the single-player choice. */
+    private var previewName: String?
+
+    func previewLevel(_ info: LevelInfo) {
+        guard previewName != info.name else { return }
+        rebuildEngine(info: info)   // clears previewName, so set it after
+        previewName = info.name
+    }
+
+    func clearPreview() {
+        if previewName != nil { rebuildEngine() }
     }
 
     /* the levelParam this client advertises when joining the lobby */

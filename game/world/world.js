@@ -34,23 +34,26 @@ export const LEVEL = {
 
 let cells = [];  // [row][col] -> {t:'flat'|'wall', h} | {t:'ramp', axis, h0, h1}
 
-function parseLevel(text) {
+function parseLevel(text, name) {
   const lines = text.split('\n').map((l) => l.replace(/\s+$/, ''))
     .filter((l) => l && !l.startsWith('#'));
   const rows = lines.length;
-  if (!rows) throw new Error(`Level "${levelName}" is empty — it has no terrain rows`);
+  if (!rows) throw new Error(`Level "${name}" is empty — it has no terrain rows`);
   const cols = Math.max(...lines.map((l) => l.length));
   for (let r = 0; r < rows; r++) {
     if (lines[r].length !== cols) {
-      throw new Error(`Level "${levelName}": terrain row ${r + 1} is ${lines[r].length} tiles wide but the widest row is ${cols} — all rows must be equal length`);
+      throw new Error(`Level "${name}": terrain row ${r + 1} is ${lines[r].length} tiles wide but the widest row is ${cols} — all rows must be equal length`);
     }
     for (let c = 0; c < cols; c++) {
       if (!'glhwrPBRTS'.includes(lines[r][c])) {
-        throw new Error(`Level "${levelName}": unknown tile character "${lines[r][c]}" at row ${r + 1}, column ${c + 1} — valid tiles are g l h w r and markers P B R T S`);
+        throw new Error(`Level "${name}": unknown tile character "${lines[r][c]}" at row ${r + 1}, column ${c + 1} — valid tiles are g l h w r and markers P B R T S`);
       }
     }
   }
   LEVEL.rows = rows; LEVEL.cols = cols;
+  // markers accumulate — a rebuild (rebuildWorld) must not keep the old map's
+  LEVEL.redTurrets.length = 0;
+  LEVEL.enemySpawns.length = 0;
   ARENA.hw = cols * TILE / 2;
   ARENA.hd = rows * TILE / 2;
 
@@ -82,7 +85,7 @@ function parseLevel(text) {
     S: 'an "S" enemy-spawn marker',
   };
   for (const ch in NEEDED) {
-    if (!seen.has(ch)) throw new Error(`Level "${levelName}" has no ${NEEDED[ch]} — every level needs one`);
+    if (!seen.has(ch)) throw new Error(`Level "${name}" has no ${NEEDED[ch]} — every level needs one`);
   }
 
   cells = chars.map((row) => row.map((ch) => {
@@ -240,7 +243,24 @@ function greedyRects(match) {
   return rects;
 }
 
-export function createWorld(scene) {
+/* every terrain mesh hangs off one group, so a rebuild is a swap
+   (see rebuildWorld — the lobby previews other maps that way) */
+let terrainGroup = null;
+
+export function createWorld(parent) {
+  if (terrainGroup) {
+    parent.remove(terrainGroup);
+    const dead = new Set();   // materials are shared between meshes
+    terrainGroup.traverse((o) => {
+      if (!o.isMesh) return;
+      o.geometry.dispose();
+      for (const m of [o.material].flat()) dead.add(m);
+    });
+    for (const m of dead) { m.map?.dispose(); m.dispose(); }
+  }
+  const group = terrainGroup = new THREE.Group();
+  parent.add(group);
+
   const groundTex = makeGroundTexture();
   const topMat = new THREE.MeshStandardMaterial({ map: groundTex, roughness: 0.95 });
   const sideMat = new THREE.MeshStandardMaterial({ color: 0x5b5648, roughness: 0.9 });
@@ -258,7 +278,7 @@ export function createWorld(scene) {
   ground.rotation.x = -Math.PI / 2;
   ground.position.y = LOW;
   ground.receiveShadow = true;
-  scene.add(ground);
+  group.add(ground);
 
   function addBox(rect, top, mat) {
     const w = rect.w * TILE, d = rect.d * TILE, bottom = LOW - 2;
@@ -273,7 +293,7 @@ export function createWorld(scene) {
     const m = new THREE.Mesh(geo, mat);
     m.position.set(mx, (top + bottom) / 2, mz);
     m.castShadow = m.receiveShadow = true;
-    scene.add(m);
+    group.add(m);
   }
 
   // raised flat terrain, one merged box set per height tier
@@ -303,9 +323,18 @@ export function createWorld(scene) {
       const m = new THREE.Mesh(geo, rampMat);
       m.position.set(-ARENA.hw + (c + 0.5) * TILE, 0, -ARENA.hd + (r + 0.5) * TILE);
       m.castShadow = m.receiveShadow = true;
-      scene.add(m);
+      group.add(m);
     }
   }
+}
+
+/* Swap in another map without reloading the page: re-parse into the same
+   LEVEL / ARENA / grid every other module reads, then rebuild the terrain
+   meshes. The entities are the caller's problem — they are standing on the
+   old map's ground until it puts them back (flow.js `previewLevel`). */
+export function rebuildWorld(parent, text, name) {
+  parseLevel(text, name);
+  createWorld(parent);
 }
 
 /* ============================================================
@@ -363,4 +392,4 @@ if (levelText === undefined) {
   if (!res.ok) throw new Error(`Level "${levelName}" is not in levels/levels.txt and levels/${levelName}.txt does not exist (HTTP ${res.status})`);
   levelText = await res.text();
 }
-parseLevel(levelText);
+parseLevel(levelText, levelName);

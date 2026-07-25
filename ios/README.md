@@ -112,6 +112,10 @@ not been compiled)
   a room sees the map but no picker; the match plays the room's map, not whatever
   level the pilot who pressed START MATCH had selected. If the room's creator
   leaves, the picker moves to whoever has been in the room longest.
+- **Map preview**: the map orbiting behind the lobby follows the room's map (the
+  engine is rebuilt on the fetched level, as it is for level select) and goes back
+  to the single-player choice on leaving the room. Check that this never happens
+  mid-match — the preview is gated on the lobby screen being up.
 
 ## Known deviations from the web version
 
