@@ -62,14 +62,24 @@ Both bases sit in an identical walled fort so that **a base can only be shot fro
 dr −2   w w w w w w w w w   map border, doubles as the back wall
 dr −1   w . . . . . . . w   courtyard
 dr  0   w . . . B . . . w   courtyard (base)
-dr +1   w . . w w w . . w   inner screen — walk-through slots at dc ±2/±3
-dr +2   w . . . . . . . w   antechamber
-dr +3   w w w . . . w w w   outer wall, 3-tile gate on the base's axis
+dr +1   w . . . . . . . w   courtyard
+dr +2   w . . . . . . . w   courtyard
+dr +3   w . . w w w . . w   inner screen — walk-through slots at dc ±2/±3
+dr +4   w . . . . . . . w   antechamber
+dr +5   w w w . . . w w w   outer wall, 3-tile gate on the base's axis
 ```
 
-The screen and the gate are deliberately offset from each other: a shot lined up through a screen slot runs into the side wall, one lined up through the gate runs into the screen. The base's `hitRadius` is 9.5 (wider than a tile), which is why the slots have to be ≥2 tiles off-axis — a 1-tile offset still lets a bullet clip the base. If you move a base or reshape a fort, re-check that property; and keep the gate clear of `T` markers, since a turret's collision circle would plug it.
+The screen and the gate are deliberately offset from each other: a shot lined up through a screen slot runs into the side wall, one lined up through the gate runs into the screen. Three measurements drive the rest of the geometry:
 
-Consequences to preserve when editing maps: the fort needs a ramp up to its gate if it stands on a plateau (see level6), the blue `P` marker lives in the blue antechamber, and mid-field cover blocks are placed in mirrored pairs with ≥2 tiles between them so mechs — which wall-follow rather than pathfind — always have a lane.
+- The base platform is **16 units across** — a full tile either side of centre — so it already spills half way into its neighbouring tiles. It takes **two** clear rows in front (12 units of daylight) before the screen stops reading as part of the building; with one it still looks embedded. The back is the map border and only clears the platform by 4 units — the base marker would have to move a row inward to fix that.
+- The base's `hitRadius` is **9.5**, wider than a tile, so the screen slots have to be ≥2 tiles off-axis; a 1-tile offset still lets a bullet clip the base on its way past.
+- The whole footprint is levelled to the base's own tier, because a ramp or tier change caught inside the walls becomes a step nothing can climb. Where that cuts a plateau, the gate row gets a ramp causeway and up to two ramps per side are re-cut outside the walls.
+
+Keep `T` markers out of the gate and the screen slots — a turret's collision circle would plug them — and `S` markers outside the fort entirely, or a wave deploys into its own courtyard and files out through the slots one mech at a time.
+
+Consequences to preserve when editing maps: the fort needs a ramp up to its gate if it stands on a plateau (see level6, where the gate tiles themselves are the ramp), the blue `P` marker lives in the blue antechamber, and mid-field cover blocks are placed in mirrored pairs with ≥2 tiles between them so mechs — which wall-follow rather than pathfind — always have a lane.
+
+Two traps worth knowing, both found by validating rather than by eye: the side walls can fence a flank corridor off against a plateau nobody can climb, making a pit you fall into and never leave, so **check reachability in both directions** (a plain flood fill from `P` will not see it, because ledge drops are one-way); and when clearing a marker off a tile, backfill with the terrain that was actually there, since a stray `g` on an `h` plateau is exactly such a pit.
 
 ### Terrain is the single source of truth for physics
 
