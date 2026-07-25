@@ -54,6 +54,23 @@ All levels are in **one bundle, `levels/levels.txt`** — a `=== <name>` line st
 - Design rule: mechs can step up ramps and drop off ledges, but can never climb a ledge — any `l` region needs an `r` exit or things that drop in are stuck there forever
 - The `S` markers double as red-team spawn points in multiplayer (blue fans out around `P`), so maps meant for 5v5 should carry ~5 spread-out `S` markers — the XL maps at the end of the bundle (level53+) are built that way
 
+#### Base compounds
+
+Both bases sit in an identical walled fort so that **a base can only be shot from inside its own courtyard** — no sniping it across the map. Written relative to the base tile, with `dr` running toward the enemy:
+
+```
+dr −2   w w w w w w w w w   map border, doubles as the back wall
+dr −1   w . . . . . . . w   courtyard
+dr  0   w . . . B . . . w   courtyard (base)
+dr +1   w . . w w w . . w   inner screen — walk-through slots at dc ±2/±3
+dr +2   w . . . . . . . w   antechamber
+dr +3   w w w . . . w w w   outer wall, 3-tile gate on the base's axis
+```
+
+The screen and the gate are deliberately offset from each other: a shot lined up through a screen slot runs into the side wall, one lined up through the gate runs into the screen. The base's `hitRadius` is 9.5 (wider than a tile), which is why the slots have to be ≥2 tiles off-axis — a 1-tile offset still lets a bullet clip the base. If you move a base or reshape a fort, re-check that property; and keep the gate clear of `T` markers, since a turret's collision circle would plug it.
+
+Consequences to preserve when editing maps: the fort needs a ramp up to its gate if it stands on a plateau (see level6), the blue `P` marker lives in the blue antechamber, and mid-field cover blocks are placed in mirrored pairs with ≥2 tiles between them so mechs — which wall-follow rather than pathfind — always have a lane.
+
 ### Terrain is the single source of truth for physics
 
 `world.js` exports the queries everything else uses; there is no obstacle list:

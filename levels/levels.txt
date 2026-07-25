@@ -5,37 +5,37 @@
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwww
-wgggggggggggggggggggw
-wgggSgggggRgggggSgggw
-wgggggggggggggggggggw
-wgggggggTgSgTgggggggw
+wgggggwgggggggwgggggw
+wgggSgwgggRgggwgSgggw
+wgggggwggwwwggwgggggw
+wgggggwgTgSgTgwgggggw
+wgggggwwwgggwwwgggggw
 wgggggggggTgggggggggw
-wgggggggggggggggggggw
 wgggwwwwgggggwwwwgggw
 wgggwwwwgggggwwwwgggw
 wgggggggggggggggggggw
 wrrrggggggggggggggggw
-wlllgggggggggggghhhhw
+wlllgggggwwwgggghhhhw
 wlllgggggggggggghhhhw
 wlllggggrrrrrggrhhhhw
 wlllgggghhhhhggrhhhhw
 wlllgggghhhhhggrhhhhw
 wlllgggghhhhhggghhhhw
 wlllgggghhhhhggghhhhw
-wlllgggghhhhhgggggggw
-wlllggggrrrrrgggggggw
-wlllggggggggggggggggw
-wlllggggggggggggggggw
-wrrrggggggggggggggggw
+wlllggwghhhhhgwgggggw
+wlllggwgrrrrrgwgggggw
+wlllggwgggggggwgggggw
+wlllggwgggwgggwgggggw
+wrrrggggggwgggggggggw
 wgggggggggggggggggggw
 wgggwwwwgggggwwwwgggw
 wgggwwwwgggggwwwwgggw
 wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggPgggggggggw
-wgggggggggggggggggggw
-wgggggggggBgggggggggw
-wgggggggggggggggggggw
+wgggggwwwgggwwwgggggw
+wgwgggwgggPgggwgggwgw
+wgwgggwggwwwggwgggwgw
+wgggggwgggBgggwgggggw
+wgggggwgggggggwgggggw
 wwwwwwwwwwwwwwwwwwwww
 
 === level2
@@ -44,12 +44,12 @@ wwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwww
-wgggggggggggggggggggw
-wggggSggggRggggSggggw
-wgggggggggggggggggggw
-wgggggggTgggTgggggggw
-wgggggggggggggggggggw
-whhhhgggrrrrrggghhhhw
+wgggggwgggggggwgggggw
+wggggSwgggRgggwSggggw
+wgggggwggwwwggwgggggw
+wgggggwgTgggTgwgggggw
+wgggggwwwgggwwwgggggw
+whhhhrgggrrrgggrhhhhw
 whhhhggrlllllrgghhhhw
 whhThggrlllllrgghThhw
 whhhhggrlllllrgghhhhw
@@ -69,12 +69,12 @@ whhhhrgrlllllrgrhhhhw
 whhhhggrlllllrgghhhhw
 whhhhggrlllllrgghhhhw
 whhhhggrlllllrgghhhhw
-whhhhgggrrrrrggghhhhw
-wgggggggggggggggggggw
-wgggggggggPgggggggggw
-wgggggggggggggggggggw
-wgggggggggBgggggggggw
-wgggggggggggggggggggw
+whhhhrgggrrrgggrhhhhw
+wgggggwwwgggwwwgggggw
+wgwgggwgggPgggwgggwgw
+wgwgggwggwwwggwgggwgw
+wgggggwgggBgggwgggggw
+wgggggwgggggggwgggggw
 wwwwwwwwwwwwwwwwwwwww
 
 === level3
@@ -83,41 +83,41 @@ wwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwww
-wgggggggggggggggggggw
-wggggSggggRggggSggggw
-wgggggggggggggggggggw
-wgggggggTgggTgggggggw
-wgggggggggggggggggggw
+wgggggwgggggggwgggggw
+wggggSwgggRgggwSggggw
+wgggggwggwwwggwgggggw
+wgggggwgTgggTgwgggggw
+wgggggwwwgggwwwgggggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
 wgggwwwwgggggwwwwgggw
-wgggwwwwgggggwwwwgggw
-wgggggggggggggggggggw
-wgggTgggggggggggTgggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wggwwwwgggggggwwwwggw
-wggwwwwgggggggwwwwggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
+wgggwwwwggwggwwwwgggw
+wgggggggggwgggggggggw
+wgggTgggggwgggggTgggw
+wgggggggggwgggggggggw
 wgggggggggggggggggggw
 wggwwwwgggggggwwwwggw
-wggwwwwgggggggwwwwggw
+wggwwwwggwwwggwwwwggw
+wggggggggwwwggggggggw
+wgggggggggggggggggggw
+wgggggggggggggggggggw
+wgggggggggwgggggggggw
+wggwwwwgggwgggwwwwggw
+wggwwwwgggwgggwwwwggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
 wggggwwwwwwwwwwwggggw
-wggggwwwwwwwwwwwggggw
+wgwggwwwwwwwwwwwggwgw
+wgwgggggggggggggggwgw
+wgwgggggggggggggggwgw
+wgwgggggggggggggggwgw
 wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggPgggggggggw
-wgggggggggggggggggggw
-wgggggggggBgggggggggw
-wgggggggggggggggggggw
+wgggggwwwgggwwwgggggw
+wgwgggwgggPgggwgggwgw
+wgwgggwggwwwggwgggwgw
+wgggggwgggBgggwgggggw
+wgggggwgggggggwgggggw
 wwwwwwwwwwwwwwwwwwwww
 
 === level4
@@ -126,11 +126,11 @@ wwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwwwww
-wgggggggggggggggggggggw
-wgggggSggggRggggSgggggw
-wgggggggggggggggggggggw
-wggggggggTgggTggggggggw
-wgggggggggggggggggggggw
+wggggggwgggggggwggggggw
+wgggggSwgggRgggwSgggggw
+wggggggwggwwwggwggggggw
+wgwggggwgTgggTgwggggwgw
+wgwggggwwwgggwwwggggwgw
 wgggggggggggggggggggggw
 whhhhhhggrrrrrgghhhhhhw
 whhhhhhgglllllgghhhhhhw
@@ -154,11 +154,11 @@ whhhhhhgglllllgghhhhhhw
 whhhhhhgglllllgghhhhhhw
 whhhhhhggrrrrrgghhhhhhw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wggggggggggPggggggggggw
-wgggggggggggggggggggggw
-wggggggggggBggggggggggw
-wgggggggggggggggggggggw
+wggwgggwwwgggwwwgggwggw
+wggwgggwgggPgggwgggwggw
+wggggggwggwwwggwggggggw
+wggggggwgggBgggwggggggw
+wggggggwgggggggwggggggw
 wwwwwwwwwwwwwwwwwwwwwww
 
 === level5
@@ -167,16 +167,16 @@ wwwwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwwwww
-wgggggggggggggggggggggw
-wgggggSggggRggggSgggggw
-wgggggggggggggggggggggw
-wggggggggTgggTggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
+wggggggwgggggggwggggggw
+wgwgggSwgggRgggwSgggwgw
+wgwggggwggwwwggwggggwgw
+wggggggwgTgggTgwggggggw
+wggggggwwwgggwwwggggggw
+wgwwgggggggggggggggwwgw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
 wgggwwwgggggggggwwwgggw
-wgggwwwgggggggggwwwgggw
+wgggwwwgggwwwgggwwwgggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
@@ -184,22 +184,22 @@ whhhhhhhThggghThhhhhhhw
 whhhhhhhhhggghhhhhhhhhw
 whhhhhrrhhggghhrrhhhhhw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
+wgggggwwwggwggwwwgggggw
+wggggggggggwggggggggggw
 wgggggggggggggggggggggw
 wgggwwwgggggggggwwwgggw
-wgggwwwgggggggggwwwgggw
+wgggwwwgggwgwgggwwwgggw
+wgggggggggwgwgggggggggw
+wgggggggggggggggggggggw
+wgggwwgggggggggggwwgggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wggggggggggPggggggggggw
-wgggggggggggggggggggggw
-wggggggggggBggggggggggw
-wgggggggggggggggggggggw
+wgwgggggggggggggggggwgw
+wgwggggwwwgggwwwggggwgw
+wggggggwgggPgggwggggggw
+wggggggwggwwwggwggggggw
+wggggggwgggBgggwggggggw
+wggggggwgggggggwggggggw
 wwwwwwwwwwwwwwwwwwwwwww
 
 === level6
@@ -208,37 +208,37 @@ wwwwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwwwww
-whhhhhhhhhhhhhhhhhhhhhw
-whhhhhShhhhRhhhhShhhhhw
-whhhhhhhhhhhhhhhhhhhhhw
-whhhhhhhhhhhhhhhhhhhhhw
-whhhhhThhhhhhhhhThhhhhw
-whhhhhhhrrhhhrrhhhhhhhw
+whhhhhhwhhhhhhhwhhhhhhw
+whhhhhSwhhhRhhhwShhhhhw
+whhhhhhwhhwwwhhwhhhhhhw
+whhhhhhwhhhhhhhwhhhhhhw
+whhhhhTwwwhhhwwwThhhhhw
+whhhhrrhhhrrrhhhrrhhhhw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
 wgllllllllrgrllllllllgw
 wgllllllllrgrllllllllgw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
+wggwwwwgggggggggwwwwggw
+wggwwwwggwwgwwggwwwwggw
+wgggggggggggggggggggggw
+wgggggggggggggggggggggw
+wgwwgggggggwgggggggwwgw
+wgwwgggwwggwggwwgggwwgw
+wgggggggggggggggggggggw
+wgggggggggggggggggggggw
+wgggwwwggwwwwwggwwwgggw
+wgggwwwggwwwwwggwwwgggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggwwwgggggggggwwwgggw
-wgggwwwgggggggggwwwgggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wggggggggggPggggggggggw
-wgggggggggggggggggggggw
-wggggggggggBggggggggggw
-wgggggggggggggggggggggw
+wggwgggwwwgggwwwgggwggw
+wggwgggwgggPgggwgggwggw
+wggwgggwggwwwggwgggwggw
+wggggggwgggBgggwggggggw
+wggggggwgggggggwggggggw
 wwwwwwwwwwwwwwwwwwwwwww
 
 === level7
@@ -247,39 +247,39 @@ wwwwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwww
-wgggggggggggggggggw
-wgggSggggRggggSgggw
-wgggggggggggggggggw
-wggggggTgggTggggggw
-wgggggggggggggggggw
+wggggwgggggggwggggw
+wgggSwgggRgggwSgggw
+wggggwggwwwggwggggw
+wggggwgTgggTgwggggw
+wggggwwwgggwwwggggw
 wgggggggggggggggggw
 wgggggggggggggggggw
 wgggggggggggggggggw
 wggwwwgggggggwwwggw
 wgggggggggggggggggw
-wgggggggggggggggggw
-wgggggggggggggggggw
-wgggggggggggggggggw
+wgggggggwgwgggggggw
+wgwwwwggwgwggwwwwgw
+wgwwwwggwgwggwwwwgw
 wgggggggggggggggggw
 wlllllllrrrlllllllw
 wlllllllllllllllllw
 wlllllllrrrlllllllw
 wgggggggggggggggggw
+wggggggggwggggggggw
+wggwwwwggwggwwwwggw
 wgggggggggggggggggw
 wgggggggggggggggggw
-wgggggggggggggggggw
-wgggggggggggggggggw
-wgggggggggggggggggw
-wgggTgggggggggTgggw
+wgggggggwgwgggggggw
+wgggTgggwgwgggTgggw
 wggwwwgggggggwwwggw
 wgggggggggggggggggw
 wgggggggggggggggggw
 wgggggggggggggggggw
-wgggggggggggggggggw
-wggggggggPggggggggw
-wgggggggggggggggggw
-wggggggggBggggggggw
-wgggggggggggggggggw
+wggggwwwgggwwwggggw
+wggggwgggPgggwggggw
+wggggwggwwwggwggggw
+wggggwgggBgggwggggw
+wggggwgggggggwggggw
 wwwwwwwwwwwwwwwwwww
 
 === level8
@@ -288,39 +288,39 @@ wwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwwwww
-wgggggggggggggggggggggw
-wgggggSggggRggggSgggggw
-wgggggggggggggggggggggw
-wggggggggTgggTggggggggw
-wgggggggggggggggggggggw
+wggggggwgggggggwggggggw
+wgggggSwgggRgggwSgggggw
+wgwggggwggwwwggwggggwgw
+wgwggggwgTgggTgwggggwgw
+wggggggwwwgggwwwggggggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
 wgglrrllllgggllllrrlggw
 wgglllllllggglllllllggw
 wgglllllllggglllllllggw
-wggllllllrgggrllllllggw
+wggllllllrgwgrllllllggw
+wgglllllllgwglllllllggw
+wgglllllllgwglllllllggw
 wgglllllllggglllllllggw
 wgglllllllggglllllllggw
-wgglllllllggglllllllggw
-wgglllllllggglllllllggw
-wgglllllllggglllllllggw
-wgglrgTlllggglllgTrlggw
+wgglllllllgwglllllllggw
+wgglrgTlllgwglllgTrlggw
 wgglrgglllggglllggrlggw
 wgglllllllggglllllllggw
 wgglllllllggglllllllggw
-wgglllllllggglllllllggw
-wgglllllllggglllllllggw
-wggllllllrgggrllllllggw
+wgglllllllgwglllllllggw
+wgglllllllgwglllllllggw
+wggllllllrgwgrllllllggw
 wgglllllllggglllllllggw
 wgglllllllggglllllllggw
 wgglrrllllgggllllrrlggw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wggggggggggPggggggggggw
-wgggggggggggggggggggggw
-wggggggggggBggggggggggw
-wgggggggggggggggggggggw
+wgwwgggggggggggggggwwgw
+wgwwgggwwwgggwwwgggwwgw
+wggggggwgggPgggwggggggw
+wggggggwggwwwggwggggggw
+wggggggwgggBgggwggggggw
+wggggggwgggggggwggggggw
 wwwwwwwwwwwwwwwwwwwwwww
 
 === level9
@@ -329,37 +329,37 @@ wwwwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwww
-wgggggggggggggggggggw
-wggggSggggRggggSggggw
-wgggggggggggggggggggw
-wgggggggTgggTgggggggw
-wgggggggggggggggggggw
+wgggggwgggggggwgggggw
+wggggSwgggRgggwSggggw
+wgggggwggwwwggwgggggw
+wgggggwgTgggTgwgggggw
+wgggggwwwgggwwwgggggw
 wgggggggggggggggggggw
 whhhhhhhggggghhhhhhhw
 whhhhhhhggggghhhhhhhw
-whhhhhhhggggghhhhhhhw
-whhhhhhhggggghhhhhhhw
+whhhhhhhggwgghhhhhhhw
+whhhhhhhggwgghhhhhhhw
 whThhhhhggggghhhhhThw
 whhhhhhrgggggrhhhhhhw
+whhhhhhhgwwwghhhhhhhw
+whhhhhhhgwwwghhhhhhhw
 whhhhhhhggggghhhhhhhw
 whhhhhhhggggghhhhhhhw
-whhhhhhhggggghhhhhhhw
-whhhhhhhggggghhhhhhhw
-whhhhhhhggggghhhhhhhw
+whhhhhhhgwwwghhhhhhhw
 whhhhhhhggggghhhhhhhw
 whhhhhhrgggggrhhhhhhw
-whhhhhhhggggghhhhhhhw
-whhhhhhhggggghhhhhhhw
-whhhhhhhggggghhhhhhhw
+whhhhhhhggwgghhhhhhhw
+whhhhhhhggwgghhhhhhhw
+whhhhhhhggwgghhhhhhhw
 whhhhhhhggggghhhhhhhw
 whhhhhhhggggghhhhhhhw
 whhhhhhhggggghhhhhhhw
 wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggPgggggggggw
-wgggggggggggggggggggw
-wgggggggggBgggggggggw
-wgggggggggggggggggggw
+wgggggwwwgggwwwgggggw
+wgggggwgggPgggwgggggw
+wgggggwggwwwggwgggggw
+wgggggwgggBgggwgggggw
+wgggggwgggggggwgggggw
 wwwwwwwwwwwwwwwwwwwww
 
 === level10
@@ -368,37 +368,37 @@ wwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwwwww
-wgggggggggggggggggggggw
-wgggggSggggRggggSgggggw
-wgggggggggggggggggggggw
-wggggggggTgggTggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggwwwwgggggggwwwwgggw
+wggggggwgggggggwggggggw
+wgwgggSwgggRgggwSgggwgw
+wgwggggwggwwwggwggggwgw
+wgwggggwgTgggTgwggggwgw
+wggggggwwwgggwwwggggggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
+wgggwwwwggwwwggwwwwgggw
 wgggggggggggggggggggggw
+wgggggggggggggggggggggw
+wgggggggggwwwgggggggggw
+wgggggggggwwwgggggggggw
 wggwwwwwgggggggwwwwwggw
 wggwgggwgggggggwgggwggw
-wggwgTgwgggggggwgTgwggw
+wggwgTgwggwwwggwgTgwggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
 wggggggggwwwwwggggggggw
+wggggwwgggggggggwwggggw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wggggggggggPggggggggggw
-wgggggggggggggggggggggw
-wggggggggggBggggggggggw
-wgggggggggggggggggggggw
+wgggggggggwwwgggggggggw
+wgggggwwggwwwggwwgggggw
+wgwgggggggggggggggggwgw
+wgwgggggggggggggggggwgw
+wgwgggggggggggggggggwgw
+wggggggwwwgggwwwggggggw
+wggggggwgggPgggwggggggw
+wggggggwggwwwggwggggggw
+wggggggwgggBgggwggggggw
+wggggggwgggggggwggggggw
 wwwwwwwwwwwwwwwwwwwwwww
 
 === level11
@@ -407,15 +407,15 @@ wwwwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwwwww
+wggggggwgggggggwggggggw
+wgwgggSwgggRgggwSgggwgw
+wgwggggwggwwwggwggggwgw
+wgwggggwgTgggTgwggggwgw
+wgwggggwwwgggwwwggggwgw
 wgggggggggggggggggggggw
-wgggggSggggRggggSgggggw
 wgggggggggggggggggggggw
-wggggggggTgggTggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggrrrgggggggggw
-wggggggggglllgggggggggw
+wggwggggggrrrggggggwggw
+wggwggwwwglllgwwwggwggw
 wggggggggglllgggggggggw
 wggggggggglllgggggggggw
 wgggwwwggglllgggwwwgggw
@@ -431,17 +431,17 @@ wgggwwwggglllgggwwwgggw
 wgggwwwggglllgggwwwgggw
 wggggggggglllgggggggggw
 wggggggggglllgggggggggw
-wggggggggglllgggggggggw
-wggggggggglllgggggggggw
-wggggggggglllgggggggggw
+wggggggwwglllgwwggggggw
+wggggggwwglllgwwggggggw
+wgwwwggggglllgggggwwwgw
 wgggggggggrrrgggggggggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wggggggggggPggggggggggw
-wgggggggggggggggggggggw
-wggggggggggBggggggggggw
-wgggggggggggggggggggggw
+wgwwgggwwwgggwwwgggwwgw
+wggggggwgggPgggwggggggw
+wggggggwggwwwggwggggggw
+wggggggwgggBgggwggggggw
+wggggggwgggggggwggggggw
 wwwwwwwwwwwwwwwwwwwwwww
 
 === level12
@@ -450,39 +450,39 @@ wwwwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwwwww
-wgggggggggggggggggggggw
-wgggggSggggRggggSgggggw
-wgggggggggggggggggggggw
-wggggggggTgggTggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
+wggggggwgggggggwggggggw
+wgwgggSwgggRgggwSgggwgw
+wgwggggwggwwwggwggggwgw
+wgwggggwgTgggTgwggggwgw
+wggggggwwwgggwwwggggggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
+wgwwgggggggggggggggwwgw
+wgggggwwgggwgggwwgggggw
+wggggggggggwggggggggggw
+wggggggggggwggggggggggw
 wggwwwwgggggggggwwwwggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
+wgwggggghhrrrhhgggggwgw
+wgwggwgghhThhThggwggwgw
+wggggwggrhhhhhrggwggggw
 wggggggghhrrrhhgggggggw
-wggggggghhThhThgggggggw
-wgggggggrhhhhhrgggggggw
-wggggggghhrrrhhgggggggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
-wggwwwwgggggggggwwwwggw
+wggwwwwggwgggwggwwwwggw
+wggggggggwgggwggggggggw
+wggggggggwgggwggggggggw
+wggwwggggwgggwggggwwggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wggggggggggPggggggggggw
-wgggggggggggggggggggggw
-wggggggggggBggggggggggw
-wgggggggggggggggggggggw
+wgwwgggggggggggggggwwgw
+wgwwgggggggggggggggwwgw
+wggggggwwwgggwwwggggggw
+wggggggwgggPgggwggggggw
+wggggggwggwwwggwggggggw
+wggggggwgggBgggwggggggw
+wggggggwgggggggwggggggw
 wwwwwwwwwwwwwwwwwwwwwww
 
 === level13
@@ -491,13 +491,13 @@ wwwwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwww
-wgggggggggggggggggggw
-wggggSggggRggggSggggw
-wgggggggggggggggggggw
-wgggggggTgggTgggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
+wgggggwgggggggwgggggw
+wggggSwgggRgggwSggggw
+wgggggwggwwwggwgggggw
+wgggggwgTgggTgwgggggw
+wgggggwwwgggwwwgggggw
+wgwgggggggggggggggwgw
+wgwgggggggggggggggwgw
 wggggwwwgggggwwwggggw
 wggggwwwgggggwwwggggw
 wgggggggggggggggggggw
@@ -513,17 +513,17 @@ wgggwwwggwwwggwwwgggw
 wgggwwwggwwwggwwwgggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
+wggggggggwwwggggggggw
+wggggggggwwwggggggggw
 wggwwwgggggggggwwwggw
 wggwwwgggggggggwwwggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggPgggggggggw
-wgggggggggggggggggggw
-wgggggggggBgggggggggw
-wgggggggggggggggggggw
+wgwgggwwwgggwwwgggwgw
+wgwgggwgggPgggwgggwgw
+wgwgggwggwwwggwgggwgw
+wgggggwgggBgggwgggggw
+wgggggwgggggggwgggggw
 wwwwwwwwwwwwwwwwwwwww
 
 === level14
@@ -532,11 +532,11 @@ wwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwwwww
-wgggggggggggggggggggggw
-wgggggSggggRggggSgggggw
-wgggggggggggggggggggggw
-wggggggggTgggTggggggggw
-wgggggggggggggggggggggw
+wggggggwgggggggwggggggw
+wgggggSwgggRgggwSgggggw
+wgwggggwggwwwggwggggwgw
+wgwggggwgTgggTgwggggwgw
+wggggggwwwgggwwwggggggw
 wgggggggggggggggggggggw
 whhhhhggrrrrrrrgghhhhhw
 whhhhhgglllllllgghhhhhw
@@ -562,11 +562,11 @@ whhhhhgglllllllgghhhhhw
 whhhhhgglllllllgghhhhhw
 whhhhhggrrrrrrrgghhhhhw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wggggggggggPggggggggggw
-wgggggggggggggggggggggw
-wggggggggggBggggggggggw
-wgggggggggggggggggggggw
+wggggggwwwgggwwwggggggw
+wgwggggwgggPgggwggggwgw
+wgwggggwggwwwggwggggwgw
+wggggggwgggBgggwggggggw
+wggggggwgggggggwggggggw
 wwwwwwwwwwwwwwwwwwwwwww
 
 === level15
@@ -575,17 +575,17 @@ wwwwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwww
+wgggggwgggggggwgggggw
+wggggSwgggRgggwSggggw
+wgggggwggwwwggwgggggw
+wgggggwgTgggTgwgggggw
+wgggggwwwgggwwwgggggw
+wgwgggggggggggggggwgw
+wgwgggggggggggggggwgw
 wgggggggggggggggggggw
-wggggSggggRggggSggggw
-wgggggggggggggggggggw
-wgggggggTgggTgggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggwwwgggggggwwwgggw
-wgggwwwgggggggwwwgggw
+wggggggggwgwggggggggw
+wgggwwwggwgwggwwwgggw
+wgggwwwggwgwggwwwgggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
@@ -594,20 +594,20 @@ whhhhrrhhggghhrrhhhhw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
-wgggggggggggggggggggw
+wggggggggwwwggggggggw
 wgggwwwgggggggwwwgggw
 wgggwwwgggggggwwwgggw
+wggggggggwwwggggggggw
+wggggggggwwwggggggggw
+wgwwwwgggggggggwwwwgw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggPgggggggggw
-wgggggggggggggggggggw
-wgggggggggBgggggggggw
-wgggggggggggggggggggw
+wgwgggwwwgggwwwgggwgw
+wgwgggwgggPgggwgggwgw
+wgwgggwggwwwggwgggwgw
+wgggggwgggBgggwgggggw
+wgggggwgggggggwgggggw
 wwwwwwwwwwwwwwwwwwwww
 
 === level16
@@ -616,39 +616,39 @@ wwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwwwww
-whhhhhhhhhhhhhhhhhhhhhw
-whhhhhShhhhRhhhhShhhhhw
-whhhhhhhhhhhhhhhhhhhhhw
-whhhhhhhhhhhhhhhhhhhhhw
-whhhhhhhhhhhhhhhhhhhhhw
+whhhhhhwhhhhhhhwhhhhhhw
+whhhhhSwhhhRhhhwShhhhhw
+whhhhhhwhhwwwhhwhhhhhhw
+whhhhhhwhhhhhhhwhhhhhhw
+whhhhhhwwwhhhwwwhhhhhhw
 whhhhhThhhhhhhhhThhhhhw
-whhhhhhhrrhhhrrhhhhhhhw
+whhhhhhhrrrrrrrhhhhhhhw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
 wgllllllllrgrllllllllgw
 wgllllllllrgrllllllllgw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
+wgggwwwgggggggggwwwgggw
+wgggwwwggggwggggwwwgggw
+wggggggggggwggggggggggw
+wggggggggggwggggggggggw
+wggwwwwwgggggggwwwwwggw
+wggwwwwwgggggggwwwwwggw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
+wgggggggggwwwgggggggggw
+wgggggggggwwwgggggggggw
 wgggwwwgggggggggwwwgggw
 wgggwwwgggggggggwwwgggw
+wgggggggggwwwgggggggggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wggggggggggPggggggggggw
-wgggggggggggggggggggggw
-wggggggggggBggggggggggw
-wgggggggggggggggggggggw
+wgwwgggwwwgggwwwgggwwgw
+wgwwgggwgggPgggwgggwwgw
+wggggggwggwwwggwggggggw
+wggggggwgggBgggwggggggw
+wggggggwgggggggwggggggw
 wwwwwwwwwwwwwwwwwwwwwww
 
 === level17
@@ -657,39 +657,39 @@ wwwwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwwwww
-wgggggggggggggggggggggw
-wgggggSggggRggggSgggggw
-wgggggggggggggggggggggw
-wggggggggTgggTggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wggwwwgggggggggggwwwggw
+wggggggwgggggggwggggggw
+wgggggSwgggRgggwSgggggw
+wgwggggwggwwwggwggggwgw
+wgwggggwgTgggTgwggggwgw
+wgwggggwwwgggwwwggggwgw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
+wggwwwgggwwgwwgggwwwggw
+wggggggggwwgwwggggggggw
+wggggggggwwgwwggggggggw
+wgwgggwgggggggggwgggwgw
+wgwgggwgggggggggwgggwgw
 wgggggggggggggggggggggw
 wlllllllllrrrlllllllllw
 wlllllllllllllllllllllw
 wlllllllllrrrlllllllllw
 wgggggggggggggggggggggw
+wggwwwggwwgggwwggwwwggw
+wggwwwggwwgggwwggwwwggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggTgggggggggTgggggw
+wgggggTgggwwwgggTgggggw
 wggwwwgggggggggggwwwggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wggggggggggPggggggggggw
-wgggggggggggggggggggggw
-wggggggggggBggggggggggw
-wgggggggggggggggggggggw
+wgwwgggwwwgggwwwgggwwgw
+wgwwgggwgggPgggwgggwwgw
+wgwwgggwggwwwggwgggwwgw
+wggggggwgggBgggwggggggw
+wggggggwgggggggwggggggw
 wwwwwwwwwwwwwwwwwwwwwww
 
 === level18
@@ -698,41 +698,41 @@ wwwwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwwwww
-wgggggggggggggggggggggw
-wgggggSggggRggggSgggggw
-wgggggggggggggggggggggw
-wggggggggTgggTggggggggw
-wgggggggggggggggggggggw
+wggggggwgggggggwggggggw
+wgwgggSwgggRgggwSgggwgw
+wgwggggwggwwwggwggggwgw
+wgwggggwgTgggTgwggggwgw
+wgwggggwwwgggwwwggggwgw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
 wgglrrllllgggllllrrlggw
+wgglllllllgwglllllllggw
+wgglllllllgwglllllllggw
+wggllllllrgwgrllllllggw
+wgglllllllgwglllllllggw
 wgglllllllggglllllllggw
 wgglllllllggglllllllggw
-wggllllllrgggrllllllggw
-wgglllllllggglllllllggw
-wgglllllllggglllllllggw
-wgglllllllggglllllllggw
-wgglllllllggglllllllggw
-wgglllllllggglllllllggw
+wgglllllllgwglllllllggw
+wgglllllllgwglllllllggw
 wgglllllllggglllllllggw
 wgglrgTlllggglllgTrlggw
-wgglrgglllggglllggrlggw
+wgglrgglllgwglllggrlggw
+wgglllllllgwglllllllggw
 wgglllllllggglllllllggw
 wgglllllllggglllllllggw
-wgglllllllggglllllllggw
-wgglllllllggglllllllggw
-wgglllllllggglllllllggw
+wgglllllllgwglllllllggw
+wgglllllllgwglllllllggw
 wggllllllrgggrllllllggw
 wgglllllllggglllllllggw
 wgglllllllggglllllllggw
 wgglrrllllgggllllrrlggw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wggggggggggPggggggggggw
-wgggggggggggggggggggggw
-wggggggggggBggggggggggw
-wgggggggggggggggggggggw
+wgwgggggggggggggggggwgw
+wgwggggwwwgggwwwggggwgw
+wgwggggwgggPgggwggggwgw
+wggggggwggwwwggwggggggw
+wggggggwgggBgggwggggggw
+wggggggwgggggggwggggggw
 wwwwwwwwwwwwwwwwwwwwwww
 
 === level19
@@ -741,19 +741,19 @@ wwwwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwwwww
+wggggggwgggggggwggggggw
+wgggggSwgggRgggwSgggggw
+wgwggggwggwwwggwggggwgw
+wgwggggwgTgggTgwggggwgw
+wggggggwwwgggwwwggggggw
 wgggggggggggggggggggggw
-wgggggSggggRggggSgggggw
-wgggggggggggggggggggggw
-wggggggggTgggTggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
 whhhhhhhhggggghhhhhhhhw
 whhhhhhhhggggghhhhhhhhw
 whhhhhhhhggggghhhhhhhhw
 whhhhhhhhggggghhhhhhhhw
-whThhhhhhggggghhhhhhThw
-whhhhhhhhggggghhhhhhhhw
-whhhhhhhrgggggrhhhhhhhw
+whThhhhhhggwgghhhhhhThw
+whhhhhhhhggwgghhhhhhhhw
+whhhhhhhrggwggrhhhhhhhw
 whhhhhhhhggggghhhhhhhhw
 whhhhhhhhggggghhhhhhhhw
 whhhhhhhhggggghhhhhhhhw
@@ -762,18 +762,18 @@ whhhhhhhhgwwwghhhhhhhhw
 whhhhhhhhggggghhhhhhhhw
 whhhhhhhhggggghhhhhhhhw
 whhhhhhhrgggggrhhhhhhhw
-whhhhhhhhggggghhhhhhhhw
-whhhhhhhhggggghhhhhhhhw
+whhhhhhhhgwwwghhhhhhhhw
+whhhhhhhhgwwwghhhhhhhhw
 whhhhhhhhggggghhhhhhhhw
 whhhhhhhhggggghhhhhhhhw
 whhhhhhhhggggghhhhhhhhw
 whhhhhhhhggggghhhhhhhhw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wggggggggggPggggggggggw
-wgggggggggggggggggggggw
-wggggggggggBggggggggggw
-wgggggggggggggggggggggw
+wgwwgggwwwgggwwwgggwwgw
+wgwwgggwgggPgggwgggwwgw
+wgwwgggwggwwwggwgggwwgw
+wggggggwgggBgggwggggggw
+wggggggwgggggggwggggggw
 wwwwwwwwwwwwwwwwwwwwwww
 
 === level20
@@ -782,37 +782,37 @@ wwwwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwww
-wgggggggggggggggggggw
-wggggSggggRggggSggggw
-wgggggggggggggggggggw
-wgggggggTgggTgggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggwwwwgggggwwwwgggw
+wgggggwgggggggwgggggw
+wggggSwgggRgggwSggggw
+wgggggwggwwwggwgggggw
+wgggggwgTgggTgwgggggw
+wgggggwwwgggwwwgggggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
+wgggwwwwggwggwwwwgggw
+wgggggggggwgggggggggw
+wgggggggggwgggggggggw
 wgggggggggggggggggggw
-wggwwwwwgggggwwwwwggw
-wggwgggwgggggwgggwggw
-wggwgTgwgggggwgTgwggw
+wgggggggggggggggggggw
+wggwwwwwggwggwwwwwggw
+wggwgggwggwggwgggwggw
+wggwgTgwggwggwgTgwggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
 wgggggggwwwwwgggggggw
+wggwwgggggggggggwwggw
+wgggggggggggggggggggw
+wggggggwwgggwwggggggw
+wgwwwggwwgggwwggwwwgw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggPgggggggggw
-wgggggggggggggggggggw
-wgggggggggBgggggggggw
-wgggggggggggggggggggw
+wgggggwwwgggwwwgggggw
+wgwgggwgggPgggwgggwgw
+wgwgggwggwwwggwgggwgw
+wgggggwgggBgggwgggggw
+wgggggwgggggggwgggggw
 wwwwwwwwwwwwwwwwwwwww
 
 === level21
@@ -821,14 +821,14 @@ wwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwww
-wgggggggggggggggggggw
-wggggSggggRggggSggggw
-wgggggggggggggggggggw
-wgggggggTgggTgggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wggggggggrrrggggggggw
+wgggggwgggggggwgggggw
+wggggSwgggRgggwSggggw
+wgggggwggwwwggwgggggw
+wgggggwgTgggTgwgggggw
+wgggggwwwgggwwwgggggw
+wgwgggggggggggggggwgw
+wgwgggggggggggggggwgw
+wgwggggggrrrggggggwgw
 wgggggggglllggggggggw
 wgggggggglllggggggggw
 wgggwwwgglllggwwwgggw
@@ -844,16 +844,16 @@ wgggwwwgglllggwwwgggw
 wgggwwwgglllggwwwgggw
 wgggggggglllggggggggw
 wgggggggglllggggggggw
-wgggggggglllggggggggw
-wgggggggglllggggggggw
-wggggggggrrrggggggggw
+wggggwwgglllggwwggggw
+wgwggwwgglllggwwggwgw
+wgwggggggrrrggggggwgw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggPgggggggggw
-wgggggggggggggggggggw
-wgggggggggBgggggggggw
-wgggggggggggggggggggw
+wgggggwwwgggwwwgggggw
+wgwgggwgggPgggwgggwgw
+wgwgggwggwwwggwgggwgw
+wgggggwgggBgggwgggggw
+wgggggwgggggggwgggggw
 wwwwwwwwwwwwwwwwwwwww
 
 === level22
@@ -862,37 +862,37 @@ wwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwww
-wgggggggggggggggggggw
-wggggSggggRggggSggggw
-wgggggggggggggggggggw
-wgggggggTgggTgggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggwwwgggggggwwwgggw
-wggwwwwgggggggwwwwggw
+wgggggwgggggggwgggggw
+wggggSwgggRgggwSggggw
+wgggggwggwwwggwgggggw
+wgggggwgTgggTgwgggggw
+wgggggwwwgggwwwgggggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
-wgggggghhrrrhhggggggw
-wgggggghhThhThggggggw
-wgggggghhhhhhhggggggw
+wgggggggggggggggggggw
+wgggwwwgggwgggwwwgggw
+wggwwwwgggwgggwwwwggw
+wgggggggggggggggggggw
+wgggggggggggggggggggw
+wgwwggghhrrrhhgggwwgw
+wgwwggghhThhThgggwwgw
+wgwwggghhhhhhhgggwwgw
 wggggggrhhhhhrggggggw
 wgggggghhhhhhhggggggw
-wgggggghhrrrhhggggggw
+wgwwwwghhrrrhhgwwwwgw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
 wggwwwwgggggggwwwwggw
-wgggwwwgggggggwwwgggw
+wgggwwwggwwwggwwwgggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggPgggggggggw
-wgggggggggggggggggggw
-wgggggggggBgggggggggw
-wgggggggggggggggggggw
+wgggggwwwgggwwwgggggw
+wgwgggwgggPgggwgggwgw
+wgwgggwggwwwggwgggwgw
+wgggggwgggBgggwgggggw
+wgggggwgggggggwgggggw
 wwwwwwwwwwwwwwwwwwwww
 
 === level23
@@ -901,41 +901,41 @@ wwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwwwww
-wgggggggggggggggggggggw
-wgggggSggggRggggSgggggw
-wgggggggggggggggggggggw
-wggggggggTgggTggggggggw
-wgggggggggggggggggggggw
+wggggggwgggggggwggggggw
+wgggggSwgggRgggwSgggggw
+wggggggwggwwwggwggggggw
+wgwggggwgTgggTgwggggwgw
+wgwggggwwwgggwwwggggwgw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
 wgggwwwgggggggggwwwgggw
-wgggwwwgggggggggwwwgggw
-wgggggggggggggggggggggw
+wgggwwwgggwwwgggwwwgggw
+wgggggggggwwwgggggggggw
 wggggTgggggggggggTggggw
 wgggggggggggggggggggggw
+wggggggggggwggggggggggw
+wgggggwwwggwggwwwgggggw
+wgwwggwwwggwggwwwggwwgw
 wgggggggggggggggggggggw
-wgggggwwwgggggwwwgggggw
-wgggggwwwgggggwwwgggggw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
+wggwwgggggggggggggwwggw
+wggwwggwwwgggwwwggwwggw
 wggggggwwwgggwwwggggggw
-wggggggwwwgggwwwggggggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
-wgggggwwwgggggwwwgggggw
-wgggggwwwgggggwwwgggggw
+wgwwggwwwggwggwwwggwwgw
+wgwwggwwwggwggwwwggwwgw
+wgwwgggggggwgggggggwwgw
+wgwwgggggggggggggggwwgw
+wgwwgggggggggggggggwwgw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wggggggggggPggggggggggw
-wgggggggggggggggggggggw
-wggggggggggBggggggggggw
-wgggggggggggggggggggggw
+wggwgggwwwgggwwwgggwggw
+wggwgggwgggPgggwgggwggw
+wggwgggwggwwwggwgggwggw
+wggggggwgggBgggwggggggw
+wggggggwgggggggwggggggw
 wwwwwwwwwwwwwwwwwwwwwww
 
 === level24
@@ -944,11 +944,11 @@ wwwwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwwwww
-wgggggggggggggggggggggw
-wgggggSggggRggggSgggggw
-wgggggggggggggggggggggw
-wggggggggTgggTggggggggw
-wgggggggggggggggggggggw
+wggggggwgggggggwggggggw
+wgggggSwgggRgggwSgggggw
+wggggggwggwwwggwggggggw
+wgwggggwgTgggTgwggggwgw
+wgwggggwwwgggwwwggggwgw
 wgggggggggggggggggggggw
 whhhhhhggrrrrrgghhhhhhw
 whhhhhhgglllllgghhhhhhw
@@ -972,11 +972,11 @@ whhhhhhgglllllgghhhhhhw
 whhhhhhgglllllgghhhhhhw
 whhhhhhggrrrrrgghhhhhhw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wggggggggggPggggggggggw
-wgggggggggggggggggggggw
-wggggggggggBggggggggggw
-wgggggggggggggggggggggw
+wggwgggwwwgggwwwgggwggw
+wggwgggwgggPgggwgggwggw
+wggggggwggwwwggwggggggw
+wggggggwgggBgggwggggggw
+wggggggwgggggggwggggggw
 wwwwwwwwwwwwwwwwwwwwwww
 
 === level25
@@ -985,41 +985,41 @@ wwwwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwwwww
-wgggggggggggggggggggggw
-wgggggSggggRggggSgggggw
-wgggggggggggggggggggggw
-wggggggggTgggTggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
+wggggggwgggggggwggggggw
+wgwgggSwgggRgggwSgggwgw
+wgwggggwggwwwggwggggwgw
+wgwggggwgTgggTgwggggwgw
+wggggggwwwgggwwwggggggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
-whhhhhhThhggghhThhhhhhw
-whhhhhhhhhggghhhhhhhhhw
-whhhhhrrhhggghhrrhhhhhw
+wgwwgggggggggggggggwwgw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
+whhhhhhThhgwghhThhhhhhw
+whhhhhhhhhgwghhhhhhhhhw
+whhhhhrrhhgwghhrrhhhhhw
+wggggggggggwggggggggggw
+wgggwgggggggggggggwgggw
+wgggwgggggggggggggwgggw
 wgggggggggggggggggggggw
 wggghhhhThhhhhThhhhgggw
 wggghhhhhhhhhhhhhhhgggw
-wggghhrrhhhhhhhrrhhgggw
+wgwghhrrhhhhhhhrrhhgwgw
+wgwgggggggggggggggggwgw
+wgggggwwgggggggwwgggggw
+wgggggwwgggggggwwgggggw
+wgwwgggggggggggggggwwgw
+wgggggggggwwwgggggggggw
+wgggggggggwwwgggggggggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wggggggggggPggggggggggw
-wgggggggggggggggggggggw
-wggggggggggBggggggggggw
-wgggggggggggggggggggggw
+wgwgggggggggggggggggwgw
+wgwggggwwwgggwwwggggwgw
+wggggggwgggPgggwggggggw
+wggggggwggwwwggwggggggw
+wggggggwgggBgggwggggggw
+wggggggwgggggggwggggggw
 wwwwwwwwwwwwwwwwwwwwwww
 
 === level26
@@ -1028,37 +1028,37 @@ wwwwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwwwww
-whhhhhhhhhhhhhhhhhhhhhw
-whhhhhShhhhRhhhhShhhhhw
-whhhhhhhhhhhhhhhhhhhhhw
-whhhhhhhhhhhhhhhhhhhhhw
-whhhhhhhhhhhhhhhhhhhhhw
+whhhhhhwhhhhhhhwhhhhhhw
+whhhhhSwhhhRhhhwShhhhhw
+whhhhhhwhhwwwhhwhhhhhhw
+whhhhhhwhhhhhhhwhhhhhhw
+whhhhhhwwwhhhwwwhhhhhhw
 whhhhhThhhhhhhhhThhhhhw
-whrhhhhhrrhhhrrhhhhhrhw
+whrhhhhhrrrrrrrhhhhhrhw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
 wgllllllllrgrllllllllgw
 wgllllllllrgrllllllllgw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
+wggggggwggwwwggwggggggw
+wggwwggwggwwwggwggwwggw
+wggwwgggggggggggggwwggw
 wgggggggggggggggggggggw
 wggggggggwwwwwggggggggw
-wgggggggggggggggggggggw
+wgwwgggggggggggggggwwgw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
 wgggwwwgggggggggwwwgggw
-wgggwwwgggggggggwwwgggw
+wgggwwwgggwwwgggwwwgggw
+wgggggggggwwwgggggggggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wggggggggggPggggggggggw
-wgggggggggggggggggggggw
-wggggggggggBggggggggggw
-wgggggggggggggggggggggw
+wgwwgggggggggggggggwwgw
+wggggggwwwgggwwwggggggw
+wggggggwgggPgggwggggggw
+wggggggwggwwwggwggggggw
+wggggggwgggBgggwggggggw
+wggggggwgggggggwggggggw
 wwwwwwwwwwwwwwwwwwwwwww
 
 === level27
@@ -1067,41 +1067,41 @@ wwwwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwwwww
+wggggggwgggggggwggggggw
+wgwgggSwgggRgggwSgggwgw
+wgwggggwggwwwggwggggwgw
+wggggggwgTgggTgwggggggw
+wggggggwwwgggwwwggggggw
 wgggggggggggggggggggggw
-wgggggSggggRggggSgggggw
-wgggggggggggggggggggggw
-wggggggggTgggTggggggggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wggwwwgggggggggggwwwggw
-wgggggggggggggggggggggw
+wggwwwggggwwwggggwwwggw
+wgggggggggwwwgggggggggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
 wlllllllllrrrlllllllllw
 wlllllllllllllllllllllw
 wlllllllllrrrlllllllllw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
+wggwwwggwggwggwggwwwggw
+wgggggggwggwggwgggggggw
 wgggggggggggggggggggggw
 wlrrlllllllllllllllrrlw
 wlllllllllllllllllllllw
 wlrrlllllllllllllllrrlw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggTgggggggggTgggggw
+wggggggggggwggggggggggw
+wgggggTggggwggggTgggggw
 wggwwwgggggggggggwwwggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wggggggggggPggggggggggw
-wgggggggggggggggggggggw
-wggggggggggBggggggggggw
-wgggggggggggggggggggggw
+wgwwgggwwwgggwwwgggwwgw
+wgwwgggwgggPgggwgggwwgw
+wggggggwggwwwggwggggggw
+wggggggwgggBgggwggggggw
+wggggggwgggggggwggggggw
 wwwwwwwwwwwwwwwwwwwwwww
 
 === level28
@@ -1110,12 +1110,12 @@ wwwwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwwwww
-wgggggggggggggggggggggw
-wgggggSggggRggggSgggggw
-wgggggggggggggggggggggw
-wggggggggTgggTggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
+wggggggwgggggggwggggggw
+wgggggSwgggRgggwSgggggw
+wggggggwggwwwggwggggggw
+wgwggggwgTgggTgwggggwgw
+wgwggggwwwgggwwwggggwgw
+wgwgggggggggggggggggwgw
 wgggggggggggggggggggggw
 wgglrrlllllglllllrrlggw
 wggllllllllgllllllllggw
@@ -1138,11 +1138,11 @@ wggllllllllgllllllllggw
 wgglrrlllllglllllrrlggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wggggggggggPggggggggggw
-wgggggggggggggggggggggw
-wggggggggggBggggggggggw
-wgggggggggggggggggggggw
+wgwwgggwwwgggwwwgggwwgw
+wggggggwgggPgggwggggggw
+wggggggwggwwwggwggggggw
+wggggggwgggBgggwggggggw
+wggggggwgggggggwggggggw
 wwwwwwwwwwwwwwwwwwwwwww
 
 === level29
@@ -1151,19 +1151,25 @@ wwwwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwwwww
+wggggggwgggggggwggggggw
+wgggggSwgggRgggwSgggggw
+wggggggwggwwwggwggggggw
+wggggggwgTgggTgwggggggw
+wggggggwwwgggwwwggggggw
 wgggggggggggggggggggggw
-wgggggSggggRggggSgggggw
-wgggggggggggggggggggggw
-wggggggggTgggTggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
 whhhhhhhhggggghhhhhhhhw
 whhhhhhhhggggghhhhhhhhw
 whhhhhhhhggggghhhhhhhhw
 whhhhhhhhggggghhhhhhhhw
-whThhhhhhggggghhhhhhThw
-whhhhhhhrgggggrhhhhhhhw
+whThhhhhhgwwwghhhhhhThw
+whhhhhhhrgwwwgrhhhhhhhw
 whhhhhhhhggggghhhhhhhhw
+whhhhhhhhggggghhhhhhhhw
+whhhhhhhhgwwwghhhhhhhhw
+whhhhhhhhggggghhhhhhhhw
+whhhhhhhhggggghhhhhhhhw
+whhhhhhhrgwwwgrhhhhhhhw
+whhhhhhhhgwwwghhhhhhhhw
 whhhhhhhhggggghhhhhhhhw
 whhhhhhhhggggghhhhhhhhw
 whhhhhhhhggggghhhhhhhhw
@@ -1174,18 +1180,12 @@ whhhhhhhhggggghhhhhhhhw
 whhhhhhhhggggghhhhhhhhw
 whhhhhhhhggggghhhhhhhhw
 whhhhhhhhggggghhhhhhhhw
-whhhhhhhrgggggrhhhhhhhw
-whhhhhhhhggggghhhhhhhhw
-whhhhhhhhggggghhhhhhhhw
-whhhhhhhhggggghhhhhhhhw
-whhhhhhhhggggghhhhhhhhw
-whhhhhhhhggggghhhhhhhhw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wggggggggggPggggggggggw
-wgggggggggggggggggggggw
-wggggggggggBggggggggggw
-wgggggggggggggggggggggw
+wggggggwwwgggwwwggggggw
+wgwwgggwgggPgggwgggwwgw
+wgwwgggwggwwwggwgggwwgw
+wggggggwgggBgggwggggggw
+wggggggwgggggggwggggggw
 wwwwwwwwwwwwwwwwwwwwwww
 
 === level30
@@ -1194,37 +1194,37 @@ wwwwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwww
+wgggggwgggggggwgggggw
+wggggSwgggRgggwSggggw
+wgggggwggwwwggwgggggw
+wgggggwgTgggTgwgggggw
+wgggggwwwgggwwwgggggw
+wgwgggggggggggggggwgw
+wgwgggggggggggggggwgw
 wgggggggggggggggggggw
-wggggSggggRggggSggggw
 wgggggggggggggggggggw
-wgggggggTgggTgggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wggwwwwwgggggwwwwwggw
-wggwgggwgggggwgggwggw
+wggwwwwwggwggwwwwwggw
+wggwgggwggwggwgggwggw
 wggwgTgwgggggwgTgwggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
 wgggggggwwwwwgggggggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
-wggwwwwwgggggwwwwwggw
-wggwgggwgggggwgggwggw
+wggwwwwwggwggwwwwwggw
+wggwgggwggwggwgggwggw
 wggwgTgwgggggwgTgwggw
 wgggggggggggggggggggw
+wgggggggggwgggggggggw
+wgggggggggwgggggggggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggPgggggggggw
-wgggggggggggggggggggw
-wgggggggggBgggggggggw
-wgggggggggggggggggggw
+wgwgggwwwgggwwwgggwgw
+wgwgggwgggPgggwgggwgw
+wgggggwggwwwggwgggggw
+wgggggwgggBgggwgggggw
+wgggggwgggggggwgggggw
 wwwwwwwwwwwwwwwwwwwww
 
 === level31
@@ -1233,13 +1233,13 @@ wwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwwwww
-wgggggggggggggggggggggw
-wgggggSggggRggggSgggggw
-wgggggggggggggggggggggw
-wggggggggTgggTggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
+wggggggwgggggggwggggggw
+wgwgggSwgggRgggwSgggwgw
+wgwggggwggwwwggwggggwgw
+wggggggwgTgggTgwggggggw
+wggggggwwwgggwwwggggggw
+wgwwgggggggggggggggwwgw
+wgwwgggggggggggggggwwgw
 wgggggggggrrrgggggggggw
 wggggggggglllgggggggggw
 wggggggggglllgggggggggw
@@ -1257,17 +1257,17 @@ wgggwwwggglllgggwwwgggw
 wgggwwwggglllgggwwwgggw
 wggggggggglllgggggggggw
 wggggggggglllgggggggggw
-wggggggggglllgggggggggw
-wggggggggglllgggggggggw
+wgggggggwglllgwgggggggw
+wgwwwwggwglllgwggwwwwgw
 wggggggggglllgggggggggw
 wgggggggggrrrgggggggggw
+wgwwgggggggggggggggwwgw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wggggggggggPggggggggggw
-wgggggggggggggggggggggw
-wggggggggggBggggggggggw
-wgggggggggggggggggggggw
+wggggggwwwgggwwwggggggw
+wgwwgggwgggPgggwgggwwgw
+wgwwgggwggwwwggwgggwwgw
+wggggggwgggBgggwggggggw
+wggggggwgggggggwggggggw
 wwwwwwwwwwwwwwwwwwwwwww
 
 === level32
@@ -1276,37 +1276,37 @@ wwwwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwwwww
+wggggggwgggggggwggggggw
+wgwgggSwgggRgggwSgggwgw
+wgwggggwggwwwggwggggwgw
+wgwggggwgTgggTgwggggwgw
+wgwggggwwwgggwwwggggwgw
 wgggggggggggggggggggggw
-wgggggSggggRggggSgggggw
-wgggggggggggggggggggggw
-wggggggggTgggTggggggggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggwwwgggggggggwwwgggw
-wgggwwwgggggggggwwwgggw
+wgggwwwgggwwwgggwwwgggw
+wgggwwwgggwwwgggwwwgggw
 wggwwwwgggggggggwwwwggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
-wggggggghhrrrhhgggggggw
-wggggggghhThhThgggggggw
+wggwwggghhrrrhhgggwwggw
+wggwwggghhThhThgggwwggw
 wgggggggrhhhhhrgggggggw
 wggggggghhrrrhhgggggggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
 wggwwwwgggggggggwwwwggw
-wgggwwwgggggggggwwwgggw
-wgggwwwgggggggggwwwgggw
+wgggwwwggwwgwwggwwwgggw
+wgggwwwggwwgwwggwwwgggw
+wggggggggwwgwwggggggggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wggggggggggPggggggggggw
-wgggggggggggggggggggggw
-wggggggggggBggggggggggw
-wgggggggggggggggggggggw
+wggwgggggggggggggggwggw
+wggwgggwwwgggwwwgggwggw
+wggwgggwgggPgggwgggwggw
+wggggggwggwwwggwggggggw
+wggggggwgggBgggwggggggw
+wggggggwgggggggwggggggw
 wwwwwwwwwwwwwwwwwwwwwww
 
 === level33
@@ -1315,11 +1315,11 @@ wwwwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwwwww
-wgggggggggggggggggggggw
-wgggggSggggRggggSgggggw
-wgggggggggggggggggggggw
-wggggSgggTgggTgggSggggw
-wgggggggggggggggggggggw
+wggggggwgggggggwggggggw
+wgggggSwgggRgggwSgggggw
+wggggggwggwwwggwggggggw
+wggggSgwgTgggTgwgSggggw
+wggggggwwwgggwwwggggggw
 wgggggggggggggggggggggw
 wggggggwwwgggwwwggggggw
 wggggggwwwgggwwwggggggw
@@ -1328,24 +1328,24 @@ wggggTgggggggggggTggggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
 wggggwwwggwwwggwwwggggw
-wggggwwwggwwwggwwwggggw
-wgggggggggggggggggggggw
+wgwggwwwggwwwggwwwggwgw
+wgwgggggggggggggggggwgw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
 wggggggwwwwwwwwwggggggw
-wggggggwwwwwwwwwggggggw
+wggwgggwwwwwwwwwgggwggw
+wggwgggggggggggggggwggw
+wgggggggggggggggggggggw
+wgggggggggggggggggggggw
+wgwwwwggwwgggwwggwwwwgw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wggggggggggPggggggggggw
-wgggggggggggggggggggggw
-wggggggggggBggggggggggw
-wgggggggggggggggggggggw
+wgwggggwwwgggwwwggggwgw
+wgwggggwgggPgggwggggwgw
+wgwggggwggwwwggwggggwgw
+wggggggwgggBgggwggggggw
+wggggggwgggggggwggggggw
 wwwwwwwwwwwwwwwwwwwwwww
 
 === level34
@@ -1354,11 +1354,11 @@ wwwwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwwwww
-wgggggggggggggggggggggw
-wgggggSggggRggggSgggggw
-wgggggggggggggggggggggw
-wggggSgggTgggTgggSggggw
-wgggggggggggggggggggggw
+wggggggwgggggggwggggggw
+wgggggSwgggRgggwSgggggw
+wggggggwggwwwggwggggggw
+wggggSgwgTgggTgwgSggggw
+wggggggwwwgggwwwggggggw
 wgggggggggggggggggggggw
 whhhhhggrrrrrrrgghhhhhw
 whhhhhgglllllllgghhhhhw
@@ -1384,11 +1384,11 @@ whhhhhgglllllllgghhhhhw
 whhhhhgglllllllgghhhhhw
 whhhhhggrrrrrrrgghhhhhw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wggggggggggPggggggggggw
-wgggggggggggggggggggggw
-wggggggggggBggggggggggw
-wgggggggggggggggggggggw
+wggggggwwwgggwwwggggggw
+wggggggwgggPgggwggggggw
+wgwwgggwggwwwggwgggwwgw
+wggggggwgggBgggwggggggw
+wggggggwgggggggwggggggw
 wwwwwwwwwwwwwwwwwwwwwww
 
 === level35
@@ -1397,11 +1397,11 @@ wwwwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwww
-wgggggggggggggggggw
-wgggSggggRggggSgggw
-wgggggggggggggggggw
-wggSgggTgggTgggSggw
-wgggggggggggggggggw
+wggggwgggggggwggggw
+wgggSwgggRgggwSgggw
+wggggwggwwwggwggggw
+wggSgwgTgggTgwgSggw
+wggggwwwgggwwwggggw
 wgggggggggggggggggw
 wgggggggggggggggggw
 wgggggggggggggggggw
@@ -1418,18 +1418,18 @@ wggghhhhhhhhhhhgggw
 wgggrrhhhhhhhrrgggw
 wgggggggggggggggggw
 wgggggggggggggggggw
+wggggwgggggggwggggw
+wgwggwgggggggwggwgw
+wgwgggggwgwgggggwgw
+wgggggggwgwgggggggw
 wgggggggggggggggggw
 wgggggggggggggggggw
 wgggggggggggggggggw
-wgggggggggggggggggw
-wgggggggggggggggggw
-wgggggggggggggggggw
-wgggggggggggggggggw
-wgggggggggggggggggw
-wggggggggPggggggggw
-wgggggggggggggggggw
-wggggggggBggggggggw
-wgggggggggggggggggw
+wggggwwwgggwwwggggw
+wggggwgggPgggwggggw
+wggggwggwwwggwggggw
+wggggwgggBgggwggggw
+wggggwgggggggwggggw
 wwwwwwwwwwwwwwwwwww
 
 === level36
@@ -1438,37 +1438,37 @@ wwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwwwww
-whhhhhhhhhhhhhhhhhhhhhw
-whhhhhShhhhRhhhhShhhhhw
-whhhhhhhhhhhhhhhhhhhhhw
-whhhhhhhhhhhhhhhhhhhhhw
-whhhhhhhhhhhhhhhhhhhhhw
+whhhhhhwhhhhhhhwhhhhhhw
+whhhhhSwhhhRhhhwShhhhhw
+whhhhhhwhhwwwhhwhhhhhhw
+whhhhhhwhhhhhhhwhhhhhhw
+whhhhhhwwwhhhwwwhhhhhhw
 whhhhhThhhhhhhhhThhhhhw
-whrhhhhhrrhhhrrhhhhhrhw
+whrhhhhhrrrrrrrhhhhhrhw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
 wglrgrllllrgrllllrgrlgw
 wglrgrllllrgrllllrgrlgw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
+wgwggggggwwgwwggggggwgw
+wgwggwwgggggggggwwggwgw
+wggggwwgggggggggwwggggw
 wgggggggggggggggggggggw
 wggggggggwwwwwggggggggw
-wgggggggggggggggggggggw
+wggwwwgggggggggggwwwggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
 wgggwwwgggggggggwwwgggw
-wgggwwwgggggggggwwwgggw
+wgggwwwgggwwwgggwwwgggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wggggggggggPggggggggggw
-wgggggggggggggggggggggw
-wggggggggggBggggggggggw
-wgggggggggggggggggggggw
+wgwgggggggggggggggggwgw
+wgwgggggggggggggggggwgw
+wgwggggwwwgggwwwggggwgw
+wggggggwgggPgggwggggggw
+wggggggwggwwwggwggggggw
+wggggggwgggBgggwggggggw
+wggggggwgggggggwggggggw
 wwwwwwwwwwwwwwwwwwwwwww
 
 === level37
@@ -1477,39 +1477,39 @@ wwwwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwww
+wggggwgggggggwggggw
+wgggSwgggRgggwSgggw
+wggggwggwwwggwggggw
+wggSgwgTgggTgwgSggw
+wggggwwwgggwwwggggw
 wgggggggggggggggggw
-wgggSggggRggggSgggw
-wgggggggggggggggggw
-wggSgggTgggTgggSggw
 wgggggggggggggggggw
 wgggggggggggggggggw
-wgggggggggggggggggw
-wgggggggggggggggggw
-wggwwwgggggggwwwggw
-wgggggggggggggggggw
+wggwwwggwgwggwwwggw
+wgggggggwgwgggggggw
 wgggggggggggggggggw
 wlllllllrrrlllllllw
 wlllllllllllllllllw
 wlllllllrrrlllllllw
 wgggggggggggggggggw
-wgggggggggggggggggw
+wgwwggwwwgwwwggwwgw
 wgggggggggggggggggw
 wlrrlllllllllllrrlw
 wlllllllllllllllllw
 wlrrlllllllllllrrlw
 wgggggggggggggggggw
-wgggggggggggggggggw
+wgggggggwwwgggggggw
 wgggggggggggggggggw
 wgggTgggggggggTgggw
-wggwwwgggggggwwwggw
+wggwwwggwwwggwwwggw
 wgggggggggggggggggw
 wgggggggggggggggggw
 wgggggggggggggggggw
-wgggggggggggggggggw
-wggggggggPggggggggw
-wgggggggggggggggggw
-wggggggggBggggggggw
-wgggggggggggggggggw
+wggggwwwgggwwwggggw
+wggggwgggPgggwggggw
+wggggwggwwwggwggggw
+wggggwgggBgggwggggw
+wggggwgggggggwggggw
 wwwwwwwwwwwwwwwwwww
 
 === level38
@@ -1518,11 +1518,11 @@ wwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwww
-wgggggggggggggggggggw
-wggggSggggRggggSggggw
-wgggggggggggggggggggw
-wgggSgggTgggTgggSgggw
-wgggggggggggggggggggw
+wgggggwgggggggwgggggw
+wggggSwgggRgggwSggggw
+wgggggwggwwwggwgggggw
+wgggSgwgTgggTgwgSgggw
+wgggggwwwgggwwwgggggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
 wgglrrllllgllllrrlggw
@@ -1547,12 +1547,12 @@ wgglllllllglllllllggw
 wgglllllllglllllllggw
 wgglrrllllgllllrrlggw
 wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggPgggggggggw
-wgggggggggggggggggggw
-wgggggggggBgggggggggw
-wgggggggggggggggggggw
+wgwgggggggggggggggwgw
+wgwgggwwwgggwwwgggwgw
+wgwgggwgggPgggwgggwgw
+wgggggwggwwwggwgggggw
+wgggggwgggBgggwgggggw
+wgggggwgggggggwgggggw
 wwwwwwwwwwwwwwwwwwwww
 
 === level39
@@ -1561,17 +1561,17 @@ wwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwwwww
-wgggggggggggggggggggggw
-wgggggSggggRggggSgggggw
-wgggggggggggggggggggggw
-wggggSgggTgggTgggSggggw
-wgggggggggggggggggggggw
+wggggggwgggggggwggggggw
+wgggggSwgggRgggwSgggggw
+wggggggwggwwwggwggggggw
+wggggSgwgTgggTgwgSggggw
+wggggggwwwgggwwwggggggw
 wgggggggggggggggggggggw
 whhhhhhhhggggghhhhhhhhw
 whhhhhhhhggggghhhhhhhhw
 whhhhhhhhggggghhhhhhhhw
-whhhhhhhhggggghhhhhhhhw
-whThhhhhrgggggrhhhhhThw
+whhhhhhhhgwgwghhhhhhhhw
+whThhhhhrgwgwgrhhhhhThw
 whhhhhhhhggggghhhhhhhhw
 whhhhhhhhggggghhhhhhhhw
 whhhhhhhhggggghhhhhhhhw
@@ -1581,19 +1581,19 @@ whhhhhhhrgwwwgrhhhhhhhw
 whhhhhhhhgwwwghhhhhhhhw
 whhhhhhhhggggghhhhhhhhw
 whhhhhhhhggggghhhhhhhhw
+whhhhhhhhgwwwghhhhhhhhw
+whhhhhhhrgwwwgrhhhhhhhw
 whhhhhhhhggggghhhhhhhhw
-whhhhhhhrgggggrhhhhhhhw
 whhhhhhhhggggghhhhhhhhw
-whhhhhhhhggggghhhhhhhhw
-whhhhhhhhggggghhhhhhhhw
+whhhhhhhhgwwwghhhhhhhhw
 whhhhhhhhggggghhhhhhhhw
 whhhhhhhhggggghhhhhhhhw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wggggggggggPggggggggggw
-wgggggggggggggggggggggw
-wggggggggggBggggggggggw
-wgggggggggggggggggggggw
+wggggggwwwgggwwwggggggw
+wgwwgggwgggPgggwgggwwgw
+wgwwgggwggwwwggwgggwwgw
+wggggggwgggBgggwggggggw
+wggggggwgggggggwggggggw
 wwwwwwwwwwwwwwwwwwwwwww
 
 === level40
@@ -1602,11 +1602,11 @@ wwwwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwww
-wgggggggggggggggggw
-wgggSggggRggggSgggw
-wgggggggggggggggggw
-wggSgggTgggTgggSggw
-wgggggggggggggggggw
+wggggwgggggggwggggw
+wgggSwgggRgggwSgggw
+wggggwggwwwggwggggw
+wggSgwgTgggTgwgSggw
+wggggwwwgggwwwggggw
 wgggggggggggggggggw
 wgggggggggggggggggw
 wgggggggggggggggggw
@@ -1617,7 +1617,7 @@ wggwgTgwgggwgTgwggw
 wgggggggggggggggggw
 wgggggggggggggggggw
 wggggggwwwwwggggggw
-wgggggggggggggggggw
+wggwwgggggggggwwggw
 wgggggggggggggggggw
 wgggggggggggggggggw
 wgggggggggggggggggw
@@ -1630,11 +1630,11 @@ wgggggggggggggggggw
 wgggggggggggggggggw
 wgggggggggggggggggw
 wgggggggggggggggggw
-wgggggggggggggggggw
-wggggggggPggggggggw
-wgggggggggggggggggw
-wggggggggBggggggggw
-wgggggggggggggggggw
+wggggwwwgggwwwggggw
+wggggwgggPgggwggggw
+wggggwggwwwggwggggw
+wggggwgggBgggwggggw
+wggggwgggggggwggggw
 wwwwwwwwwwwwwwwwwww
 
 === level41
@@ -1643,15 +1643,15 @@ wwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwww
-wgggggggggggggggggggw
-wggggSggggRggggSggggw
-wgggggggggggggggggggw
-wgggSgggTgggTgggSgggw
-wgggggggggggggggggggw
+wgggggwgggggggwgggggw
+wggggSwgggRgggwSggggw
+wgggggwggwwwggwgggggw
+wgggSgwgTgggTgwgSgggw
+wgggggwwwgggwwwgggggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
 wggggggggrrrggggggggw
-wgggggggglllggggggggw
+wgggwwggglllgggwwgggw
 wgggggggglllggggggggw
 wgggggggglllggggggggw
 wgggwwwgglllggwwwgggw
@@ -1667,17 +1667,17 @@ wgggwwwgglllggwwwgggw
 wgggwwwgglllggwwwgggw
 wgggggggglllggggggggw
 wgggggggglllggggggggw
-wgggggggglllggggggggw
-wgggggggglllggggggggw
-wgggggggglllggggggggw
+wgwgggwwglllgwwgggwgw
+wgwgggggglllggggggwgw
+wgwgggggglllggggggwgw
 wggggggggrrrggggggggw
 wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggPgggggggggw
-wgggggggggggggggggggw
-wgggggggggBgggggggggw
-wgggggggggggggggggggw
+wgwgggggggggggggggwgw
+wgwgggwwwgggwwwgggwgw
+wgwgggwgggPgggwgggwgw
+wgwgggwggwwwggwgggwgw
+wgggggwgggBgggwgggggw
+wgggggwgggggggwgggggw
 wwwwwwwwwwwwwwwwwwwww
 
 === level42
@@ -1686,37 +1686,37 @@ wwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwww
-wgggggggggggggggggggw
-wggggSggggRggggSggggw
-wgggggggggggggggggggw
-wgggSgggTgggTgggSgggw
-wgggggggggggggggggggw
+wgggggwgggggggwgggggw
+wggggSwgggRgggwSggggw
+wgggggwggwwwggwgggggw
+wgggSgwgTgggTgwgSgggw
+wgggggwwwgggwwwgggggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
 wgggwwwgggggggwwwgggw
-wgggwwwgggggggwwwgggw
-wggwwwwgggggggwwwwggw
+wgggwwwgggwgggwwwgggw
+wggwwwwgggwgggwwwwggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
-wgggggghhrrrhhggggggw
+wgwwggghhrrrhhgggwwgw
 wgggggghhThhThggggggw
 wggggggrhhhhhrggggggw
-wgggggghhhhhhhggggggw
-wgggggghhrrrhhggggggw
+wgwwggghhhhhhhgggwwgw
+wgwwggghhrrrhhgggwwgw
 wgggggggggggggggggggw
+wggggggggwgwggggggggw
+wggwwwwggwgwggwwwwggw
+wgggwwwggwgwggwwwgggw
+wggggggggwgwggggggggw
 wgggggggggggggggggggw
-wggwwwwgggggggwwwwggw
-wgggwwwgggggggwwwgggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggPgggggggggw
-wgggggggggggggggggggw
-wgggggggggBgggggggggw
-wgggggggggggggggggggw
+wgwgggggggggggggggwgw
+wgwgggggggggggggggwgw
+wgwgggwwwgggwwwgggwgw
+wgwgggwgggPgggwgggwgw
+wgggggwggwwwggwgggggw
+wgggggwgggBgggwgggggw
+wgggggwgggggggwgggggw
 wwwwwwwwwwwwwwwwwwwww
 
 === level43
@@ -1725,11 +1725,11 @@ wwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwww
-wgggggggggggggggggw
-wgggSggggRggggSgggw
-wgggggggggggggggggw
-wggSgggTgggTgggSggw
-wgggggggggggggggggw
+wggggwgggggggwggggw
+wgggSwgggRgggwSgggw
+wggggwggwwwggwggggw
+wggSgwgTgggTgwgSggw
+wggggwwwgggwwwggggw
 wgggggggggggggggggw
 wgggwwwwgggwwwwgggw
 wgggwwwwgggwwwwgggw
@@ -1747,15 +1747,15 @@ wgggwwwwgggwwwwgggw
 wgggwwwwgggwwwwgggw
 wgggggggggggggggggw
 wgggggggggggggggggw
+wgwwwwggwwwggwwwwgw
 wgggggggggggggggggw
 wgggggggggggggggggw
 wgggggggggggggggggw
-wgggggggggggggggggw
-wgggggggggggggggggw
-wggggggggPggggggggw
-wgggggggggggggggggw
-wggggggggBggggggggw
-wgggggggggggggggggw
+wggggwwwgggwwwggggw
+wggggwgggPgggwggggw
+wggggwggwwwggwggggw
+wggggwgggBgggwggggw
+wggggwgggggggwggggw
 wwwwwwwwwwwwwwwwwww
 
 === level44
@@ -1764,11 +1764,11 @@ wwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwww
-wgggggggggggggggggggw
-wggggSggggRggggSggggw
-wgggggggggggggggggggw
-wgggSgggTgggTgggSgggw
-wgggggggggggggggggggw
+wgggggwgggggggwgggggw
+wggggSwgggRgggwSggggw
+wgggggwggwwwggwgggggw
+wgggSgwgTgggTgwgSgggw
+wgggggwwwgggwwwgggggw
 wgggggggggggggggggggw
 whhhhhggrrrrrgghhhhhw
 whhhhhgglllllgghhhhhw
@@ -1794,11 +1794,11 @@ whhhhhgglllllgghhhhhw
 whhhhhgglllllgghhhhhw
 whhhhhggrrrrrgghhhhhw
 wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggPgggggggggw
-wgggggggggggggggggggw
-wgggggggggBgggggggggw
-wgggggggggggggggggggw
+wgwgggwwwgggwwwgggwgw
+wgwgggwgggPgggwgggwgw
+wgggggwggwwwggwgggggw
+wgggggwgggBgggwgggggw
+wgggggwgggggggwgggggw
 wwwwwwwwwwwwwwwwwwwww
 
 === level45
@@ -1807,41 +1807,41 @@ wwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwww
-wgggggggggggggggggggw
-wggggSggggRggggSggggw
-wgggggggggggggggggggw
-wgggSgggTgggTgggSgggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
+wgggggwgggggggwgggggw
+wggggSwgggRgggwSggggw
+wgggggwggwwwggwgggggw
+wgggSgwgTgggTgwgSgggw
+wgggggwwwgggwwwgggggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
-wgggggggggggggggggggw
+wgwggwwgggwgggwwggwgw
+wgwgggggggwgggggggwgw
+wgggggggggwgggggggggw
 wgggggggggggggggggggw
 whhhhhThhggghhThhhhhw
 whhhhrrhhggghhrrhhhhw
 wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
+wgggggggggwgggggggggw
+wgwgggggggwgggggggwgw
+wgwgggggggggggggggwgw
+wgwgggggggggggggggwgw
 wggghhThhhhhhhThhgggw
 wggghrrhhhhhhhrrhgggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
+wgwggwgggggggggwggwgw
+wgwggwgggwwwgggwggwgw
+wgwggggggwwwggggggwgw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggPgggggggggw
-wgggggggggggggggggggw
-wgggggggggBgggggggggw
-wgggggggggggggggggggw
+wgwgggwwwgggwwwgggwgw
+wgwgggwgggPgggwgggwgw
+wgwgggwggwwwggwgggwgw
+wgggggwgggBgggwgggggw
+wgggggwgggggggwgggggw
 wwwwwwwwwwwwwwwwwwwww
 
 === level46
@@ -1850,39 +1850,39 @@ wwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwwwww
-whhhhhhhhhhhhhhhhhhhhhw
-whhhhhShhhhRhhhhShhhhhw
-whhhhhhhhhhhhhhhhhhhhhw
-whhhhhhhThhhhhThhhhhhhw
-whhhhhhhhhhhhhhhhhhhhhw
+whhhhhhwhhhhhhhwhhhhhhw
+whhhhhSwhhhRhhhwShhhhhw
+whhhhhhwhhwwwhhwhhhhhhw
+whhhhhhwThhhhhTwhhhhhhw
+whhhhhhwwwhhhwwwhhhhhhw
 whhhhhThhhhhhhhhThhhhhw
-whrhhhhhrrhhhrrhhhhhrhw
+whrhhhhhrrrrrrrhhhhhrhw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
 wglrgrllllrgrllllrgrlgw
 wglrgrllllrgrllllrgrlgw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
+wgwwwgggwwgggwwgggwwwgw
+wgwwwgggwwgggwwgggwwwgw
+wgggggggwwgggwwgggggggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wggggggggwwwwwggggggggw
-wgggggggggggggggggggggw
+wgwwggwggwwwwwggwggwwgw
+wgwwggwgggggggggwggwwgw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
 wgggwwwgggggggggwwwgggw
-wgggwwwgggggggggwwwgggw
+wgggwwwgggwwwgggwwwgggw
+wgggggggggwwwgggggggggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wggggggggggPggggggggggw
-wgggggggggggggggggggggw
-wggggggggggBggggggggggw
-wgggggggggggggggggggggw
+wggwgggggggggggggggwggw
+wggwgggwwwgggwwwgggwggw
+wggggggwgggPgggwggggggw
+wggggggwggwwwggwggggggw
+wggggggwgggBgggwggggggw
+wggggggwgggggggwggggggw
 wwwwwwwwwwwwwwwwwwwwwww
 
 === level47
@@ -1891,15 +1891,15 @@ wwwwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwww
+wgggggwgggggggwgggggw
+wggggSwgggRgggwSggggw
+wgggggwggwwwggwgggggw
+wgggSgwgTgggTgwgSgggw
+wgggggwwwgggwwwgggggw
 wgggggggggggggggggggw
-wggggSggggRggggSggggw
-wgggggggggggggggggggw
-wgggSgggTgggTgggSgggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wggwwwgggggggggwwwggw
+wggwwwgggwwwgggwwwggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
@@ -1907,25 +1907,25 @@ wllllllllrrrllllllllw
 wlllllllllllllllllllw
 wllllllllrrrllllllllw
 wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
+wggwgggggwwwgggggwggw
+wggwgggggwwwgggggwggw
 wgggggggggggggggggggw
 wlrrlllllllllllllrrlw
 wlllllllllllllllllllw
 wlrrlllllllllllllrrlw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
-wgggggggggggggggggggw
-wggggTgggggggggTggggw
+wggggggggwwwggggggggw
+wggggTgggwwwgggTggggw
 wggwwwgggggggggwwwggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggPgggggggggw
-wgggggggggggggggggggw
-wgggggggggBgggggggggw
-wgggggggggggggggggggw
+wgwgggggggggggggggwgw
+wgwgggwwwgggwwwgggwgw
+wgggggwgggPgggwgggggw
+wgggggwggwwwggwgggggw
+wgggggwgggBgggwgggggw
+wgggggwgggggggwgggggw
 wwwwwwwwwwwwwwwwwwwww
 
 === level48
@@ -1934,11 +1934,11 @@ wwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwww
-wgggggggggggggggggggw
-wggggSggggRggggSggggw
-wgggggggggggggggggggw
-wgggSgggTgggTgggSgggw
-wgggggggggggggggggggw
+wgggggwgggggggwgggggw
+wggggSwgggRgggwSggggw
+wgggggwggwwwggwgggggw
+wgggSgwgTgggTgwgSgggw
+wgggggwwwgggwwwgggggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
 wgglrrllllgllllrrlggw
@@ -1963,12 +1963,12 @@ wgglllllllglllllllggw
 wgglllllllglllllllggw
 wgglrrllllgllllrrlggw
 wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggPgggggggggw
-wgggggggggggggggggggw
-wgggggggggBgggggggggw
-wgggggggggggggggggggw
+wgwgggggggggggggggwgw
+wgwgggwwwgggwwwgggwgw
+wgwgggwgggPgggwgggwgw
+wgggggwggwwwggwgggggw
+wgggggwgggBgggwgggggw
+wgggggwgggggggwgggggw
 wwwwwwwwwwwwwwwwwwwww
 
 === level49
@@ -1977,39 +1977,39 @@ wwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwww
+wgggggwgggggggwgggggw
+wggggSwgggRgggwSggggw
+wgggggwggwwwggwgggggw
+wgggSgwgTgggTgwgSgggw
+wgggggwwwgggwwwgggggw
 wgggggggggggggggggggw
-wggggSggggRggggSggggw
-wgggggggggggggggggggw
-wgggSgggTgggTgggSgggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
 whhhhhhhggggghhhhhhhw
 whhhhhhhggggghhhhhhhw
 whhhhhhhggggghhhhhhhw
 whhhhhhhggggghhhhhhhw
-whThhhhrgggggrhhhhThw
-whhhhhhhggggghhhhhhhw
-whhhhhhhggggghhhhhhhw
-whhhhhhhggggghhhhhhhw
+whThhhhrggwggrhhhhThw
+whhhhhhhggwgghhhhhhhw
+whhhhhhhggwgghhhhhhhw
+whhhhhhhggwgghhhhhhhw
 whhhhhhhggggghhhhhhhw
 whhhhhhhggggghhhhhhhw
 whhhhhhrgwwwgrhhhhhhw
 whhhhhhhgwwwghhhhhhhw
 whhhhhhhggggghhhhhhhw
 whhhhhhhggggghhhhhhhw
-whhhhhhhggggghhhhhhhw
-whhhhhhrgggggrhhhhhhw
-whhhhhhhggggghhhhhhhw
-whhhhhhhggggghhhhhhhw
+whhhhhhhggwgghhhhhhhw
+whhhhhhrggwggrhhhhhhw
+whhhhhhhggwgghhhhhhhw
+whhhhhhhggwgghhhhhhhw
 whhhhhhhggggghhhhhhhw
 whhhhhhhggggghhhhhhhw
 whhhhhhhggggghhhhhhhw
 wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggPgggggggggw
-wgggggggggggggggggggw
-wgggggggggBgggggggggw
-wgggggggggggggggggggw
+wgggggwwwgggwwwgggggw
+wgggggwgggPgggwgggggw
+wgggggwggwwwggwgggggw
+wgggggwgggBgggwgggggw
+wgggggwgggggggwgggggw
 wwwwwwwwwwwwwwwwwwwww
 
 === level50
@@ -2018,11 +2018,11 @@ wwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwww
-wgggggggggggggggggw
-wgggSggggRggggSgggw
-wgggggggggggggggggw
-wggSgggTgggTgggSggw
-wgggggggggggggggggw
+wggggwgggggggwggggw
+wgggSwgggRgggwSgggw
+wggggwggwwwggwggggw
+wggSgwgTgggTgwgSggw
+wggggwwwgggwwwggggw
 wgggggggggggggggggw
 wgggggggggggggggggw
 wgggggggggggggggggw
@@ -2033,8 +2033,8 @@ wggwgTgwgggwgTgwggw
 wgggggggggggggggggw
 wgggggggggggggggggw
 wggggggwwwwwggggggw
-wgggggggggggggggggw
-wgggggggggggggggggw
+wgwwwgggggggggwwwgw
+wgwwwgggggggggwwwgw
 wgggggggggggggggggw
 wgggggggggggggggggw
 wggwwwwwgggwwwwwggw
@@ -2046,11 +2046,11 @@ wgggggggggggggggggw
 wgggggggggggggggggw
 wgggggggggggggggggw
 wgggggggggggggggggw
-wgggggggggggggggggw
-wggggggggPggggggggw
-wgggggggggggggggggw
-wggggggggBggggggggw
-wgggggggggggggggggw
+wggggwwwgggwwwggggw
+wggggwgggPgggwggggw
+wggggwggwwwggwggggw
+wggggwgggBgggwggggw
+wggggwgggggggwggggw
 wwwwwwwwwwwwwwwwwww
 
 === level51
@@ -2059,15 +2059,15 @@ wwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwwwww
+wggggggwgggggggwggggggw
+wgggggSwgggRgggwSgggggw
+wggggggwggwwwggwggggggw
+wggggSgwgTgggTgwgSggggw
+wggggggwwwgggwwwggggggw
 wgggggggggggggggggggggw
-wgggggSggggRggggSgggggw
 wgggggggggggggggggggggw
-wggggSgggTgggTgggSggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wgggggggggrrrgggggggggw
-wggggggggglllgggggggggw
+wgwwggggggrrrggggggwwgw
+wgwwgggwwglllgwwgggwwgw
 wggggggggglllgggggggggw
 wggggggggglllgggggggggw
 wgggwwwggglllgggwwwgggw
@@ -2083,17 +2083,17 @@ wgggwwwggglllgggwwwgggw
 wgggwwwggglllgggwwwgggw
 wggggggggglllgggggggggw
 wggggggggglllgggggggggw
-wggggggggglllgggggggggw
-wggggggggglllgggggggggw
-wggggggggglllgggggggggw
+wgggggwwgglllggwwgggggw
+wgwwggwwgglllggwwggwwgw
+wgwwgggggglllggggggwwgw
 wgggggggggrrrgggggggggw
 wgggggggggggggggggggggw
 wgggggggggggggggggggggw
-wgggggggggggggggggggggw
-wggggggggggPggggggggggw
-wgggggggggggggggggggggw
-wggggggggggBggggggggggw
-wgggggggggggggggggggggw
+wggggggwwwgggwwwggggggw
+wggwgggwgggPgggwgggwggw
+wggwgggwggwwwggwgggwggw
+wggggggwgggBgggwggggggw
+wggggggwgggggggwggggggw
 wwwwwwwwwwwwwwwwwwwwwww
 
 === level52
@@ -2102,37 +2102,37 @@ wwwwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwww
+wgggggwgggggggwgggggw
+wggggSwgggRgggwSggggw
+wgggggwggwwwggwgggggw
+wgggSgwgTgggTgwgSgggw
+wgggggwwwgggwwwgggggw
 wgggggggggggggggggggw
-wggggSggggRggggSggggw
-wgggggggggggggggggggw
-wgggSgggTgggTgggSgggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggwwwgggggggwwwgggw
-wgggwwwgggggggwwwgggw
-wggwwwwgggggggwwwwggw
+wgggwwwggwgwggwwwgggw
+wgggwwwggwgwggwwwgggw
+wggwwwwggwgwggwwwwggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
 wgggggghhrrrhhggggggw
-wgggggghhThhThggggggw
-wggggggrhhhhhrggggggw
+wggwwgghhThhThggwwggw
+wggwwggrhhhhhrggwwggw
 wgggggghhrrrhhggggggw
 wgggggggggggggggggggw
-wgggggggggggggggggggw
+wggggggggwwwggggggggw
 wggwwwwgggggggwwwwggw
 wgggwwwgggggggwwwgggw
-wgggwwwgggggggwwwgggw
+wgggwwwggwwwggwwwgggw
+wggggggggwwwggggggggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
 wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggggggggggggw
-wgggggggggPgggggggggw
-wgggggggggggggggggggw
-wgggggggggBgggggggggw
-wgggggggggggggggggggw
+wgggggwwwgggwwwgggggw
+wgwgggwgggPgggwgggwgw
+wgwgggwggwwwggwgggwgw
+wgggggwgggBgggwgggggw
+wgggggwgggggggwgggggw
 wwwwwwwwwwwwwwwwwwwww
 
 === level53
@@ -2141,49 +2141,49 @@ wwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwwwwwwwwwwwww
-wgggggggggggggggggggggggggggggw
-wggggSggggSggggRggggSggggSggggw
-wgggggggggggggggggggggggggggggw
-wggggggggTgggggSgggggTggggggggw
-wgggggggggggggggggggggggggggggw
+wggggggggggwgggggggwggggggggggw
+wggggSggggSwgggRgggwSggggSggggw
+wggggggggggwggwwwggwggggggggggw
+wggggggggTgwgggSgggwgTggggggggw
+wggggggggggwwwgggwwwggggggggggw
 wgggggggggggTgggggTgggggggggggw
 wgggggggggggggggggggggggggggggw
 wgggwwwwwgggggggggggggwwwwwgggw
 wgggwwwwwgggggggggggggwwwwwgggw
-wgggggggggggggggggggggggggggggw
-wgrrgggggggggggggggggggggggrrgw
+wgggggggggggggwwwgggggggggggggw
+wgrrggggggggggwwwggggggggggrrgw
 wgllgggggggggggggggggggggggllgw
-wgllgggggggggggggggggggggggllgw
-wgllwwwgggggggggggggggggwwwllgw
-wgllwwwgggggggggggggggggwwwllgw
-wgllgggggggggggggggggggggggllgw
+wgllgggggwwgggggggggwwgggggllgw
+wgllwwwggggggggwggggggggwwwllgw
+wgllwwwggggggggwggggggggwwwllgw
+wgllgggggggggggwgggggggggggllgw
 wgllgggggrrrgggggggrrrgggggllgw
 wgllgggghhhhhggggghhhhhggggllgw
 wgllgggghhThhggggghhThhggggllgw
 wgllgggghhhhhggggghhhhhggggllgw
-wgllrggghhhhhgwwwghhhhhgggrllgw
-wgllrggghhhhhgwwwghhhhhgggrllgw
+wgllrgwghhhhhgwwwghhhhhgwgrllgw
+wgllrgwghhhhhgwwwghhhhhgwgrllgw
 wgllrggghhhhhgwwwghhhhhgggrllgw
 wgllgggghhhhhggggghhhhhggggllgw
 wgllgggghhhhhggggghhhhhggggllgw
-wgllgggghhhhhggggghhhhhggggllgw
-wgllgggggrrrgggggggrrrgggggllgw
-wgllgggggggggggggggggggggggllgw
-wgllgggggggggggggggggggggggllgw
+wgllgwwghhhhhggggghhhhhgwwgllgw
+wgllgggggrrrgggwgggrrrgggggllgw
+wgllgggggggggggwgggggggggggllgw
+wgllgggggggwwggwggwwgggggggllgw
+wgllwwwwwggwwgggggwwggwwwwwllgw
 wgllwwwwwgggggggggggggwwwwwllgw
-wgllwwwwwgggggggggggggwwwwwllgw
-wgllgggggggggggggggggggggggllgw
-wgrrgggggggggggggggggggggggrrgw
-wgggggggggggggggggggggggggggggw
+wgllgggggggggggwgggggggggggllgw
+wgrrgggggggwwggwggwwgggggggrrgw
+wggggggggggwwgggggwwggggggggggw
 wgggwwwgggggggggggggggggwwwgggw
 wgggwwwgggggggggggggggggwwwgggw
 wgggggggggggggggggggggggggggggw
 wgggggggggggggggggggggggggggggw
-wgggggggggggggggggggggggggggggw
-wggggggggggggggPggggggggggggggw
-wgggggggggggggggggggggggggggggw
-wggggggggggggggBggggggggggggggw
-wgggggggggggggggggggggggggggggw
+wggggggggggwwwgggwwwggggggggggw
+wgwwggwwgggwgggPgggwgggwwggwwgw
+wgwwggwwgggwggwwwggwgggwwggwwgw
+wggggggggggwgggBgggwggggggggggw
+wggggggggggwgggggggwggggggggggw
 wwwwwwwwwwwwwwwwwwwwwwwwwwwwwww
 
 === level54
@@ -2192,22 +2192,22 @@ wwwwwwwwwwwwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww
-wgggggggggggggggggggggggggggggggggw
-wgggggggSggggSgggRgggSggggSgggggggw
-wgggggggggggggggggggggggggggggggggw
-wggwwwwggggggggggSggggggggggwwwwggw
-wgggggggggggggggggggggggggggggggggw
+wggggggggggggwgggggggwggggggggggggw
+wgggggggSgggSwgggRgggwSgggSgggggggw
+wggggggggggggwggwwwggwggggggggggggw
+wggwwwwggggggwgggSgggwggggggwwwwggw
+wggggggggggggwwwgggwwwggggggggggggw
 wggggggggggTgggggggggggTggggggggggw
 wgggggggrrrrgggggggggggrrrrgggggggw
+wgggwwggllllgggggggggggllllggwwgggw
 wgggggggllllgggggggggggllllgggggggw
-wgggggggllllgggggggggggllllgggggggw
-wgggggggllllgggggggggggllllgggggggw
-wgggggggllllgggggggggggllllgggggggw
-wgggggggllllgggggggggggllllgggggggw
-wgggggggllllggggrrrggggllllgggggggw
-wgggggggllllggghhhhhgggllllgggggggw
-wgggggggllllrgghThThggrllllgggggggw
-wgggggggllllrgghhhhhggrllllgggggggw
+wgggggggllllgggggwgggggllllgggggggw
+wggwggggllllgwwggwggwwgllllggggwggw
+wggwggggllllgggggggggggllllggggwggw
+wggwggggllllggggrrrggggllllggggwggw
+wggwggggllllggghhhhhgggllllggggwggw
+wgggggwgllllrgghThThggrllllgwgggggw
+wgggggwgllllrgghhhhhggrllllgwgggggw
 wgggggggllllggghhhhhgggllllgggggggw
 wgggggggllllggghhhhhgggllllgggggggw
 wgggggggllllggghhhhhgggllllgggggggw
@@ -2217,26 +2217,26 @@ wgggwwggllllggrhhhhhrggllllggwwgggw
 wgggwwggllllggrhhhhhrggllllggwwgggw
 wgggwwggllllggrhhhhhrggllllggwwgggw
 wgggwwggllllggghhhhhgggllllggwwgggw
-wgggwwggllllggghhhhhgggllllggwwgggw
-wgggggggllllggghhhhhgggllllgggggggw
-wgggggggllllggghhhhhgggllllgggggggw
-wgggggggllllggghhhhhgggllllgggggggw
+wgggwwggllllgwghhhhhgwgllllggwwgggw
+wgggggggllllgwghhhhhgwgllllgggggggw
+wgggggggllllgwghhhhhgwgllllgggggggw
+wgwwwwggllllggghhhhhgggllllggwwwwgw
 wgggggggllllrgghhhhhggrllllgggggggw
 wgggggggllllrgghhhhhggrllllgggggggw
 wgggggggllllggghhhhhgggllllgggggggw
-wgggggggllllggggrrrggggllllgggggggw
+wgggwwggllllggggrrrggggllllggwwgggw
+wgggwwggllllgggggggggggllllggwwgggw
 wgggggggllllgggggggggggllllgggggggw
-wgggggggllllgggggggggggllllgggggggw
-wgggggggllllgggggggggggllllgggggggw
-wgggggggllllgggggggggggllllgggggggw
-wgggggggllllgggggggggggllllgggggggw
+wgggggggllllgggwwwwwgggllllgggggggw
+wgwwggggllllgggwwwwwgggllllggggwwgw
+wgwwggggllllgggggggggggllllggggwwgw
 wgggggggrrrrgggggggggggrrrrgggggggw
 wgggggggggggggggggggggggggggggggggw
-wgggggggggggggggggggggggggggggggggw
-wggwwwwggggggggggPggggggggggwwwwggw
-wgggggggggggggggggggggggggggggggggw
-wggggggggggggggggBggggggggggggggggw
-wgggggggggggggggggggggggggggggggggw
+wggggggggggggwwwgggwwwggggggggggggw
+wggwwwwggggggwgggPgggwggggggwwwwggw
+wggggggggggggwggwwwggwggggggggggggw
+wggggggggggggwgggBgggwggggggggggggw
+wggggggggggggwgggggggwggggggggggggw
 wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww
 
 === level55
@@ -2245,30 +2245,30 @@ wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww
+wgggggggggggggwgggggggwgggggggggggggw
+wgggggSggggSggwgggRgggwggSggggSgggggw
+wgggggggggggggwggwwwggwgggggggggggggw
+wgggggggggggggwTggSggTwgggggggggggggw
+wgggggggggggggwwwgggwwwgggggggggggggw
+wggggwwwwwgggggggggggggggggwwwwwggggw
+wggggwwwwwgggggggggggggggggwwwwwggggw
 wgggggggggggggggggggggggggggggggggggw
-wgggggSggggSggggggRggggggSggggSgggggw
 wgggggggggggggggggggggggggggggggggggw
-wggggggggggggggTggSggTggggggggggggggw
-wgggggggggggggggggggggggggggggggggggw
-wgggggggggggggggggggggggggggggggggggw
-wgggggggggggggggggggggggggggggggggggw
-wgggggggggggggggggggggggggggggggggggw
-wgggggggggggggggggggggggggggggggggggw
-wghhhhhhhhhhhhggggggggghhhhhhhhhhhhgw
-wghhhhhhhhhhhhggggggggghhhhhhhhhhhhgw
-wghhhhhhhhhhhhggggggggghhhhhhhhhhhhgw
+wghhhhhhhhhhhhggwgggwgghhhhhhhhhhhhgw
+wghhhhhhhhhhhhggwgggwgghhhhhhhhhhhhgw
+wghhhhhhhhhhhhggwgggwgghhhhhhhhhhhhgw
 wghhhhhhhhhhhhggggggggghhhhhhhhhhhhgw
 wghhhhhhhhhhhrgggggggggrhhhhhhhhhhhgw
 wghhhhhhhhhhhrgggggggggrhhhhhhhhhhhgw
-wghhhwwwwhhhhhggggggggghhhhhwwwwhhhgw
-wghhhwwwwhhhhhggggggggghhhhhwwwwhhhgw
+wghhhwwwwhhhhhgggwwwggghhhhhwwwwhhhgw
+wghhhwwwwhhhhhgggwwwggghhhhhwwwwhhhgw
 wghhhwwwwhhhhhggggggggghhhhhwwwwhhhgw
 wghhhhhhhhhhhhggggggggghhhhhhhhhhhhgw
 wghhhhhhhhhhThgggwwwggghThhhhhhhhhhgw
 wghhhhhhhhhhhhgggwwwggghhhhhhhhhhhhgw
 wghhhhhhhhhhhhggggggggghhhhhhhhhhhhgw
 wghhhhhhhhhhhhggggggggghhhhhhhhhhhhgw
-wghhhhhhhhhhhrgggggggggrhhhhhhhhhhhgw
+wghhhhhhhhhhhrgwwgggwwgrhhhhhhhhhhhgw
 wghhhhhhhhhhhrgggggggggrhhhhhhhhhhhgw
 wghhhhhhhhhhhhggggggggghhhhhhhhhhhhgw
 wghhhhhhhhhhhhgggwwwggghhhhhhhhhhhhgw
@@ -2276,22 +2276,22 @@ wghhhhhhhhhhhhgggwwwggghhhhhhhhhhhhgw
 wghhhhhhhhhhThggggggggghThhhhhhhhhhgw
 wghhhwwwwhhhhhggggggggghhhhhwwwwhhhgw
 wghhhwwwwhhhhhggggggggghhhhhwwwwhhhgw
-wghhhwwwwhhhhhggggggggghhhhhwwwwhhhgw
+wghhhwwwwhhhhhgggwwwggghhhhhwwwwhhhgw
 wghhhhhhhhhhhrgggggggggrhhhhhhhhhhhgw
 wghhhhhhhhhhhrgggggggggrhhhhhhhhhhhgw
-wghhhhhhhhhhhhggggggggghhhhhhhhhhhhgw
-wghhhhhhhhhhhhggggggggghhhhhhhhhhhhgw
-wghhhhhhhhhhhhggggggggghhhhhhhhhhhhgw
-wghhhhhhhhhhhhggggggggghhhhhhhhhhhhgw
+wghhhhhhhhhhhhgwgggggwghhhhhhhhhhhhgw
+wghhhhhhhhhhhhgwgggggwghhhhhhhhhhhhgw
+wghhhhhhhhhhhhgwggwggwghhhhhhhhhhhhgw
+wghhhhhhhhhhhhggggwgggghhhhhhhhhhhhgw
 wgggggggggggggggggggggggggggggggggggw
+wgwwwgggggggggggggggggggggggggggwwwgw
+wgwwwggwwwgggggggggggggggggwwwggwwwgw
 wgggggggggggggggggggggggggggggggggggw
-wgggggggggggggggggggggggggggggggggggw
-wgggggggggggggggggggggggggggggggggggw
-wgggggggggggggggggggggggggggggggggggw
-wgggggggggggggggggPgggggggggggggggggw
-wgggggggggggggggggggggggggggggggggggw
-wgggggggggggggggggBgggggggggggggggggw
-wgggggggggggggggggggggggggggggggggggw
+wgggggggggggggwwwgggwwwgggggggggggggw
+wgggggggggggggwgggPgggwgggggggggggggw
+wggggwwwwgggggwggwwwggwgggggwwwwggggw
+wgggggggggggggwgggBgggwgggggggggggggw
+wgggggggggggggwgggggggwgggggggggggggw
 wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww
 
 === level56
@@ -2300,53 +2300,53 @@ wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww
 # Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
 #           (a marker sits on the same terrain as the tile to its left)
 wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww
-wgggggggggggggggggggggggggggggggggggggggw
-wgggggggSgggggSgggggRgggggSgggggSgggggggw
-wgggggggggggggggggggggggggggggggggggggggw
-wgggggggggggTgggggggSgggggggTgggggggggggw
-wgggggggggggggggggggggggggggggggggggggggw
+wgggggggggggggggwgggggggwgggggggggggggggw
+wggwwgggSgggggSgwgggRgggwgSgggggSgggwwggw
+wggwwgggggggggggwggwwwggwgggggggggggwwggw
+wggwwgggggggTgggwgggSgggwgggTgggggggwwggw
+wggwwgggggggggggwwwgggwwwgggggggggggwwggw
 wgggggggggggggggTgggggggTgggggggggggggggw
 wgggggggggggggggggggggggggggggggggggggggw
-wgggggwwwwggggwwwwgggggwwwwggggwwwwgggggw
-wgggggwwwwggggwwwwgggggwwwwggggwwwwgggggw
-wgggggggggggggggggggggggggggggggggggggggw
-wgggggggggggggggggggggggggggggggggggggggw
-wgggggggggggggggggggggggggggggggggggggggw
+wgwgggwwwwggggwwwwgggggwwwwggggwwwwgggwgw
+wgwgggwwwwggggwwwwggwggwwwwggggwwwwgggwgw
+wgwgggggggggggggggggwgggggggggggggggggwgw
+wgwgggggggggggggggggwgggggggggggggggggwgw
+wgggggwwwgggggwwwgggwgggwwwgggggwwwgggggw
 wgggggggggggggggggggggggggggggggggggggggw
 wglllllrrllllllllllrrrllllllllllrrlllllgw
 wglllllllllllllllllllllllllllllllllllllgw
 wglllllrrllllllllllrrrllllllllllrrlllllgw
 wgggggggggggggggggggggggggggggggggggggggw
-wgggggggggggggggggggggggggggggggggggggggw
-wgggggggggggggTgggggggggggTgggggggggggggw
-wgggwwwwgggggggggggggggggggggggggwwwwgggw
-wgggwwwwgggggggggggrrrgggggggggggwwwwgggw
+wgggggggggggggggggwwgwwgggggggggggggggggw
+wgggggggggwgggTgggwwgwwgggTgggwgggggggggw
+wgggwwwwggwgggggggggggggggggggwggwwwwgggw
+wgggwwwwggwggggggggrrrggggggggwggwwwwgggw
 wggggggggggggggghhhhhhhhhgggggggggggggggw
 wggggggggggggggghThhhhhThgggggggggggggggw
-wggggggggggggggrhhhhhhhhhrggggggggggggggw
-wgggggggggwwwggrhhhhhhhhhrggwwwgggggggggw
-wgggggggggwwwggrhhhhhhhhhrggwwwgggggggggw
+wggwwggwgggggggrhhhhhhhhhrgggggggwggwwggw
+wggwwggwggwwwggrhhhhhhhhhrggwwwggwggwwggw
+wggwwgggggwwwggrhhhhhhhhhrggwwwgggggwwggw
 wggggggggggggggghhhhhhhhhgggggggggggggggw
 wggggggggggggggghhhhhhhhhgggggggggggggggw
-wgggwwwwgggggggggggrrrgggggggggggwwwwgggw
-wgggwwwwgggggggggggggggggggggggggwwwwgggw
-wgggggggggggggggggggggggggggggggggggggggw
-wgggggggggggggggggggggggggggggggggggggggw
+wgggwwwwggwggwwggggrrrggggwwggwggwwwwgggw
+wgggwwwwggwggwwgggggggggggwwggwggwwwwgggw
+wggggggggggggwwgggggwgggggwwggggggggggggw
+wggggggggggggwwgggggwgggggwwggggggggggggw
 wgggggggggggggggggggggggggggggggggggggggw
 wglllllrrllllllllllrrrllllllllllrrlllllgw
 wglllllllllllllllllllllllllllllllllllllgw
 wglllllrrllllllllllrrrllllllllllrrlllllgw
 wgggggggggggggggggggggggggggggggggggggggw
-wgggggggggggggggggggggggggggggggggggggggw
-wgggggggggggggggggggggggggggggggggggggggw
-wgggggggggggggggggggggggggggggggggggggggw
-wgggggwwwwggggwwwwgggggwwwwggggwwwwgggggw
-wgggggwwwwggggwwwwgggggwwwwggggwwwwgggggw
-wgggggggggggggggggggggggggggggggggggggggw
-wgggggggggggggggggggggggggggggggggggggggw
-wgggggggggggggggggggggggggggggggggggggggw
-wgggggggggggggggggggPgggggggggggggggggggw
-wgggggggggggggggggggggggggggggggggggggggw
-wgggggggggggggggggggBgggggggggggggggggggw
-wgggggggggggggggggggggggggggggggggggggggw
+wgwwggggwwwwgggggggggggggggggwwwwggggwwgw
+wgwwggggggggggggggggwggggggggggggggggwwgw
+wgggggggggggggggggggwgggggggggggggggggggw
+wgggggwwwwggggwwwwggwggwwwwggggwwwwgggggw
+wgwgggwwwwggggwwwwgggggwwwwggggwwwwgggwgw
+wgwgggggggggggggggggggggggggggggggggggwgw
+wgwgggggggggggggggggggggggggggggggggggwgw
+wgggggggggggggggwwwgggwwwgggggggggggggggw
+wggggwwwwwggwgggwgggPgggwgggwggwwwwwggggw
+wggggwwwwwggwgggwggwwwggwgggwggwwwwwggggw
+wgggggggggggggggwgggBgggwgggggggggggggggw
+wgggggggggggggggwgggggggwgggggggggggggggw
 wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww
