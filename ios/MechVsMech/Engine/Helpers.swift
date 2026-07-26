@@ -18,6 +18,24 @@ func distXZ(_ a: Entity, _ b: Entity) -> Double { distXZ(a.x, a.z, b.x, b.z) }
 let GRAVITY = 50.0
 let JUMP_V = 22.0
 
+/* Walk animation, driven by ground actually covered — never by what the
+   controls (or the last packet) asked for. A mech leaning into a wall, a stick
+   whose release was missed and a replica whose packets stopped all report
+   "moving" while standing perfectly still, and striding on the spot is the most
+   obvious thing in the game. `moved` is this frame's XZ distance. The amplitude
+   eases rather than switches, so stopping settles the legs to neutral instead
+   of freezing them mid-stride. Returns that amplitude (0...1): scale both the
+   leg swing and the body bob by it. (mirrors core/helpers.js) */
+let STRIDE_MIN_SPEED = 0.5   // units/s below which a walker is standing
+@discardableResult
+func stridePhase(_ e: Entity, moved: Double, dt: Double, rate: Double) -> Double {
+    let walking = dt > 0 && moved / dt > STRIDE_MIN_SPEED
+    if walking { e.walkPhase += dt * rate }
+    let k = 1 - exp(-14 * dt)
+    e.stride += ((walking ? 1.0 : 0.0) - e.stride) * k
+    return e.stride
+}
+
 /* where guns auto-point on a target (torso height above its ground) */
 func aimY(_ e: Entity) -> Double {
     e.y + min(3.5, e.hitHeight * 0.55)

@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { LEVEL, STEP, VOID_EDGE, FALL_DEATH_Y, groundHeightAt } from '../world/world.js';
 import { entities, blueBase, redBase, makeEnemyMech } from '../entities/entities.js';
 import { game, stats, difficulty } from '../core/state.js';
-import { distXZ, losBlocked, localToWorld, nearestEnemyOf, collideCircle, updateVertical, aimYOf, JUMP_V } from '../core/helpers.js';
+import { distXZ, losBlocked, localToWorld, nearestEnemyOf, collideCircle, updateVertical, aimYOf, stridePhase, JUMP_V } from '../core/helpers.js';
 import { spawnProjectile, killEntity } from '../entities/projectiles.js';
 import { spawnFlash } from '../entities/particles.js';
 import { hiddenShooter } from './vision.js';
@@ -219,10 +219,6 @@ export function updateEnemyMech(e, dt) {
     e.group.position.x += Math.sin(moveYaw) * spd * dt;
     e.group.position.z += Math.cos(moveYaw) * spd * dt;
     collideCircle(e.group.position, 2.2, e.y);
-    e.walkPhase += dt * 7;
-    const sw = Math.sin(e.walkPhase) * 0.55;
-    e.model.legL.rotation.x = sw;
-    e.model.legR.rotation.x = -sw;
 
     // barely moving? the side it committed to is a dead end — follow the wall
     // the other way round instead of grinding into it
@@ -241,7 +237,15 @@ export function updateEnemyMech(e, dt) {
   const onGround = updateVertical(e, dt);
   e.onGround = onGround;
   if (e.y < FALL_DEATH_Y) { killEntity(e); return; }   // pushed into a chasm
-  e.group.position.y = e.y + (stepYaw !== null && onGround ? Math.abs(Math.sin(e.walkPhase)) * 0.25 : 0);
+
+  // stride off what the mech covered, not off what it tried to do: one holding
+  // its ground in a firefight, or leaning on a wall, plants its feet
+  const moved = Math.hypot(e.group.position.x - e.px, e.group.position.z - e.pz);
+  const amp = stridePhase(e, moved, dt, 7);
+  const sw = Math.sin(e.walkPhase) * 0.55 * amp;
+  e.model.legL.rotation.x = sw;
+  e.model.legR.rotation.x = -sw;
+  e.group.position.y = e.y + (onGround ? Math.abs(Math.sin(e.walkPhase)) * 0.25 * amp : 0);
   e.px = e.group.position.x;
   e.pz = e.group.position.z;
 

@@ -4,7 +4,7 @@ import { MP, on, sendGame, netRegistry } from '../net/net.js';
 import { entities, makeBar, makeMech, makeTurretEntity, registerEntity, blueBase, redBase, BLUE, RED } from '../entities/entities.js';
 import { player } from '../entities/player.js';
 import { spawnProjectile, killEntity, damageEntity } from '../entities/projectiles.js';
-import { spawnPointFor, teamIndexOf } from '../core/helpers.js';
+import { spawnPointFor, teamIndexOf, stridePhase } from '../core/helpers.js';
 import { onFlagMsg } from './ctf.js';
 import { groundHeightAt } from '../world/world.js';
 import { game } from '../core/state.js';
@@ -76,7 +76,7 @@ function makePeer(p) {
     netId: `player:${p.id}`,
     hp: 300, maxHp: 300, alive: true,
     hitRadius: 2.4, hitHeight: 7, bar: makeBar(5), barHeight: 8.2,
-    yaw, walkPhase: 0, y, vy: 0, velX: 0, velZ: 0,
+    yaw, walkPhase: 0, stride: 0, y, vy: 0, velX: 0, velZ: 0,
   });
   const tag = makeNameTag(p.name, p.team);
   tag.position.y = 9.6;
@@ -228,6 +228,7 @@ export function remoteUpdate(dt) {
     const tx = st.x + st.vx * st.age, tz = st.z + st.vz * st.age;
     const p = e.group.position;
     if (Math.hypot(tx - p.x, tz - p.z) > 14) { p.x = tx; p.z = tz; e.y = st.y; } // snap after teleports
+    const ox = p.x, oz = p.z;   // after the snap: a teleport is not a stride
     const k = 1 - Math.exp(-12 * dt);
     p.x += (tx - p.x) * k;
     p.z += (tz - p.z) * k;
@@ -238,11 +239,13 @@ export function remoteUpdate(dt) {
     e.velX = st.vx;
     e.velZ = st.vz;
 
-    if (st.moving) e.walkPhase += dt * 9;
-    const sw = st.moving ? Math.sin(e.walkPhase) * 0.55 : 0;
+    // a replica strides on the ground it actually covers, so legs stop the
+    // moment the packets stop coming — a stale "moving" flag can't outlive it
+    const amp = stridePhase(e, Math.hypot(p.x - ox, p.z - oz), dt, 9);
+    const sw = Math.sin(e.walkPhase) * 0.55 * amp;
     e.model.legL.rotation.x = sw;
     e.model.legR.rotation.x = -sw;
-    p.y = e.y + (st.moving ? Math.abs(Math.sin(e.walkPhase)) * 0.25 : 0);
+    p.y = e.y + Math.abs(Math.sin(e.walkPhase)) * 0.25 * amp;
 
     e.model.lampR.material.emissiveIntensity = blink ? 3 : 0.3;
     e.model.lampB.material.emissiveIntensity = blink ? 0.3 : 3;

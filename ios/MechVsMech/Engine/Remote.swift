@@ -298,6 +298,7 @@ extension GameEngine {
             if hypot(tx - e.x, tz - e.z) > 14 {   // snap after teleports
                 e.x = tx; e.z = tz; e.y = st.y
             }
+            let ox = e.x, oz = e.z   // after the snap: a teleport is not a stride
             let k = 1 - exp(-12 * dt)
             e.x += (tx - e.x) * k
             e.z += (tz - e.z) * k
@@ -309,11 +310,13 @@ extension GameEngine {
             e.velZ = st.vz
             peer.st = st
 
-            if st.moving { e.walkPhase += dt * 9 }
-            let sw = st.moving ? sin(e.walkPhase) * 0.55 : 0
+            // a replica strides on the ground it actually covers, so legs stop
+            // the moment packets stop coming — a stale "moving" flag can't outlive it
+            let amp = stridePhase(e, moved: hypot(e.x - ox, e.z - oz), dt: dt, rate: 9)
+            let sw = sin(e.walkPhase) * 0.55 * amp
             e.legL?.eulerAngles.x = Float(sw)
             e.legR?.eulerAngles.x = Float(-sw)
-            e.syncNode(bob: st.moving ? abs(sin(e.walkPhase)) * 0.25 : 0)
+            e.syncNode(bob: abs(sin(e.walkPhase)) * 0.25 * amp)
 
             e.lampR?.emission.intensity = blink ? 3 : 0.3
             e.lampB?.emission.intensity = blink ? 0.3 : 3

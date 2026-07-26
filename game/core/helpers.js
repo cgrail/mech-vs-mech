@@ -131,6 +131,24 @@ export function updateVertical(e, dt) {
   return false;
 }
 
+/* Walk animation, driven by ground actually covered — never by what the
+   controls (or the last packet) asked for. A mech leaning into a wall, a
+   joystick whose release was missed and a replica whose packets stopped all
+   report "moving" while standing perfectly still, and striding on the spot is
+   the most obvious thing in the game. `moved` is this frame's XZ distance.
+   The amplitude eases rather than switches, so stopping settles the legs to
+   neutral instead of freezing them mid-stride. Returns that amplitude (0..1):
+   scale both the leg swing and the body bob by it. */
+export const STRIDE_MIN_SPEED = 0.5;   // units/s below which a walker is standing
+export function stridePhase(e, moved, dt, rate) {
+  const walking = dt > 0 && moved / dt > STRIDE_MIN_SPEED;
+  if (walking) e.walkPhase += dt * rate;
+  const k = 1 - Math.exp(-14 * dt);
+  const cur = e.stride || 0;
+  e.stride = cur + ((walking ? 1 : 0) - cur) * k;
+  return e.stride;
+}
+
 /* light mech-vs-mech separation */
 export function separateMechs() {
   const mechs = entities.filter(e => e.alive && (e.kind === 'mech' || e.kind === 'player'));

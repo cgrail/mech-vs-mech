@@ -4,7 +4,7 @@ import { BLUE, RED, entities, makeBar, makeMech, registerEntity } from './entiti
 import { game, stats, touch, COSTS } from '../core/state.js';
 import { keys } from '../systems/input.js';
 import { groundHeightAt, FALL_DEATH_Y } from '../world/world.js';
-import { forwardOf, localToWorld, losBlocked, collideCircle, updateVertical, aimYOf, spawnPointFor, teamIndexOf, JUMP_V } from '../core/helpers.js';
+import { forwardOf, localToWorld, losBlocked, collideCircle, updateVertical, aimYOf, spawnPointFor, teamIndexOf, stridePhase, JUMP_V } from '../core/helpers.js';
 import { spawnProjectile, killEntity } from './projectiles.js';
 import { spawnFlash } from './particles.js';
 import { beep, laserSfx } from '../systems/audio.js';
@@ -25,7 +25,7 @@ export const player = registerEntity({
   netId: `player:${MP.playerId}`, owner: MP.playerId,
   hp: 300, maxHp: 300, alive: true,
   hitRadius: 2.4, hitHeight: 7, bar: playerBar, barHeight: 8.2,
-  yaw: spawnYaw, walkPhase: 0, velX: 0, velZ: 0,
+  yaw: spawnYaw, walkPhase: 0, stride: 0, velX: 0, velZ: 0,
   y: groundHeightAt(SPAWN.x, SPAWN.z), vy: 0, onGround: true,
   gunCool: 0, rocketCool: 0, jumpCool: 0, lastDamaged: -99, respawnAt: 0,
 });
@@ -147,16 +147,18 @@ export function updatePlayer(dt) {
   if (keys['KeyA'] || touch.strafe < 0) move.sub(right);
   if (keys['KeyD'] || touch.strafe > 0) move.add(right);
 
-  const moving = move.lengthSq() > 0;
-  if (moving) {
+  const px = player.group.position.x, pz = player.group.position.z;
+  if (move.lengthSq() > 0) {
     move.normalize();
     player.group.position.addScaledVector(move, speed * dt);
-    player.walkPhase += dt * 9 * boost;
   }
-  // tracked so enemy AI can lead its shots
-  player.velX = moving ? move.x * speed : 0;
-  player.velZ = moving ? move.z * speed : 0;
   collideCircle(player.group.position, 2.2, player.y);
+  // ground actually covered — walking into a wall is standing still, both for
+  // the animation below and for the lead the enemy AI puts on its shots
+  const movedX = player.group.position.x - px, movedZ = player.group.position.z - pz;
+  const moved = Math.hypot(movedX, movedZ);
+  player.velX = dt > 0 ? movedX / dt : 0;
+  player.velZ = dt > 0 ? movedZ / dt : 0;
   jump(dt);
   const onGround = updateVertical(player, dt);
   player.onGround = onGround;
@@ -169,10 +171,11 @@ export function updatePlayer(dt) {
   player.group.rotation.y = player.yaw;
 
   // walk animation + bob
-  const sw = moving ? Math.sin(player.walkPhase) * 0.55 : 0;
+  const amp = stridePhase(player, moved, dt, 9 * boost);
+  const sw = Math.sin(player.walkPhase) * 0.55 * amp;
   playerModel.legL.rotation.x = sw;
   playerModel.legR.rotation.x = -sw;
-  player.group.position.y = player.y + (moving && onGround ? Math.abs(Math.sin(player.walkPhase)) * 0.25 : 0);
+  player.group.position.y = player.y + (onGround ? Math.abs(Math.sin(player.walkPhase)) * 0.25 * amp : 0);
 
   // police light blink
   const blink = Math.sin(game.elapsed * 10) > 0;

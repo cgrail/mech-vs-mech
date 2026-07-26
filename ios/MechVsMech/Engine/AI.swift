@@ -231,10 +231,6 @@ extension GameEngine {
             e.x += sin(moveYaw) * spd * dt
             e.z += cos(moveYaw) * spd * dt
             collideCircle(x: &e.x, z: &e.z, r: 2.2, y: e.y)
-            e.walkPhase += dt * 7
-            let sw = sin(e.walkPhase) * 0.55
-            e.legL?.eulerAngles.x = Float(sw)
-            e.legR?.eulerAngles.x = Float(-sw)
 
             // barely moving? the side it committed to is a dead end — follow
             // the wall the other way round instead of grinding into it
@@ -253,7 +249,14 @@ extension GameEngine {
         let onGround = updateVertical(e, dt: dt)
         e.onGround = onGround
         if e.y < FALL_DEATH_Y { killEntity(e); return }   // pushed into a chasm
-        e.syncNode(bob: stepYaw != nil && onGround ? abs(sin(e.walkPhase)) * 0.25 : 0)
+
+        // stride off what the mech covered, not off what it tried to do: one
+        // holding its ground in a firefight, or leaning on a wall, plants its feet
+        let amp = stridePhase(e, moved: distXZ(e.x, e.z, e.px, e.pz), dt: dt, rate: 7)
+        let sw = sin(e.walkPhase) * 0.55 * amp
+        e.legL?.eulerAngles.x = Float(sw)
+        e.legR?.eulerAngles.x = Float(-sw)
+        e.syncNode(bob: onGround ? abs(sin(e.walkPhase)) * 0.25 * amp : 0)
         e.px = e.x
         e.pz = e.z
 

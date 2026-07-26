@@ -170,6 +170,8 @@ Two traps worth knowing, both found by validating rather than by eye: the side w
 
 Walkers (player + mechs) carry `e.y`/`e.vy`; `helpers.updateVertical(e, dt)` glues them to the ground or applies gravity after a ledge drop — except while `e.vy > 0`, which is a jump on its way up and must not be glued back down. `e.group.position.y = e.y + walk bob`, so read heights from `group.position.y`, not a constant 0.
 
+The **walk animation** hangs off the same measurement: `helpers.stridePhase(e, moved, dt, rate)` (`Helpers.swift`) takes the XZ distance the walker *actually covered this frame* — never its input, its steering heading or a peer's `moving` flag — advances `walkPhase` only above `STRIDE_MIN_SPEED`, and eases an amplitude `e.stride` 0↔1 that scales both the leg swing and the body bob. All three walkers go through it (`player.js`, `ai.js`, `remote.js` and their Swift twins). Intent-driven animation striding on the spot is what it replaced: a mech leaning into a wall, a joystick whose release was missed, a replica whose packets stopped, and — since the amplitude eases instead of switching — legs frozen mid-stride the moment a mech stopped to shoot. The player's `velX`/`velZ` (enemy aim lead, and the replica extrapolation over the wire) are measured the same way.
+
 **Jump jets** (player only — `jump()` in `player.js` / `Player.swift`, Ctrl or the ⬆ button) are the one thing that beats a ledge: `JUMP_V`/`GRAVITY` in `helpers.js` peak at 4.84 units, just over the 4-unit tier step and far under `WALL_H`. Nothing else was needed to make it work — `collideTerrain` already tests the *walker's* height, so a tier stops blocking once the jump is above it, and multiplayer already replicates `y`.
 
 ### The look is tone-mapped, not lit brighter

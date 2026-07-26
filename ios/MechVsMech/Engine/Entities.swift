@@ -61,6 +61,7 @@ final class Entity {
     weak var aggro: Entity?
     var aggroT = 0.0
     var walkPhase = 0.0
+    var stride = 0.0         // walk-animation amplitude, eased from real movement
     var strafeDir = 1.0
     var strafeTimer = 0.0
     var stuckT = 0.0
