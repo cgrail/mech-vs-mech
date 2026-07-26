@@ -43,12 +43,14 @@ final class Entity {
     var netId: String?
     var owner = 0            // playerId of the client that simulates this entity
     var remote = false       // a replica driven by the network, not local sim
-    var seen = true          // fog of war: in sight right now (Vision.swift)
-    /* the vision sweep runs on its own budget, so an entity built between two
-       sweeps has no verdict yet — `seen` above is the fog-off default, not one.
-       (The web build reads an undefined `e.seen` for this.) */
-    var seenKnown = false
-    var fade = -1.0          // drawn opacity, ramped toward `seen`; <0 = not set yet
+    var seen = true          // fog of war: drawn at all right now (Vision.swift)
+    /* how much of this entity the sensors have, 0…1 — five rays and a range
+       fade, not a yes/no (Vision.swift). The sweep runs on its own budget, so
+       an entity built between two sweeps has no verdict yet: <0 says so.
+       (The web build reads an undefined `e.contact` for this.) */
+    var contact = -1.0
+    var fade = -1.0          // drawn opacity, ramped toward `contact`; <0 = not set yet
+    var hold = 0.4           // sensor lock left before a lost contact starts to fade
 
     // combat / AI (per-entity timers, like the JS object fields)
     var speed = 0.0

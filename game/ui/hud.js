@@ -97,7 +97,23 @@ export function drawMinimap() {
   const pz = (z) => (z + ARENA.hd) / (ARENA.hd * 2) * h;
   for (const e of entities) {
     if (!e.alive) continue;
-    if (e.seen === false) continue; // fog of war: out of sight, off the map too
+    // fog of war: the blip is as strong as the sensor contact (systems/vision.js).
+    // Out of contact it drops off the map — but where it was last held stays for
+    // a few seconds as a hollow mark, so losing a mech costs its position, not
+    // the memory of it.
+    if (e.seen === false) {
+      if (e.ghost > 0) {
+        mctx.globalAlpha = e.ghost * 0.5;
+        mctx.strokeStyle = e.team === player.team ? '#6fd2ff' : '#ff4535';
+        mctx.lineWidth = 1;
+        mctx.beginPath();
+        mctx.arc(px(e.markX), pz(e.markZ), 3, 0, 7);
+        mctx.stroke();
+        mctx.globalAlpha = 1;
+      }
+      continue;
+    }
+    mctx.globalAlpha = e.fade === undefined ? 1 : 0.35 + 0.65 * e.fade;
     const x = px(e.group.position.x), y = pz(e.group.position.z);
     const friendly = e.team === player.team; // relative colors: my side reads blue even when I fight as red
     if (e.kind === 'base') {
@@ -113,6 +129,7 @@ export function drawMinimap() {
       mctx.fillStyle = friendly ? '#6fd2ff' : '#ff4535';
       mctx.beginPath(); mctx.arc(x, y, 2.6, 0, 7); mctx.fill();
     }
+    mctx.globalAlpha = 1;
   }
   if (ctfOn()) {
     for (const f of [flags.blue, flags.red]) {
