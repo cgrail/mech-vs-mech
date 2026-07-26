@@ -221,17 +221,44 @@ if (MP.active) {
      runs out at roughly the same moment, which is harmless: the first
      request the server sees mints the match, and the rest only re-send the
      same matchStart to the same roster. The button is still there for
-     whoever wants it sooner, and BACK TO LOBBY for whoever wants out. */
+     whoever wants it sooner, and BACK TO LOBBY for whoever wants out.
+
+     The same countdown drives the dead end (noNextMap): once there is no
+     follow-up match to be had, NEXT MAP is a button that can only fail, so
+     it goes away and the screen counts itself back to the lobby instead. */
   const nextMapBtn = document.getElementById('nextMapBtn');
+  const leaveBtnEnd = document.getElementById('startBtn'); // BACK TO LOBBY on the end screen
   const subLine = document.querySelector('#menuScreen .sub');
   const AUTO_NEXT = 10;   // seconds on the end screen before the next map starts itself
+  const AUTO_LEAVE = 5;   // …and before a dead-ended one goes back to the lobby
+  const NO_NEXT = 'NOT ENOUGH PILOTS LEFT FOR ANOTHER MATCH'; // the server's own wording
+  let endScreen = false;  // the end screen is up: the countdown belongs to it
+  let deadEnd = false;    // …and it leads nowhere but back to the lobby
+  let autoBtn = null;     // the button the countdown is written on
+  let autoLabel = '';
+  let autoRun = null;     // what it fires when it runs out
   let autoLeft = 0;
   let autoTimer = null;
 
   function stopAuto() {
     clearTimeout(autoTimer);
     autoTimer = null;
-    nextMapBtn.textContent = '▸ NEXT MAP';
+    autoRun = null;
+    if (autoBtn) autoBtn.textContent = autoLabel;
+    autoBtn = null;
+  }
+
+  function tickAuto() {
+    if (autoLeft <= 0) { const run = autoRun; stopAuto(); run(); return; }
+    autoBtn.textContent = `${autoLabel} IN ${autoLeft}s`;
+    autoLeft--;
+    autoTimer = setTimeout(tickAuto, 1000);
+  }
+
+  function startAuto(btn, label, secs, run) {
+    stopAuto();
+    autoBtn = btn; autoLabel = label; autoLeft = secs; autoRun = run;
+    tickAuto();
   }
 
   function askNextMap() {
@@ -242,46 +269,69 @@ if (MP.active) {
     subLine.textContent = 'WAITING FOR THE NEXT MAP…';
   }
 
-  function tickAuto() {
-    if (autoLeft <= 0) { askNextMap(); return; }
-    nextMapBtn.textContent = `▸ NEXT MAP IN ${autoLeft}s`;
-    autoLeft--;
-    autoTimer = setTimeout(tickAuto, 1000);
+  /* No next map to roll on to — the other side left, or the server turned the
+     request down. Asking again could only be refused again, so NEXT MAP goes
+     away, the screen's one working action becomes the green one, and (unless
+     it is the server itself that went missing) it presses itself. */
+  function noNextMap(message, auto = true) {
+    subLine.textContent = message;
+    if (deadEnd) return; // a second refusal must not restart the countdown
+    deadEnd = true;
+    stopAuto();
+    show(nextMapBtn, false);
+    leaveBtnEnd.classList.remove('ghost');
+    leaveBtnEnd.classList.add('goBtn');
+    leaveBtnEnd.focus(); // selection is DOM focus: don't leave it on a hidden button
+    if (auto) startAuto(leaveBtnEnd, 'BACK TO LOBBY', AUTO_LEAVE, backToLobby);
+  }
+
+  /* everyone we were fighting has dropped out: what the server checks before
+     it mints a follow-up match, checked here so we don't count down into a
+     refusal we already know is coming */
+  function enemiesAllGone() {
+    const enemies = MP.roster.filter((p) => p.team !== MP.myTeam);
+    return enemies.length > 0 && enemies.every((p) => gone.has(p.id));
   }
 
   nextMapBtn.addEventListener('click', askNextMap);
   window.addEventListener('mech:endscreen', () => {
+    endScreen = true;
     if (!connected()) return; // flow.js only offers the button while the server is reachable
-    autoLeft = AUTO_NEXT;
-    tickAuto();
+    if (enemiesAllGone()) { noNextMap(NO_NEXT); return; }
+    startAuto(nextMapBtn, '▸ NEXT MAP', AUTO_NEXT, askNextMap);
   });
 
   on('error', (m) => {
-    if (game.state === 'over') {   // a NEXT MAP that the server turned down
-      stopAuto();                  // don't count down into the same refusal again
-      nextMapBtn.disabled = false;
-      subLine.textContent = m.message;
-      return;
-    }
+    if (endScreen) { noNextMap(m.message); return; } // a NEXT MAP the server turned down
     matchFail(m.message);
   });
   /* the follow-up match: same credentials dance as the lobby's matchStart */
   on('matchStart', (m) => enterMatch(m, MP.name));
+  /* who is still here is tracked for the whole match, not just the boot
+     handshake: the end screen needs it to know whether a next map is possible */
   on('peerLeft', (m) => {
-    if (game.state !== 'menu' || matchDead) return;
+    if (matchDead) return;
     gone.add(m.id);
-    const enemies = MP.roster.filter((p) => p.team !== MP.myTeam);
-    if (enemies.every((p) => gone.has(p.id))) matchFail('THE OTHER TEAM LEFT THE MATCH');
-    else renderMatchInfo(null); // refresh the roster, keep the message
+    if (game.state === 'menu') {
+      if (enemiesAllGone()) matchFail('THE OTHER TEAM LEFT THE MATCH');
+      else renderMatchInfo(null); // refresh the roster, keep the message
+      return;
+    }
+    // left while the end screen was up: the roster a next map would be built
+    // from just emptied out
+    if (endScreen && enemiesAllGone()) noNextMap(NO_NEXT);
   });
   on('peerJoined', (m) => {
-    if (game.state !== 'menu' || matchDead) return;
+    if (matchDead) return;
     gone.delete(m.id);
-    renderMatchInfo(null);
+    if (game.state === 'menu') renderMatchInfo(null);
   });
   on('close', () => {
     if (game.state === 'menu') matchFail('CONNECTION LOST — IS THE SERVER RUNNING?');
-    else stopAuto(); // no server to roll the match on: stop promising a next map
+    // no server to roll the match on. On the end screen that is the same dead
+    // end, but the lobby is unreachable too, so it stays a keypress away
+    else if (endScreen) noNextMap('CONNECTION LOST — IS THE SERVER RUNNING?', false);
+    else stopAuto();
   });
 }
 

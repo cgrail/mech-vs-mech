@@ -55,6 +55,11 @@ final class AppModel: ObservableObject {
     @Published var nextMapNote: String?
     /* seconds left before the next map starts by itself (nil: not counting) */
     @Published var nextMapIn: Int?
+    /* …or before a dead-ended end screen goes back to the lobby by itself */
+    @Published var leaveIn: Int?
+    /* no follow-up match to be had (everyone else left, or the server said no):
+       NEXT MAP is dropped and BACK TO LOBBY becomes the green action */
+    @Published var deadEnd = false
     @Published private(set) var engine: GameEngine
     @Published var levelIndex: Int
 
@@ -137,6 +142,7 @@ final class AppModel: ObservableObject {
         buildHint = nil
         endReason = nil
         nextMapNote = nil
+        deadEnd = false
         stopNextMapCountdown()
     }
 
@@ -195,6 +201,29 @@ final class AppModel: ObservableObject {
         lobby.nextMatch()
     }
 
+    /* the server's own wording for the refusal, said here too when we can
+       already see it coming */
+    static let NO_NEXT_MATCH = "NOT ENOUGH PILOTS LEFT FOR ANOTHER MATCH"
+
+    /* No next map to roll on to — the other side left, or the server turned
+       the request down. Asking again could only be refused again, so NEXT MAP
+       goes away, the screen's one working action becomes the green one, and
+       (unless it is the server itself that went missing) it presses itself
+       after AUTO_LEAVE seconds. Ports noNextMap in game/ui/lobby.js. */
+    func noNextMap(_ message: String, auto: Bool = true) {
+        nextMapNote = message
+        guard !deadEnd else { return }   // a second refusal must not restart the countdown
+        deadEnd = true
+        stopNextMapCountdown()
+        guard auto else { return }
+        leaveIn = Self.AUTO_LEAVE
+        nextMapTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+            guard let self else { return }
+            let left = (self.leaveIn ?? 0) - 1
+            if left <= 0 { self.continueFromEndScreen() } else { self.leaveIn = left }
+        }
+    }
+
     /* ---------- the countdown to it ----------
        A finished match rolls on by itself after AUTO_NEXT seconds, so a
        session keeps its momentum without anyone having to press anything.
@@ -203,10 +232,18 @@ final class AppModel: ObservableObject {
        rest only re-send the same matchStart to the same roster. Ports the
        same countdown in game/ui/lobby.js. */
     static let AUTO_NEXT = 10
+    static let AUTO_LEAVE = 5   // …and before a dead-ended one goes back to the lobby
 
     private func startNextMapCountdown() {
         stopNextMapCountdown()
-        guard isMPMatch, lobby.isConnected else { return }
+        guard isMPMatch else { return }
+        // no server to ask, or nobody left to fight: NEXT MAP could only fail,
+        // so the end screen dead-ends into the lobby instead of counting down
+        guard lobby.isConnected else {
+            noNextMap("NO CONNECTION TO THE SERVER", auto: false)
+            return
+        }
+        if lobby.enemiesAllGone { noNextMap(Self.NO_NEXT_MATCH); return }
         nextMapIn = Self.AUTO_NEXT
         nextMapTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
             guard let self else { return }
@@ -219,6 +256,7 @@ final class AppModel: ObservableObject {
         nextMapTimer?.invalidate()
         nextMapTimer = nil
         nextMapIn = nil
+        leaveIn = nil
     }
 
     /* a matchStart landing while a finished (or still-running) match is on
@@ -374,6 +412,7 @@ extension AppModel: EngineDelegate {
                 self.victory = victory
                 self.endReason = reason
                 self.nextMapNote = nil
+                self.deadEnd = false
                 self.screen = .over
                 self.startNextMapCountdown()   // multiplayer rolls on by itself
             }

@@ -138,6 +138,12 @@ final class LobbyModel: ObservableObject {
         } else if app?.screen == .playing {
             app?.engine.enqueue { [weak self] in self?.app?.engine.handleConnectionLost() }
         } else {
+            // no server to roll the match on. On the end screen that is the
+            // same dead end, but the lobby is unreachable too, so that one
+            // stays a tap away rather than pressing itself
+            if app?.screen == .over {
+                app?.noNextMap("CONNECTION LOST — IS THE SERVER RUNNING?", auto: false)
+            }
             phase = .connecting
             myId = nil; myRoom = nil; myTeam = nil
             setStatus("CANNOT REACH THE SERVER — CHECK YOUR CONNECTION AND TRY AGAIN", error: true)
@@ -160,6 +166,13 @@ final class LobbyModel: ObservableObject {
        everyone still connected, on the next map in its bundle */
     func nextMatch() { net.send(["type": "nextMatch"]) }
     var isConnected: Bool { net.isConnected }
+    /* everyone we were fighting has dropped out — what the server checks before
+       it mints a follow-up match, and what the boot handshake gives up on */
+    var enemiesAllGone: Bool {
+        guard let mine = pending?.config.myTeam else { return false }
+        let enemies = bootRoster.filter { $0.team != mine }
+        return !enemies.isEmpty && enemies.allSatisfy { goneIds.contains($0.id) }
+    }
     /* pick the room's map — the server rejects this from anyone but its owner */
     func setLevel(_ param: String) { net.send(["type": "setLevel", "level": param]) }
     /* …and its mode, same rule */
@@ -174,6 +187,15 @@ final class LobbyModel: ObservableObject {
     // MARK: - Event routing
 
     private func handleEvent(_ type: String, _ obj: [String: Any]) {
+        /* who is still in the match, tracked for its whole life — the boot
+           handshake, the fight and the end screen, which needs it to know
+           whether a next map is possible at all. peerLeft/peerJoined are
+           match-only messages; lobby churn arrives as a `lobby` broadcast. */
+        if let id = jInt(obj, "id") {
+            if type == "peerLeft" { goneIds.insert(id) }
+            else if type == "peerJoined" { goneIds.remove(id) }
+        }
+
         // during a live match, forward peer churn to the engine
         if app?.screen == .playing {
             switch type {
@@ -214,7 +236,7 @@ final class LobbyModel: ObservableObject {
 
         case "error":
             let msg = jStr(obj, "message") ?? "ERROR"
-            if app?.screen == .over { app?.nextMapNote = msg }   // NEXT MAP turned down
+            if app?.screen == .over { app?.noNextMap(msg) }   // NEXT MAP turned down
             else if phase == .matchBoot { failMatch(msg) }
             else if myId != nil { showBanner(msg) }
             else { setStatus(msg, error: true) }
@@ -241,18 +263,18 @@ final class LobbyModel: ObservableObject {
             }
 
         case "peerLeft":
-            guard phase == .matchBoot, !isDead, let id = jInt(obj, "id") else { return }
-            goneIds.insert(id)
-            let enemies = bootRoster.filter { $0.team != pending?.config.myTeam }
-            if !enemies.isEmpty && enemies.allSatisfy({ goneIds.contains($0.id) }) {
-                failMatch("THE OTHER TEAM LEFT THE MATCH")
-            } else {
-                renderBoot(sub: nil)
+            // left while the end screen was up: the roster a next map would be
+            // built from just emptied out
+            if app?.screen == .over {
+                if enemiesAllGone { app?.noNextMap(AppModel.NO_NEXT_MATCH) }
+                return
             }
+            guard phase == .matchBoot, !isDead else { return }
+            if enemiesAllGone { failMatch("THE OTHER TEAM LEFT THE MATCH") }
+            else { renderBoot(sub: nil) }
 
         case "peerJoined":
-            guard phase == .matchBoot, !isDead, let id = jInt(obj, "id") else { return }
-            goneIds.remove(id)
+            guard phase == .matchBoot, !isDead else { return }
             renderBoot(sub: nil)
 
         default:

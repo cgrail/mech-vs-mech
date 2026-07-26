@@ -197,11 +197,19 @@ private struct EndScreen: View {
             // map without a trip through the lobby — and does it by itself when
             // the countdown runs out
             if model.isMPMatch {
-                BigActionButton(title: model.nextMapIn.map { "NEXT MAP IN \($0)s" } ?? "NEXT MAP",
-                                subtitle: model.nextMapNote,
-                                icon: "forward.fill") { model.requestNextMap() }
-                FlatActionButton(title: "BACK TO LOBBY", icon: "chevron.left") {
-                    model.continueFromEndScreen()
+                if model.deadEnd {
+                    // …but there is no next map to be had: NEXT MAP could only
+                    // be refused again, so the way out is the only action left
+                    BigActionButton(title: model.leaveIn.map { "BACK TO LOBBY IN \($0)s" } ?? "BACK TO LOBBY",
+                                    subtitle: model.nextMapNote,
+                                    icon: "chevron.left") { model.continueFromEndScreen() }
+                } else {
+                    BigActionButton(title: model.nextMapIn.map { "NEXT MAP IN \($0)s" } ?? "NEXT MAP",
+                                    subtitle: model.nextMapNote,
+                                    icon: "forward.fill") { model.requestNextMap() }
+                    FlatActionButton(title: "BACK TO LOBBY", icon: "chevron.left") {
+                        model.continueFromEndScreen()
+                    }
                 }
             } else {
                 BigActionButton(title: won && model.hasNextLevel ? "NEXT LEVEL" : "REDEPLOY",

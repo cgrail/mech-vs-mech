@@ -1,19 +1,10 @@
 # Todo
 
-[x] get rid of setting url parameters in the web app. keep all the state in browser only. refreshing the browser should start from the entry - always. document this also in claude.md
-    → game/core/boot.js: a one-shot sessionStorage handoff carries what a
-      reload needs, the map is remembered in localStorage, and ?level=/?mp=
-      are stripped out of the address bar at boot
-[x] when fog of war is active you sometimes see enemies shoot, but you don't see the enemy if he's around the corner and they appear in a weird way. it's not a smooth appearance.
-    → contact fades in/out instead of switching, and a shot fired from cover
-      is not drawn (no muzzle flash, tracer appears once it clears the corner)
-[x] menus break for smaller screens. do not put more than 2-3 small elements in a row. make the screens taller instead of wider. document this also in claude.md also make the menu elements same size that it feels more natural and enable menu keyboard navigation. menus should look like from 90s game. use vertical menus or menu layout
-    → one vertical column of same-sized rows on both builds (game/ui/menu.js,
-      UI/Styles.swift OptionRow): every setting cycles through ◂ ▸ instead of
-      a button per value, squared-off 90s skin, and ↑↓ ←→ Enter drive it
-[x] on multiplayer, start next game when one games is finished after 10 seconds to keep the momentum going. continue with the next level
-    → the end screen counts down from 10s and fires nextMatch itself; the
-      first request the server sees mints the match for the whole roster
-[x] on multiplayer, when only one room is available and there is enough capacity, directly enter that room. make it smoother
-    → the first room list after joining walks you in when it holds exactly
-      one room with space; armed once, so leaving never pulls you back
+[ ] walking animation sometimes hangs. if i stand still, feet still move. only animate if i'm really moving
+[ ] strafe left/right should use an animation where the feet strafe left or right. currently they move forward
+[ ] if i'm going on ios from start menu to single player, the screen and background animation freezes. maybe offload displaying the mini map into an own thread and show the screen before displaying all details instead of freezing
+[ ] if the name is already taken for multiplayer, just append some number or suffix and continue. 
+[ ] in pilot callsign, offer the enter lobby button also after the name instead of only at the bottom
+[ ] allow selecting the map editor levels also in multi player
+[ ] on web, use same level select list as in single player. it should behave the same
+[ ] in multi player. auto deploy if match is started and every client is ready

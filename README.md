@@ -34,7 +34,7 @@ The room's creator also picks the **MODE** — ⚔ BASE ASSAULT or 🚩 CAPTURE 
 
 It's a symmetric team base assault, from 1v1 up to 5v5: blue deploys around the usual player spawn, red around the enemy end's wave-spawn points. No AI waves, no pre-placed turrets — each pilot earns salvage (fixed +3/s, plus kill bounties for the whole team), builds their own defenses, and the match is won by destroying the other team's base. If you're destroyed you redeploy at your base after a few seconds, so the base is the only thing that decides the match.
 
-When a match ends, the whole roster rolls straight into a rematch on the next map in the list — **the result screen counts down from 10 seconds and starts it by itself**, so a session keeps going without anyone pressing anything. **▸ NEXT MAP** skips the wait, and **BACK TO LOBBY** is there for anyone who wants out. Either way there's no trip through the lobby and no re-picking teams.
+When a match ends, the whole roster rolls straight into a rematch on the next map in the list — **the result screen counts down from 10 seconds and starts it by itself**, so a session keeps going without anyone pressing anything. **▸ NEXT MAP** skips the wait, and **BACK TO LOBBY** is there for anyone who wants out. Either way there's no trip through the lobby and no re-picking teams. If there's nobody left to fight — the other side disconnected, which ends the match anyway — there's no rematch to be had, so the result screen drops NEXT MAP and counts itself back to the lobby in 5 seconds instead.
 
 To play across machines, friends open `http://<your-ip>:8080` — the game connects its WebSocket to whatever host serves it (or override with `?server=host:port`).
 
