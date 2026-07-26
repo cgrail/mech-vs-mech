@@ -7,21 +7,26 @@ import { entities, redBase } from '../entities/entities.js';
 import { audioCtx, boomSfx, startMusic, duckMusic } from '../systems/audio.js';
 import { updateHud, showMessage } from '../ui/hud.js';
 import { applyFog } from '../systems/vision.js';
-import { addOption } from '../ui/menu.js';
+import { addOption, addHero, addPickCards, MODE_UI, modeUi } from '../ui/menu.js';
+import { mapThumb, thumbBox } from '../ui/thumb.js';
 import { MP, connected } from '../net/net.js';
 
 /* ============================================================
    Game flow: the mission menu, start / end screens
 
-   Every setting is one row of the same option column (ui/menu.js):
-   a label, its value between ◂ ▸ steppers. Cycling through the
-   values rather than putting one button per value in a row is
-   what keeps the menu one column wide on a phone, and it is what
-   makes ← → mean the same thing on every row.
+   The menu is one column of titled cards (ui/menu.js explains the
+   layout): the district on a card with its own picture, the mode
+   as two cards you tick, and the settings that are values rather
+   than choices — difficulty, controls, fog — as LABEL · VALUE
+   rows between ◂ ▸ steppers inside the setup card.
 ============================================================ */
 const overlay = document.getElementById('overlay');
 const hud = document.getElementById('hud');
 const optList = document.getElementById('menuOpts');
+const mapPick = document.getElementById('mapPick');
+const modePick = document.getElementById('modePick');
+/* the cards the end screen has no use for in a multiplayer match */
+const roomCards = ['mapCard', 'modeCard', 'setupCard'].map((id) => document.getElementById(id));
 
 /* the mission briefing is the mode's rules plus the control legend for
    whatever is actually driving the mech — a phone gets the touch legend,
@@ -92,16 +97,9 @@ if (BOOT.screen === 'menu') showModeScreen(false);
 
 const levelBtns = []; // [{ b, name, label }] — the list's current-map marks
 
-/* the label the MAP row shows: "7 · THE RIFT", or the bare name for a map
-   that isn't in the list (a draft opened by name) */
-function levelLabel(name) {
-  const i = levels.findIndex((l) => l.name === name);
-  return i < 0 ? name.toUpperCase() : `${i + 1} · ${levelMeta(levels[i]).title}`;
-}
-
 function reflectLevel() {
   for (const { b, name } of levelBtns) b.classList.toggle('selected', name === levelName);
-  mapOpt.reflect();
+  reflectMap();
 }
 
 /* Fly another map in behind the menu. `hideOverlay` reproduces the shape the
@@ -129,26 +127,59 @@ function stepLevel(dir) {
   const i = levels.findIndex((l) => l.name === from);
   const next = levels[((i < 0 ? 0 : i) + dir + levels.length) % levels.length];
   stepTarget = next.name;
-  mapOpt.reflect();   // label leads, map follows it in
+  reflectMap();   // the card leads, the map follows it in
   goLevel(next.name, false);
 }
 
 /* ============================================================
-   The option column — every setting is one row of the same size
-   (ui/menu.js; ← → step a row, ↑ ↓ walk the column)
+   The card column — the district and the mode are cards you tick,
+   the rest are values you cycle (ui/menu.js; ← → step a row,
+   ↑ ↓ walk the screen)
 ============================================================ */
 
-/* MAP: the steppers go to the neighbouring map, the row itself opens the
-   full list. `stepTarget` is where a queued fly is *heading*, so repeated
-   presses count on from there rather than from the map still on screen. */
-const mapOpt = addOption(optList, {
-  label: 'MAP',
-  get: () => levelLabel(stepTarget || levelName), // no fixed value list: the map editor adds and removes maps
+/* MAP: the district itself, drawn from its level text (ui/thumb.js). ◂ ▸ go to
+   the neighbouring map, the card opens the full list. `stepTarget` is where a
+   queued fly is *heading*, so repeated presses count on from there rather than
+   from the map still on screen. */
+const mapHero = addHero(mapPick, {
   step: stepLevel,
   activate: () => showLevelScreen(true),
-  title: 'Pick the district to fight over',
 });
-mapOpt.main.classList.add('open'); // draws the ▾ that says "opens a list"
+const mapNote = document.createElement('div');
+mapNote.className = 'cardNote';
+mapPick.appendChild(mapNote);
+
+function reflectMap() {
+  const name = stepTarget || levelName;
+  const i = levels.findIndex((l) => l.name === name);
+  const entry = i < 0 ? null : levels[i];
+  const meta = entry ? levelMeta(entry) : { title: name.toUpperCase(), desc: '' };
+  mapHero.render({
+    thumb: entry ? mapThumb(entry.text) : null,
+    title: meta.title,
+    meta: `${modeUi(game.mode).title} · ${difficulty().label}`,
+    desc: meta.desc,
+  });
+  mapNote.textContent = i < 0
+    ? 'A DRAFT MAP — TAP THE CARD FOR THE FULL LIST'
+    : `MAP ${i + 1} OF ${levels.length} · TAP THE CARD FOR THE FULL LIST`;
+}
+
+/* MODE: base assault or capture the flag, one card each. Single player only —
+   a multiplayer match plays its room's mode, dealt out with the credentials
+   (net.js), so this card is hidden there. The flags themselves live in
+   systems/ctf.js and listen for the change. */
+addPickCards(modePick, {
+  values: MODE_UI,
+  get: () => game.mode,
+  set: (v) => {
+    game.mode = v;
+    localStorage.setItem('mechMode', v);
+    updateBriefing();
+    reflectMap();     // the map card names the mode it will be played in
+    window.dispatchEvent(new Event('mech:modechanged'));
+  },
+});
 
 /* CONTROL SCHEME: touch devices only — the row is not built at all elsewhere.
    systems/mobile.js reads touch.scheme; the briefing shows its legend. */
@@ -165,23 +196,6 @@ if (touch.active) {
   });
 }
 
-/* MODE: base assault or capture the flag. Single player only — a multiplayer
-   match plays its room's mode, dealt out with the credentials (net.js), so
-   the whole column is hidden there. The flags themselves live in
-   systems/ctf.js and listen for the change. */
-addOption(optList, {
-  label: 'MODE',
-  values: Object.entries(MODES).map(([v, m]) => ({ v, label: m.label })),
-  get: () => game.mode,
-  set: (v) => {
-    game.mode = v;
-    localStorage.setItem('mechMode', v);
-    updateBriefing();
-    window.dispatchEvent(new Event('mech:modechanged'));
-  },
-  title: 'Destroy their base, or run their flag home',
-});
-
 addOption(optList, {
   label: 'DIFFICULTY',
   values: Object.entries(DIFFICULTIES).map(([v, d]) => ({ v, label: d.label })),
@@ -189,6 +203,7 @@ addOption(optList, {
   set: (v) => {
     game.difficulty = v;
     localStorage.setItem('mechDifficulty', v);
+    reflectMap();     // the map card names the difficulty it will be played on
   },
   title: 'How hard the red side hits back',
 });
@@ -221,14 +236,11 @@ function buildLevelList() {
     const { title, desc } = levelMeta(entry);
 
     const b = document.createElement('button');
-    const num = document.createElement('span');
-    num.className = 'num';
-    num.textContent = n;
     const info = document.createElement('span');
     info.className = 'info';
     const t = document.createElement('span');
     t.className = 'title';
-    t.textContent = title;
+    t.textContent = `${n} · ${title}`;
     info.appendChild(t);
     if (desc) {
       const d = document.createElement('span');
@@ -236,7 +248,11 @@ function buildLevelList() {
       d.textContent = desc;
       info.appendChild(d);
     }
-    b.append(num, info);
+    const check = document.createElement('span');
+    check.className = 'check';
+    check.textContent = '✓';
+    // the map's own picture, so a district is recognisable before you fly it in
+    b.append(thumbBox(entry.text), info, check);
     b.addEventListener('click', () => {
       if (isSwitchingMap()) return; // a switch is already flying
       if (name === levelName) { showLevelScreen(false); return; }
@@ -245,6 +261,7 @@ function buildLevelList() {
     levelBtns.push({ b, name });
     levelList.appendChild(b);
   });
+  document.getElementById('levelCount').textContent = `${levels.length} MAPS`;
   reflectLevel();
 }
 
@@ -302,16 +319,20 @@ export function endGame(victory, reason) {
       : 'YOUR BASE WAS DESTROYED');
     // the end screen reuses the menu — going back to mode select doesn't apply here
     document.getElementById('menuBack').classList.add('mpHidden');
+    document.getElementById('briefHead').textContent = 'MISSION REPORT';
     if (MP.active) {
-      // the whole option column is single player's (map, mode and difficulty
-      // are the room's call in a match)
-      optList.classList.add('mpHidden');
+      // map, mode and difficulty are the room's call in a match, so those
+      // cards have nothing to say on a match's end screen
+      for (const c of roomCards) c.classList.add('mpHidden');
       // roll the whole roster on to the next map without a trip through the
       // lobby (wired in lobby.js, which owns the socket) — only worth
       // offering while we can still reach the server
       if (connected()) {
         document.getElementById('nextMapBtn').classList.remove('mpHidden');
-        document.getElementById('startBtn').classList.add('ghost');
+        // NEXT MAP is the green one now; leaving is the quiet button
+        const start = document.getElementById('startBtn');
+        start.classList.remove('goBtn');
+        start.classList.add('ghost');
       }
       const esc = (s) => String(s).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
       const mates = MP.roster.filter((p) => p.team === MP.myTeam && p.id !== MP.playerId).map((p) => p.name);
@@ -327,7 +348,7 @@ export function endGame(victory, reason) {
       document.getElementById('startBtn').textContent = 'BACK TO LOBBY';
     } else {
       document.getElementById('briefing').innerHTML =
-        `<b>MISSION REPORT — ${MODES[game.mode].label} · ${difficulty().label}</b><br>Kills: <b>${stats.kills}</b> · Waves survived: <b>${stats.wave}</b> · Turrets built: <b>${stats.turretsBuilt}</b>` +
+        `<b>${MODES[game.mode].label} · ${difficulty().label}</b><br>Kills: <b>${stats.kills}</b> · Waves survived: <b>${stats.wave}</b> · Turrets built: <b>${stats.turretsBuilt}</b>` +
         (game.mode === 'ctf' ? ` · Captures: <b>${stats.captures.blue} : ${stats.captures.red}</b>` : '') + '<br>' +
         (victory
           ? (nextLevel ? 'Outstanding work, officer. The next district needs you.' : 'Outstanding work, officer. All districts secured.')

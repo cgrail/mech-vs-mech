@@ -156,31 +156,29 @@ struct HUDView: View {
         showPause = false
     }
 
+    /* same card language as the menus (UI/LobbyStyles.swift): the green button
+       is the way on, the flat one is the way out */
     private var pauseOverlay: some View {
         ZStack {
             Color.black.opacity(0.72).ignoresSafeArea()
-            VStack(spacing: 16) {
+            VStack(spacing: 14) {
                 Text("PAUSED")
-                    .font(.system(size: 30, weight: .black, design: .rounded))
+                    .font(.system(size: 26, weight: .heavy))
+                    .italic()
                     .kerning(4)
-                    .foregroundColor(.white)
-                    .shadow(color: .black, radius: 6)
-                Button { resumeFromPause() } label: {
-                    Text("▶ RESUME")
-                        .font(.system(size: 18, weight: .black, design: .rounded))
-                        .frame(width: 240)
-                }
-                .buttonStyle(MenuButtonStyle(prominent: true))
-                Button {
+                    .foregroundColor(Skin.gold)
+                    .shadow(color: Skin.gold.opacity(0.5), radius: 12)
+                BigActionButton(title: "RESUME", icon: "play.fill") { resumeFromPause() }
+                FlatActionButton(title: model.isMPMatch ? "LEAVE MATCH" : "QUIT TO MENU",
+                                 icon: "chevron.left") {
                     showPause = false
                     model.quitToMenu()
-                } label: {
-                    Text(model.isMPMatch ? "LEAVE MATCH" : "QUIT TO MENU")
-                        .font(.system(size: 16, weight: .heavy, design: .rounded))
-                        .frame(width: 240)
                 }
-                .buttonStyle(MenuButtonStyle())
             }
+            .padding(16)
+            .frame(width: 300)
+            .background(AngledRect().fill(LobbySkin.cardFill))
+            .overlay(AngledRect().stroke(LobbySkin.cardEdge, lineWidth: 1))
         }
     }
 

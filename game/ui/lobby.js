@@ -5,6 +5,8 @@ import { switchMap } from '../core/mapswitch.js';
 import { BOOT, bootReload } from '../core/boot.js';
 import { startGame, backToLobby } from '../core/flow.js';
 import { audioCtx } from '../systems/audio.js';
+import { addPickCards, MODE_UI, modeUi } from './menu.js';
+import { mapThumb, thumbBox } from './thumb.js';
 
 /* ============================================================
    Multiplayer UI — rooms of team matches, up to 5 v 5
@@ -40,9 +42,12 @@ const roomNameEl = document.getElementById('mpRoomName');
 const mapSelect = document.getElementById('mpMapSelect');
 const mapPrevBtn = document.getElementById('mpMapPrev');
 const mapNextBtn = document.getElementById('mpMapNext');
-const mapNameEl = document.getElementById('mpMapName');
-const modeSelect = document.getElementById('mpModeSelect');
-const modeNameEl = document.getElementById('mpModeName');
+const mapHeroEl = document.getElementById('mpMapHero');
+const mapNoteEl = document.getElementById('mpMapNote');
+const modePickEl = document.getElementById('mpModePick');
+const modeNoteEl = document.getElementById('mpModeNote');
+const teamNoteEl = document.getElementById('mpTeamNote');
+const roomCountEl = document.getElementById('mpRoomCount');
 const leaveBtn = document.getElementById('mpLeaveBtn');
 const teamsEl = document.getElementById('mpTeams');
 const listEl = document.getElementById('mpList');
@@ -73,6 +78,42 @@ function enterMatch(m, name) {
 const maps = levels.filter((l) => !l.user) // editor maps are local: the server has no copy
   .map((l) => ({ param: levelParam(l.name), ...levelMeta(l) }));
 const mapTitle = (param) => maps.find((m) => m.param === param)?.title || String(param).toUpperCase();
+
+/* the room's map on the same card the mission menu shows: the map's own
+   picture (ui/thumb.js), its name, and what it will be played as */
+function renderMapHero(param, mode) {
+  const entry = levels.find((l) => levelParam(l.name) === param);
+  mapHeroEl.textContent = '';
+  const pic = document.createElement('span');
+  pic.className = entry ? 'heroThumb' : 'heroThumb empty';
+  const img = entry ? mapThumb(entry.text) : null;
+  if (img) pic.appendChild(img);
+  const cap = document.createElement('span');
+  cap.className = 'heroCap';
+  const t = document.createElement('span');
+  t.className = 't';
+  t.textContent = mapTitle(param);
+  const m = document.createElement('span');
+  m.className = 'm';
+  m.textContent = `${TEAM_MAX} VS ${TEAM_MAX} · ${modeUi(mode).title}`;
+  const d = document.createElement('span');
+  d.className = 'd';
+  d.textContent = entry ? levelMeta(entry).desc : '';
+  cap.append(t, m, d);
+  mapHeroEl.append(pic, cap);
+}
+
+/* the room's mode, on the same cards the mission menu uses. The server rejects
+   setMode from anyone but the room's owner, so for everyone else the cards go
+   read-only and only say what the room plays. */
+let roomMode = 'assault';
+let canPickMode = false;
+const modeCards = addPickCards(modePickEl, {
+  values: MODE_UI,
+  get: () => roomMode,
+  set: (v) => send({ type: 'setMode', mode: v }),
+  enabled: () => canPickMode,
+});
 
 /* ============================================================
    Map preview — the room's map is what orbits behind the lobby
@@ -250,6 +291,7 @@ let joined = false;
 let autoJoin = false;    // returning from a match: rejoin with the saved name
 let autoRoom = false;    // just entered the lobby: walk into the only room going
 let manualClose = false; // BACK pressed: the socket close is expected
+let focusedRoom = null;  // the room the menu cursor was moved into
 let lastState = { players: [], rooms: [] };
 
 nameInput.value = localStorage.getItem('mechMpName') || '';
@@ -348,24 +390,44 @@ function renderList(state) {
   show(teamsEl, myRoom != null);
   show(startBtn, myRoom != null);
 
+  /* Walking into a room replaces the browser under the cursor, so put the
+     menu cursor on the first thing there is to decide — the team — rather than
+     leaving it on the row that just vanished (or on LEAVE ROOM, which is the
+     first stop in the room's DOM order). Selection is focus (ui/menu.js). */
+  if (myRoom != null && myRoom !== focusedRoom) {
+    focusedRoom = myRoom;
+    document.getElementById('mpTeamBlue').focus({ preventScroll: true });
+  } else if (myRoom == null) {
+    focusedRoom = null;
+  }
+
   /* ---------- room browser ---------- */
   if (myRoom == null) {
     roomListEl.textContent = '';
+    roomCountEl.textContent = rooms.length ? `${rooms.length} OPEN` : '';
     for (const r of rooms) {
-      const row = document.createElement('div');
-      row.className = 'mpRow';
+      // the whole row is the way in, and it carries the room's map
+      const b = document.createElement('button');
+      b.className = 'roomRow' + (r.count >= ROOM_MAX ? ' full' : '');
+      const entry = levels.find((l) => levelParam(l.name) === r.level);
+      const info = document.createElement('span');
+      info.className = 'info';
       const n = document.createElement('span');
       n.className = 'name';
       n.textContent = r.name;
-      const st = document.createElement('span');
-      st.className = 'st';
-      st.textContent = `${r.count} PILOT${r.count === 1 ? '' : 'S'} · ${mapTitle(r.level)}`
-        + (r.mode === 'ctf' ? ' · 🚩 CTF' : '');
-      const b = document.createElement('button');
-      b.textContent = 'JOIN';
+      const meta = document.createElement('span');
+      meta.className = 'meta';
+      meta.textContent = `${modeUi(r.mode).ico} ${mapTitle(r.level)}`;
+      info.append(n, meta);
+      const count = document.createElement('span');
+      count.className = 'count';
+      count.textContent = `${r.count}/${ROOM_MAX}`;
+      const go = document.createElement('span');
+      go.className = 'go';
+      go.textContent = '›';
+      b.append(thumbBox(entry && entry.text), info, count, go);
       b.addEventListener('click', () => send({ type: 'joinRoom', roomId: r.id }));
-      row.append(n, st, b);
-      roomListEl.appendChild(row);
+      roomListEl.appendChild(b);
     }
     if (!rooms.length) {
       const row = document.createElement('div');
@@ -390,55 +452,55 @@ function renderList(state) {
   roomNameEl.textContent = room ? room.name : 'ROOM';
   const members = players.filter((p) => p.room === myRoom);
 
+  /* the mode rides along with the map: the owner picks, everyone else reads */
+  const mode = room && MODES[room.mode] ? room.mode : 'assault';
+  roomMode = mode;
+  canPickMode = !!room && room.owner === myId;
+  modeCards.reflect();
+  modeNoteEl.textContent = canPickMode ? '' : 'PICKED BY THE CREATOR';
+
   /* the map: the owner picks it, everyone else reads it. (A level this page
-     doesn't know — a tab older than the deployed bundle — shows as a label,
-     so the picker can never send a param the page can't name.) */
+     doesn't know — a tab older than the deployed bundle — has no entry to draw
+     a thumbnail from and no option in the picker, so the picker can never send
+     a param the page can't name.) */
   const map = room ? room.level : levelParam(levelName);
   const canPick = !!room && room.owner === myId && maps.some((m) => m.param === map);
   show(mapSelect, canPick);
   show(mapPrevBtn, canPick);
   show(mapNextBtn, canPick);
-  show(mapNameEl, !canPick);
   // only when it actually differs: reassigning value closes an open dropdown
-  if (canPick) { if (mapSelect.value !== map) mapSelect.value = map; }
-  else mapNameEl.textContent = mapTitle(map);
+  if (canPick && mapSelect.value !== map) mapSelect.value = map;
+  mapNoteEl.textContent = canPick ? '' : 'PICKED BY THE CREATOR';
+  renderMapHero(map, mode);
   previewMap(map); // the room's map is what orbits behind the overlay
 
-  /* the mode rides along with the map: the owner picks, everyone else reads */
-  const mode = room && MODES[room.mode] ? room.mode : 'assault';
-  const canPickMode = !!room && room.owner === myId;
-  show(modeSelect, canPickMode);
-  show(modeNameEl, !canPickMode);
-  if (canPickMode) { if (modeSelect.value !== mode) modeSelect.value = mode; }
-  else modeNameEl.textContent = MODES[mode].label;
-
   for (const team of ['blue', 'red']) {
+    // the whole team card is the button, so tapping it joins or leaves
     const col = document.getElementById(team === 'blue' ? 'mpTeamBlue' : 'mpTeamRed');
     const list = col.querySelector('.tList');
-    const btn = col.querySelector('button');
     const teamed = members.filter((p) => p.team === team);
-    col.querySelector('.tHead').textContent = `${team.toUpperCase()} TEAM ${teamed.length}/${TEAM_MAX}`;
+    const mine = myTeam === team;
+    col.querySelector('.tName').textContent = `${team.toUpperCase()} TEAM`;
+    col.querySelector('.tCount').textContent = `${teamed.length} / ${TEAM_MAX} PILOTS`;
     list.textContent = '';
     for (const p of teamed) {
-      const row = document.createElement('div');
+      const row = document.createElement('span');
       row.className = 'tSlot' + (p.id === myId ? ' me' : '');
-      row.textContent = p.id === myId ? `${p.name} (YOU)` : p.name;
+      row.textContent = p.id === myId ? `${p.name} ◂ YOU` : p.name;
       list.appendChild(row);
     }
     for (let i = teamed.length; i < TEAM_MAX; i++) {
-      const row = document.createElement('div');
+      const row = document.createElement('span');
       row.className = 'tSlot empty';
-      row.textContent = 'OPEN SLOT';
+      row.textContent = 'OPEN';
       list.appendChild(row);
     }
-    if (myTeam === team) {
-      btn.textContent = 'LEAVE TEAM';
-      btn.disabled = false;
-    } else {
-      btn.textContent = `JOIN ${team.toUpperCase()}`;
-      btn.disabled = teamed.length >= TEAM_MAX;
-    }
+    col.classList.toggle('on', mine);
+    col.disabled = !mine && teamed.length >= TEAM_MAX;
+    col.querySelector('.tAct').textContent = mine ? 'LEAVE TEAM'
+      : (col.disabled ? 'TEAM FULL' : `JOIN ${team.toUpperCase()}`);
   }
+  teamNoteEl.textContent = myTeam ? '' : 'PICK A SIDE';
 
   renderIdle(members.filter((p) => !p.team), 'IN THIS ROOM');
 
@@ -498,7 +560,6 @@ if (!MP.active) {
     mapSelect.value = next.param;
     send({ type: 'setLevel', level: next.param });
   };
-  modeSelect.addEventListener('change', () => send({ type: 'setMode', mode: modeSelect.value }));
   mapPrevBtn.addEventListener('click', () => stepMap(-1));
   mapNextBtn.addEventListener('click', () => stepMap(1));
   for (const btn of teamsEl.querySelectorAll('button')) {

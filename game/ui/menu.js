@@ -1,19 +1,24 @@
 /* ============================================================
    Menu rows and keyboard navigation
 
-   Every menu screen is one vertical column of rows that are all
-   the same width and the same height — a 90s console option
-   list rather than a page of wrapping pill rows. Two reasons
-   beyond the look: a column grows *down* on a small screen
-   instead of spilling sideways (#overlay scrolls, so taller is
-   free and wider is not), and rows that are all one size read
-   as a menu you walk through rather than a toolbar.
+   Every menu screen is one vertical column of titled cards, one
+   decision per card (style.css `.card`; the iOS port is laid out
+   the same way — ios/MechVsMech/UI/LobbyStyles.swift). A card is
+   the column's width and never grows past it: a column grows
+   *down* on a small screen instead of spilling sideways
+   (#overlay scrolls, so taller is free and wider is not).
 
-   An option row is LABEL · VALUE between ◂ ▸ steppers — three
-   controls, never more. Multi-value settings cycle through the
-   steppers instead of putting one button per value in a row,
-   which is what used to overflow at four difficulties or five
-   maps wide.
+   Two kinds of control live in those cards, and the difference
+   is the point:
+
+   - The big choices are cards you tick — the map (with its own
+     picture, `addHero`), the mode, the team, a level. You can
+     see what you are choosing.
+   - The small settings stay LABEL · VALUE between ◂ ▸ steppers
+     (`addOption`) — three controls in a row, never more. A value
+     you cycle in place is what keeps a setting to one row on a
+     phone, and it is what makes ← → mean the same thing on every
+     row.
 
    Selection *is* DOM focus, so the keyboard, the mouse and
    touch can never disagree about what is highlighted: ↑ ↓ walk
@@ -21,6 +26,8 @@
    Space activates it. Steppers are skipped by ↑ ↓ — they are
    what ← → drive — so a column of N options is N stops, not 3N.
 ============================================================ */
+import { CAPTURES_TO_WIN } from '../core/state.js';
+
 const overlay = document.getElementById('overlay');
 
 /* ---------- option rows ---------- */
@@ -76,6 +83,122 @@ export function addOption(list, { label, values, get, set, step, activate, title
   reflect();
   return { row, main, reflect };
 }
+
+/* ---------- the map hero ----------
+   The map card is an option row underneath — ◂ main ▸, so ← → step to the
+   neighbouring map exactly like any other setting — grown to hold the map's
+   own picture (ui/thumb.js). The middle button opens the full list.
+   `render` is called by whoever owns the value whenever the map changes. */
+export function addHero(list, { step, activate, label = 'MAP' }) {
+  const row = document.createElement('div');
+  row.className = 'opt tall';
+
+  const arrow = (glyph, dir) => {
+    const b = document.createElement('button');
+    b.className = 'step';
+    b.textContent = glyph;
+    b.setAttribute('aria-label', `${dir < 0 ? 'Previous' : 'Next'} ${label.toLowerCase()}`);
+    b.addEventListener('click', () => step(dir));
+    return b;
+  };
+
+  const main = document.createElement('button');
+  main.className = 'main hero';
+  const pic = document.createElement('span');
+  pic.className = 'heroThumb';
+  const cap = document.createElement('span');
+  cap.className = 'heroCap';
+  const t = document.createElement('span');
+  t.className = 't';
+  const m = document.createElement('span');
+  m.className = 'm';
+  const d = document.createElement('span');
+  d.className = 'd';
+  cap.append(t, m, d);
+  main.append(pic, cap);
+  main.addEventListener('click', activate);
+
+  row.append(arrow('◂', -1), main, arrow('▸', 1));
+  list.appendChild(row);
+
+  return {
+    row,
+    main,
+    render({ thumb, title, meta, desc }) {
+      pic.textContent = '';
+      pic.className = thumb ? 'heroThumb' : 'heroThumb empty';
+      if (thumb) pic.appendChild(thumb);
+      t.textContent = title;
+      m.textContent = meta || '';
+      d.textContent = desc || '';
+    },
+  };
+}
+
+/* ---------- cards you tick ----------
+   One card per value — icon, name, one line of what it means, and a checkbox
+   on the one that is picked. Used for the game mode in the mission menu and in
+   a lobby room; `enabled` is what makes a joiner's mode cards read-only. */
+export function addPickCards(container, { values, get, set, enabled = () => true }) {
+  container.textContent = '';
+  const cards = values.map((o) => {
+    const b = document.createElement('button');
+    b.className = 'pick';
+    const ico = document.createElement('span');
+    ico.className = `ico ${o.cls || 'blue'}`;
+    ico.textContent = o.ico || '';
+    const info = document.createElement('span');
+    info.className = 'info';
+    const t = document.createElement('span');
+    t.className = 't';
+    t.textContent = o.title;
+    const d = document.createElement('span');
+    d.className = 'd';
+    d.textContent = o.desc || '';
+    info.append(t, d);
+    const check = document.createElement('span');
+    check.className = 'check';
+    check.textContent = '✓';
+    b.append(ico, info, check);
+    b.addEventListener('click', () => {
+      set(o.v);
+      reflect();
+    });
+    container.appendChild(b);
+    return { b, v: o.v };
+  });
+
+  function reflect() {
+    const cur = get();
+    const live = enabled();
+    for (const c of cards) {
+      const on = c.v === cur;
+      c.b.classList.toggle('on', on);
+      c.b.disabled = !live;
+      // a choice somebody else made: readable, but plainly not ours to change
+      c.b.classList.toggle('dimmed', !live && !on);
+    }
+  }
+
+  reflect();
+  return { reflect };
+}
+
+/* How a game mode is shown on a card. The icon and the one-line pitch are
+   presentation, so they live here rather than in core/state.js, which is kept
+   in lockstep with the iOS port's Engine/State.swift; the copy mirrors the
+   `GameMode.ui*` extension in ios/MechVsMech/UI/LobbyStyles.swift. */
+export const MODE_UI = [
+  {
+    v: 'assault', ico: '🏰', cls: 'blue', title: 'BASE ASSAULT',
+    desc: 'Destroy the enemy base at the far end of the district.',
+  },
+  {
+    v: 'ctf', ico: '🚩', cls: 'red', title: 'CAPTURE THE FLAG',
+    desc: `Steal the enemy flag and run it home — ${CAPTURES_TO_WIN} captures win.`,
+  },
+];
+export const modeUi = (v) => MODE_UI.find((m) => m.v === v) || MODE_UI[0];
 
 /* a row that runs a command instead of holding a value (no steppers, same
    size as everything else in the column) */

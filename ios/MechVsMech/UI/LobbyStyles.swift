@@ -2,24 +2,23 @@ import SwiftUI
 import CoreGraphics
 
 /* ============================================================
-   Lobby chrome — titled cards, selectable cards, map thumbnails
-   and the one primary action per screen.
+   Screen chrome — titled cards, selectable cards, map thumbnails
+   and the one primary action per screen. Every overlay screen is
+   built from these: the lobby, the mission menu, the level select
+   and the end screen (UI/LobbyView.swift, UI/Menus.swift).
 
-   The menus are a 90s option column (UI/Styles.swift, and the
-   rule in CLAUDE.md): one narrow stack of LABEL · VALUE rows.
-   The lobby is the one screen that cannot be said that way — it
-   has to show three decisions at once (map, mode, team) plus who
-   is standing in the room, and a value-stepper row can't show a
-   map or a roster. So it keeps the palette and the uppercase
-   kerned type, and lays the decisions out as titled cards that
-   fill the screen top to bottom over the orbiting map preview,
-   instead of a block scaled down into the middle of it.
+   The layout rule: one column of titled cards, one decision per
+   card, filling the screen top to bottom over the orbiting map.
+   Nothing grows sideways past the column — a card is at most
+   `520` wide and the rows inside it hold at most three controls,
+   the same limit the web overlay works to. What doesn't fit
+   scrolls, and the nav bar and the action button are pinned, so
+   the two things you always need are never scrolled away.
 
-   What still holds from the menu rule: one column of cards, no
-   card grows sideways past it, and no row holds more than three
-   controls. Anything that doesn't fit scrolls — the nav bar and
-   the action button are pinned, so the two things you always
-   need are never scrolled away.
+   The big choices are cards you pick with a checkmark (map, mode,
+   team, level); the small settings are still LABEL · VALUE
+   between ◂ ▸ steppers (`CardOptionRow`), because cycling a value
+   in place is what keeps a setting to one row on a phone.
 ============================================================ */
 
 enum LobbySkin {
@@ -66,11 +65,13 @@ struct AngledRect: Shape {
 }
 
 /* ---------- the screen frame ----------
-   nav bar · scrolling card column · pinned action bar. Unlike OverlayFrame
-   (which scales a menu down as one block) the lobby fills the screen and
-   scrolls, because its content grows with the roster and the map list. */
+   nav bar · scrolling card column · pinned action bar. A screen fills the
+   phone and scrolls rather than being scaled down to fit as one block: its
+   content grows with the roster, the map list and the level list, and the
+   two controls you always need are pinned outside the scroll. */
 struct LobbyChrome<Content: View, Footer: View>: View {
-    let title: String
+    /* nil on the mode select, which has its own big title and nowhere to go back to */
+    let title: String?
     var onBack: (() -> Void)?
     /* a row .id() to bring into view when it appears — the map list opens on
        the map the room is already playing rather than at map 1 */
@@ -78,7 +79,7 @@ struct LobbyChrome<Content: View, Footer: View>: View {
     private let content: Content
     private let footer: Footer
 
-    init(title: String, onBack: (() -> Void)? = nil, scrollTo: String? = nil,
+    init(title: String?, onBack: (() -> Void)? = nil, scrollTo: String? = nil,
          @ViewBuilder content: () -> Content,
          @ViewBuilder footer: () -> Footer) {
         self.title = title
@@ -101,7 +102,7 @@ struct LobbyChrome<Content: View, Footer: View>: View {
             .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                LobbyNavBar(title: title, onBack: onBack)
+                if let title { LobbyNavBar(title: title, onBack: onBack) }
                 ScrollViewReader { proxy in
                     ScrollView(.vertical, showsIndicators: false) {
                         HStack(spacing: 0) {
@@ -116,6 +117,11 @@ struct LobbyChrome<Content: View, Footer: View>: View {
                     // next runloop, not this one: the rows have to exist first
                     .onChange(of: scrollTo) { _, id in
                         guard let id else { return }
+                        DispatchQueue.main.async { proxy.scrollTo(id, anchor: .center) }
+                    }
+                    // …and the level select is already pointed at a row when it opens
+                    .onAppear {
+                        guard let id = scrollTo else { return }
                         DispatchQueue.main.async { proxy.scrollTo(id, anchor: .center) }
                     }
                 }
@@ -274,6 +280,164 @@ extension View {
     func pickBox(selected: Bool, fill: Color = LobbySkin.inset,
                  edge: Color = Skin.border, glow: Color = LobbySkin.pickGlow) -> some View {
         modifier(PickBox(selected: selected, fill: fill, edge: edge, glow: glow))
+    }
+}
+
+/* the coloured glyph tile a card leads with */
+struct IconTile: View {
+    let icon: String
+    var tint: Color = LobbySkin.pick
+    var side: CGFloat = 38
+
+    var body: some View {
+        Image(systemName: icon)
+            .font(.system(size: side * 0.42, weight: .bold))
+            .foregroundColor(tint)
+            .frame(width: side, height: side)
+            .background(Rectangle().fill(tint.opacity(0.14)))
+            .overlay(Rectangle().stroke(tint.opacity(0.5), lineWidth: 1))
+    }
+}
+
+/* ◂ ▸ beside the map card: the neighbouring map, no list to open */
+struct StepArrow: View {
+    let icon: String
+    var height: CGFloat = 96
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: icon)
+                .font(.system(size: 16, weight: .heavy))
+                .foregroundColor(Skin.blueText)
+                .frame(width: 32, height: height)
+                .background(Rectangle().fill(LobbySkin.inset))
+                .overlay(Rectangle().stroke(LobbySkin.cardEdge, lineWidth: 1))
+        }
+        .buttonStyle(CardButtonStyle())
+    }
+}
+
+/* the big map card — the lobby's room map and the mission menu's district are
+   the same thing said twice, so they are drawn by the same view */
+struct MapHeroCard<Line: View>: View {
+    let text: String?           // level text the thumbnail is drawn from
+    let title: String
+    var desc: String = ""
+    var height: CGFloat = 130
+    private let line: Line
+
+    init(text: String?, title: String, desc: String = "", height: CGFloat = 130,
+         @ViewBuilder line: () -> Line) {
+        self.text = text
+        self.title = title
+        self.desc = desc
+        self.height = height
+        self.line = line()
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            MapThumb(text: text).frame(height: height)
+            VStack(spacing: 4) {
+                Text(title)
+                    .font(.system(size: 15, weight: .heavy)).kerning(2)
+                    .foregroundColor(Skin.goldSoft)
+                    .lineLimit(1)
+                line
+                    .font(.system(size: 9, weight: .heavy)).kerning(1)
+                    .foregroundColor(Skin.blueText)
+                if !desc.isEmpty {
+                    Text(desc)
+                        .font(.system(size: 10))
+                        .foregroundColor(Skin.dimText)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.center)
+                }
+            }
+            .padding(.horizontal, 10).padding(.vertical, 9)
+            .frame(maxWidth: .infinity)
+            .background(Color(hex: 0x0a0f1c).opacity(0.92))
+        }
+        .pickBox(selected: true, fill: LobbySkin.inset,
+                 edge: LobbySkin.pick, glow: LobbySkin.pickGlow)
+    }
+}
+
+/* one game mode, as a card you tick — the lobby's room mode and the mission
+   menu's single-player mode */
+struct ModeCard: View {
+    let mode: GameMode
+    let selected: Bool
+    /* a mode somebody else picked: readable, but plainly not the choice here */
+    var dimmed = false
+
+    var body: some View {
+        HStack(spacing: 10) {
+            IconTile(icon: mode.uiIcon, tint: mode.uiTint)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(mode.uiTitle)
+                    .font(.system(size: 13, weight: .heavy)).kerning(2)
+                    .foregroundColor(selected ? Skin.lightText : Skin.blueText)
+                Text(mode.uiBlurb)
+                    .font(.system(size: 10))
+                    .foregroundColor(Skin.dimText)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+            }
+            Spacer(minLength: 4)
+            CheckBadge(on: selected, tint: mode.uiTint)
+        }
+        .padding(8)
+        .pickBox(selected: selected, fill: LobbySkin.inset,
+                 edge: Skin.border, glow: mode.uiTint)
+        .opacity(dimmed ? 0.45 : 1)
+    }
+}
+
+/* ---------- a setting inside a card ----------
+   LABEL · VALUE between ◂ ▸ steppers, the option row from the browser build
+   (style.css .opt) fitted to a card's width. Cards are for the choices you
+   want to see (map, mode, team); a difficulty or a fog toggle is a value you
+   cycle, and cycling it in place is what keeps it to one row on a phone. */
+struct CardOptionRow: View {
+    let label: String
+    let value: String
+    let step: (Int) -> Void
+
+    var body: some View {
+        HStack(spacing: 6) {
+            stepper("chevron.left", -1)
+            Button { step(1) } label: {
+                HStack(spacing: 10) {
+                    Text(label)
+                        .font(.system(size: 11, weight: .heavy)).kerning(2)
+                        .foregroundColor(Skin.dimText)
+                    Spacer(minLength: 8)
+                    Text(value)
+                        .font(.system(size: 12, weight: .heavy)).kerning(1)
+                        .foregroundColor(Skin.gold)
+                        .lineLimit(1)
+                }
+                .padding(.horizontal, 12)
+                .frame(maxWidth: .infinity, minHeight: 38)
+                .pickBox(selected: false)
+            }
+            .buttonStyle(CardButtonStyle())
+            stepper("chevron.right", 1)
+        }
+    }
+
+    private func stepper(_ icon: String, _ dir: Int) -> some View {
+        Button { step(dir) } label: {
+            Image(systemName: icon)
+                .font(.system(size: 12, weight: .heavy))
+                .foregroundColor(Skin.blueText)
+                .frame(width: 34, height: 38)
+                .background(Rectangle().fill(LobbySkin.inset))
+                .overlay(Rectangle().stroke(LobbySkin.cardEdge, lineWidth: 1))
+        }
+        .buttonStyle(CardButtonStyle())
     }
 }
 

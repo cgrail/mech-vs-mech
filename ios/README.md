@@ -50,13 +50,14 @@ and web players share rooms). Flow mirrors the web: enter a callsign → create 
 join a room → pick blue or red (max 5/side) → START MATCH once both sides have a
 pilot → a READY handshake deploys everyone at once.
 
-The lobby is the one screen that is **not** the web overlay's option column: it
-has to show three decisions at once, so `UI/LobbyView.swift` lays them out as a
-column of titled cards (map · mode · team) over the orbiting map preview, with
-the title bar and the single action button pinned. Every map card carries a
-thumbnail drawn from the level text itself — one pixel per 8×8 tile, no artwork
-to ship (`UI/LobbyStyles.swift`). It is a different layout of the same lobby
-protocol: no message, roster rule or map param differs from the web build.
+Every overlay screen — the lobby, the mission menu, the level select, the end
+screen — is one column of titled cards over the orbiting map preview, with the
+title bar and the single green action button pinned outside the scroll
+(`UI/LobbyStyles.swift` holds the chrome, `UI/LobbyView.swift` and `UI/Menus.swift`
+the screens). Map cards carry a thumbnail drawn from the level text itself — one
+pixel per 8×8 tile, no artwork to ship. The browser build is laid out the same
+way (style.css `.card`, `game/ui/menu.js`), and the lobby is a different layout
+of the same protocol: no message, roster rule or map param differs from it.
 
 The room's creator picks its **map and its mode** (⚔ BASE ASSAULT or 🚩 CAPTURE
 THE FLAG, `setMode`); both travel with the match credentials, so a phone and a

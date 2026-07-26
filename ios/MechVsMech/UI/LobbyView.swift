@@ -262,9 +262,9 @@ struct LobbyView: View {
                            note: lobby.iOwnRoom ? nil : "PICKED BY THE CREATOR") {
             VStack(spacing: 8) {
                 HStack(spacing: 8) {
-                    if canPick { stepArrow("chevron.left") { lobby.stepMap(-1) } }
+                    if canPick { StepArrow(icon: "chevron.left") { lobby.stepMap(-1) } }
                     mapHero(canPick: canPick)
-                    if canPick { stepArrow("chevron.right") { lobby.stepMap(1) } }
+                    if canPick { StepArrow(icon: "chevron.right") { lobby.stepMap(1) } }
                 }
                 if canPick, let at {
                     Text("MAP \(at + 1) OF \(lobby.maps.count) · TAP THE CARD FOR THE FULL LIST")
@@ -287,50 +287,17 @@ struct LobbyView: View {
     }
 
     private var mapHeroFace: some View {
-        let desc = lobby.maps.first { $0.param == lobby.roomMapParam }?.desc ?? ""
-        return VStack(spacing: 0) {
-            MapThumb(text: lobby.levelText(param: lobby.roomMapParam))
-                .frame(height: 130)
-            VStack(spacing: 4) {
-                Text(lobby.roomMapTitle)
-                    .font(.system(size: 15, weight: .heavy)).kerning(2)
-                    .foregroundColor(Skin.goldSoft)
-                    .lineLimit(1)
-                HStack(spacing: 6) {
-                    Image(systemName: "person.2.fill").font(.system(size: 9, weight: .bold))
-                    Text("\(LOBBY_TEAM_MAX) VS \(LOBBY_TEAM_MAX)")
-                    Text("·")
-                    Image(systemName: lobby.roomMode.uiIcon).font(.system(size: 9, weight: .bold))
-                    Text(lobby.roomMode.uiTitle)
-                }
-                .font(.system(size: 9, weight: .heavy)).kerning(1)
-                .foregroundColor(Skin.blueText)
-                if !desc.isEmpty {
-                    Text(desc)
-                        .font(.system(size: 10))
-                        .foregroundColor(Skin.dimText)
-                        .lineLimit(2)
-                        .multilineTextAlignment(.center)
-                }
+        MapHeroCard(text: lobby.levelText(param: lobby.roomMapParam),
+                    title: lobby.roomMapTitle,
+                    desc: lobby.maps.first { $0.param == lobby.roomMapParam }?.desc ?? "") {
+            HStack(spacing: 6) {
+                Image(systemName: "person.2.fill").font(.system(size: 9, weight: .bold))
+                Text("\(LOBBY_TEAM_MAX) VS \(LOBBY_TEAM_MAX)")
+                Text("·")
+                Image(systemName: lobby.roomMode.uiIcon).font(.system(size: 9, weight: .bold))
+                Text(lobby.roomMode.uiTitle)
             }
-            .padding(.horizontal, 10).padding(.vertical, 9)
-            .frame(maxWidth: .infinity)
-            .background(Color(hex: 0x0a0f1c).opacity(0.92))
         }
-        .pickBox(selected: true, fill: LobbySkin.inset,
-                 edge: LobbySkin.pick, glow: LobbySkin.pickGlow)
-    }
-
-    private func stepArrow(_ icon: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Image(systemName: icon)
-                .font(.system(size: 16, weight: .heavy))
-                .foregroundColor(Skin.blueText)
-                .frame(width: 32, height: 96)
-                .background(Rectangle().fill(LobbySkin.inset))
-                .overlay(Rectangle().stroke(LobbySkin.cardEdge, lineWidth: 1))
-        }
-        .buttonStyle(CardButtonStyle())
     }
 
     private var mapListCard: some View {
@@ -398,32 +365,9 @@ struct LobbyView: View {
     }
 
     private func modeFace(_ m: GameMode) -> some View {
-        let selected = lobby.roomMode == m
-        return HStack(spacing: 10) {
-            Image(systemName: m.uiIcon)
-                .font(.system(size: 16, weight: .bold))
-                .foregroundColor(m.uiTint)
-                .frame(width: 38, height: 38)
-                .background(Rectangle().fill(m.uiTint.opacity(0.14)))
-                .overlay(Rectangle().stroke(m.uiTint.opacity(0.5), lineWidth: 1))
-            VStack(alignment: .leading, spacing: 3) {
-                Text(m.uiTitle)
-                    .font(.system(size: 13, weight: .heavy)).kerning(2)
-                    .foregroundColor(selected ? Skin.lightText : Skin.blueText)
-                Text(m.uiBlurb)
-                    .font(.system(size: 10))
-                    .foregroundColor(Skin.dimText)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.leading)
-            }
-            Spacer(minLength: 4)
-            CheckBadge(on: selected, tint: m.uiTint)
-        }
-        .padding(8)
-        .pickBox(selected: selected, fill: LobbySkin.inset,
-                 edge: Skin.border, glow: m.uiTint)
         // the mode a joiner can't change still shows which one the room plays
-        .opacity(lobby.iOwnRoom || selected ? 1 : 0.45)
+        ModeCard(mode: m, selected: lobby.roomMode == m,
+                 dimmed: !lobby.iOwnRoom && lobby.roomMode != m)
     }
 
     private func teamsCard(_ members: [LobbyPlayer]) -> some View {
