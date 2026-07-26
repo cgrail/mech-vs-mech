@@ -685,7 +685,7 @@ body.touch #touchControls { display: flex; }
   #overlay h1 { font-size: 28px; letter-spacing: 3px; }
   #overlay h2 { font-size: 13px; }
   #overlay .panel { padding: 10px 12px; font-size: 11px; line-height: 1.7; }
-  .screenScroll { gap: 10px; }
+  .screenScroll, #mpRoomBar { gap: 10px; }
   .navBar { min-height: 40px; }
   #overlay .goBtn { font-size: 15px; padding: 11px 20px; }
   /* the cards get shorter rows, never narrower ones — width is what runs out */

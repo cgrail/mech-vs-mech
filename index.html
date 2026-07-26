@@ -278,8 +278,10 @@
     </div>
   </div>
   <!-- The lobby is the same card column: callsign, rooms, then the room's own
-       three decisions (map · mode · team). #mpRoomBar groups the room cards so
-       one class toggle still shows or hides the lot (ui/lobby.js). -->
+       three decisions in the order they matter to the pilot who just walked in
+       (team · mode · map — the last two are the creator's to set anyway).
+       #mpRoomBar groups the room cards so one class toggle still shows or hides
+       the lot (ui/lobby.js). -->
   <div class="screen hidden" id="mpScreen">
     <div class="navBar">
       <button id="mpBack" class="navBack" aria-label="Back" title="Back">◂</button>
@@ -306,6 +308,27 @@
             <button id="mpLeaveBtn" class="ghost">◂ LEAVE ROOM</button>
           </div>
         </div>
+        <div id="mpTeams" class="card">
+          <div class="cardHead"><span class="ico">👥</span>TEAM SELECTION<span class="note" id="mpTeamNote"></span></div>
+          <div class="cardBody teams">
+            <button class="mpTeam" id="mpTeamBlue" data-team="blue">
+              <span class="tHead"><span class="tName">BLUE TEAM</span><span class="check">✓</span></span>
+              <span class="tCount"></span>
+              <span class="tList"></span>
+              <span class="tAct">JOIN BLUE</span>
+            </button>
+            <button class="mpTeam red" id="mpTeamRed" data-team="red">
+              <span class="tHead"><span class="tName">RED TEAM</span><span class="check">✓</span></span>
+              <span class="tCount"></span>
+              <span class="tList"></span>
+              <span class="tAct">JOIN RED</span>
+            </button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="cardHead"><span class="ico">🎯</span>MODE SELECTION<span class="note" id="mpModeNote"></span></div>
+          <div class="cardBody" id="mpModePick"></div>
+        </div>
         <div class="card">
           <div class="cardHead"><span class="ico">🗺</span>MAP SELECTION<span class="note" id="mpMapNote"></span></div>
           <div class="cardBody" id="mpMapRow">
@@ -316,27 +339,6 @@
             </div>
             <select id="mpMapSelect" class="mpHidden" aria-label="Map"></select>
           </div>
-        </div>
-        <div class="card">
-          <div class="cardHead"><span class="ico">🎯</span>MODE SELECTION<span class="note" id="mpModeNote"></span></div>
-          <div class="cardBody" id="mpModePick"></div>
-        </div>
-      </div>
-      <div id="mpTeams" class="card mpHidden">
-        <div class="cardHead"><span class="ico">👥</span>TEAM SELECTION<span class="note" id="mpTeamNote"></span></div>
-        <div class="cardBody teams">
-          <button class="mpTeam" id="mpTeamBlue" data-team="blue">
-            <span class="tHead"><span class="tName">BLUE TEAM</span><span class="check">✓</span></span>
-            <span class="tCount"></span>
-            <span class="tList"></span>
-            <span class="tAct">JOIN BLUE</span>
-          </button>
-          <button class="mpTeam red" id="mpTeamRed" data-team="red">
-            <span class="tHead"><span class="tName">RED TEAM</span><span class="check">✓</span></span>
-            <span class="tCount"></span>
-            <span class="tList"></span>
-            <span class="tAct">JOIN RED</span>
-          </button>
         </div>
       </div>
       <div id="mpList" class="mpHidden"></div>

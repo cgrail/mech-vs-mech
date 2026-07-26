@@ -225,9 +225,11 @@ struct LobbyView: View {
             if pickingMap {
                 mapListCard
             } else {
-                mapCard
-                modeCard
+                // team first: it is the one decision every pilot in the room
+                // makes, while mode and map are the creator's to set
                 teamsCard(members)
+                modeCard
+                mapCard
             }
         }
     }

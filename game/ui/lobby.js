@@ -325,8 +325,7 @@ function resetLobbyUi() {
   switchMap(homeLevel); // leaving the lobby: fly back to my own map
   showCallsign(false);
   showRooms(false);
-  show(roomBar, false);
-  show(teamsEl, false);
+  show(roomBar, false); // the team, mode and map cards ride along inside it
   show(listEl, false);
   show(startBtn, false);
   clearBanner();
@@ -392,7 +391,6 @@ function renderList(state) {
 
   showRooms(myRoom == null);
   show(roomBar, myRoom != null);
-  show(teamsEl, myRoom != null);
   show(startBtn, myRoom != null);
 
   /* Walking into a room replaces the browser under the cursor, so put the
