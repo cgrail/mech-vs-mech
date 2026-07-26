@@ -291,8 +291,11 @@
       <div id="mpBanner" class="mpHidden"></div>
       <div id="mpNameRow" class="card mpHidden">
         <div class="cardHead"><span class="ico">👤</span>PILOT CALLSIGN<span class="note">OTHER PILOTS SEE THIS</span></div>
-        <div class="cardBody">
+        <!-- the go button sits with the field as well as in the footer: on a
+             phone the on-screen keyboard covers the pinned one -->
+        <div class="cardBody nameRow">
           <input id="mpNameInput" maxlength="16" placeholder="YOUR CALLSIGN" autocomplete="off" spellcheck="false">
+          <button id="mpNameGo" class="ghost">ENTER ▸</button>
         </div>
       </div>
       <div id="mpRooms" class="card mpHidden">

@@ -592,6 +592,7 @@ if (!MP.active) {
   document.getElementById('mpBtn').addEventListener('click', () => showMpScreen(true));
   document.getElementById('mpBack').addEventListener('click', () => showMpScreen(false));
   joinBtn.addEventListener('click', doJoin);
+  document.getElementById('mpNameGo').addEventListener('click', doJoin);
   nameInput.addEventListener('keydown', (e) => {
     e.stopPropagation(); // keep game key handling out of the text field
     if (e.key === 'Enter') doJoin();

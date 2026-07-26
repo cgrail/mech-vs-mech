@@ -582,6 +582,10 @@ body.touch #touchControls { display: flex; }
   text-transform: uppercase; user-select: text;
 }
 #mpNameInput:focus { border-color: #6f83c9; }
+/* callsign + its own ENTER button: two controls, one row (see CLAUDE.md) */
+.nameRow { display: flex; gap: 8px; align-items: stretch; }
+.nameRow #mpNameInput { flex: 1; }
+.nameRow #mpNameGo { flex: none; white-space: nowrap; }
 #mpList {
   display: flex; flex-direction: column; gap: 8px;
   max-height: 30vh; overflow-y: auto;

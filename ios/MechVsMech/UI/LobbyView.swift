@@ -143,6 +143,10 @@ struct LobbyView: View {
                     .background(Rectangle().fill(LobbySkin.inset))
                     .overlay(Rectangle().stroke(Skin.border, lineWidth: 1))
                     .onSubmit { lobby.join() }
+                // the go button sits with the field as well as in the footer:
+                // the on-screen keyboard covers the pinned one (join() ignores
+                // an empty callsign, so it needs no state of its own)
+                FlatActionButton(title: "ENTER LOBBY", icon: "arrow.right.to.line") { lobby.join() }
                 Text("UP TO \(LOBBY_TEAM_MAX) PILOTS PER SIDE · ROOMS STAGE THEIR OWN MATCH")
                     .font(.system(size: 9, weight: .bold)).kerning(1)
                     .foregroundColor(Skin.dimText)
