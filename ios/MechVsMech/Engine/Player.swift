@@ -4,8 +4,9 @@ import simd
 
 /* ============================================================
    Player combat & movement — ports player.js for the touch
-   control surface (no keyboard, no boost, weapon 1 held-fire;
-   rockets and turrets are buttons)
+   control surface (no keyboard, weapon 1 held-fire; rockets and
+   turrets are buttons, and the keyboard's Shift boost is the
+   stick pushed to its rim — TouchControls.swift)
 ============================================================ */
 
 private let LOOK_SENS = 0.005   // radians per pt of horizontal look drag
@@ -117,7 +118,10 @@ extension GameEngine {
             if elapsed >= player.respawnAt { respawnPlayer() }
             return
         }
-        let speed = 16.0
+        // run: the stick pushed to the rim, or a hard lean on the gyro
+        // (TouchControls.swift) — the touch answer to the keyboard's Shift
+        let boost = touch.boost ? 1.65 : 1.0
+        let speed = 16.0 * boost
         player.yaw -= lookDX * LOOK_SENS
         if let targetYaw = touch.yaw {
             // ease toward the compass heading along the shortest arc (1:1, no gain)
@@ -153,7 +157,7 @@ extension GameEngine {
         // walk animation + bob
         // …also where velX/velZ (the lead enemy AI puts on its shots) is
         // measured, from ground covered rather than from the controls
-        let amp = animateWalk(player, dt: dt, rate: 9)
+        let amp = animateWalk(player, dt: dt, rate: 9 * boost)
         player.syncNode(bob: onGround ? abs(sin(player.walkPhase)) * 0.25 * amp : 0)
 
         // police light blink

@@ -10,26 +10,47 @@ import { placeTurretDirect } from './build.js';
    localStorage, read here as touch.scheme):
 
    joystick — left half: floating joystick, up/down moves,
-              left/right strafes; right half: drag to turn,
-              hold to fire machine guns
+              left/right strafes, hard forward runs; right half:
+              drag to turn, hold to fire machine guns
    gyro     — compass (alpha) rotates 1:1 (physically turn around to
-              look behind you), lean (beta) moves,
-              side tilt (gamma) strafes; any touch fires
+              look behind you), lean (beta) moves and a hard lean
+              runs, side tilt (gamma) strafes; any touch fires
 
    On-screen buttons fire rockets / place turrets in both.
+
+   Running is the boost the keyboard has on Shift, off the one
+   input a thumb has left to give: how *far* the stick is pushed.
+   Both schemes latch it (RUN_ON to engage, RUN_OFF to let go) so
+   a thumb resting at the threshold can't stutter between walk
+   and run — the same reason the movement axes have a deadzone.
 ============================================================ */
 export const isTouchDevice = touch.active; // decided in core/state.js — the menu is built from it
 
 const JOY_R = 48;         // knob travel radius in px
 const DEAD = 0.25;        // normalized joystick deadzone
+const RUN_ON = 0.85;      // forward stick travel that starts a run…
+const RUN_OFF = 0.72;     // …and where it drops back to a walk
 const LOOK_SENS = 0.005;  // radians per px of horizontal drag
 
 const DEG = Math.PI / 180;
 const LEAN_DEADZONE = 7;   // degrees of forward/back tilt before the mech moves
 const STRAFE_DEADZONE = 9; // degrees of side tilt before the mech strafes
+const LEAN_RUN_ON = 19;    // …and how far to lean to run with it
+const LEAN_RUN_OFF = 15;
 
 if (isTouchDevice) {
   document.body.classList.add('touch');
+
+  /* how hard the mech is being pushed forward, latched: on past `on`, off
+     below `off`. Shared by both schemes so a run engages the same way
+     whether it comes from a stick or from a lean. */
+  let running = false;
+  function runLatch(fwd, on, off) {
+    if (running ? fwd < off : fwd > on) running = !running;
+    touch.boost = running;
+    return running;
+  }
+  const stopRunning = () => { running = false; touch.boost = false; };
 
   /* ---------- gyro scheme: compass + lean ---------- */
   let baseAlpha = 0, baseBeta = 0, baseGamma = 0, baseYaw = 0;
@@ -51,9 +72,11 @@ if (isTouchDevice) {
     else if (dAlpha < -180) dAlpha += 360;
     touch.yaw = baseYaw + dAlpha * DEG;
 
-    // lean: tilting the top edge away (forward) lowers beta
+    // lean: tilting the top edge away (forward) lowers beta — and leaning
+    // hard into it is the gyro's version of pushing the stick to the rim
     const dBeta = e.beta - baseBeta;
     touch.move = dBeta < -LEAN_DEADZONE ? 1 : dBeta > LEAN_DEADZONE ? -1 : 0;
+    runLatch(-dBeta, LEAN_RUN_ON, LEAN_RUN_OFF);
 
     // side tilt: gamma grows when the right edge dips down
     const dGamma = (e.gamma ?? baseGamma) - baseGamma;
@@ -118,6 +141,9 @@ if (isTouchDevice) {
         const nx = dx / JOY_R, ny = dy / JOY_R;
         touch.strafe = Math.abs(nx) > DEAD ? nx : 0;
         touch.move = Math.abs(ny) > DEAD ? -ny : 0;
+        // pushed to the rim and pointing forward: run. The knob says so, since
+        // nothing else on a phone can (no Shift key to see held down).
+        joyEl.classList.toggle('run', runLatch(-ny, RUN_ON, RUN_OFF));
       } else if (t.identifier === lookId && touch.scheme === 'joystick') {
         if (game.state === 'playing' && player.alive) player.yaw -= (t.clientX - lookX) * LOOK_SENS;
         lookX = t.clientX;
@@ -131,7 +157,8 @@ if (isTouchDevice) {
       if (t.identifier === joyId) {
         joyId = null;
         touch.move = touch.strafe = 0;
-        joyEl.classList.remove('on');
+        stopRunning();
+        joyEl.classList.remove('on', 'run');
       } else if (t.identifier === lookId) {
         lookId = null;
         game.mouseDown = false;

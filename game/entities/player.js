@@ -131,7 +131,8 @@ export function updatePlayer(dt) {
     if (game.elapsed >= player.respawnAt) respawnPlayer();
     return;
   }
-  const boost = held('boost') ? 1.65 : 1;
+  // run: Shift on a keyboard, the stick pushed to the rim on a phone
+  const boost = held('boost') || touch.boost ? 1.65 : 1;
   const speed = 16 * boost;
   if (held('turnL')) player.yaw += 2.4 * dt;
   if (held('turnR')) player.yaw -= 2.4 * dt;

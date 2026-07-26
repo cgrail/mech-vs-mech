@@ -48,8 +48,9 @@ function controlLegend() {
   }
   const scheme = touch.scheme === 'gyro'
     ? `<kbd>🧭 Turn phone</kbd> rotate mech &nbsp; <kbd>📱 Lean</kbd> forward / back to move<br>
-       <kbd>📱 Tilt sideways</kbd> strafe &nbsp; <kbd>👆 Touch screen</kbd> machine guns<br>`
-    : `<kbd>👈 Left thumb</kbd> joystick — move &amp; strafe<br>
+       <kbd>📱 Lean hard</kbd> forward to run &nbsp; <kbd>📱 Tilt sideways</kbd> strafe<br>
+       <kbd>👆 Touch screen</kbd> machine guns<br>`
+    : `<kbd>👈 Left thumb</kbd> joystick — move &amp; strafe · push it right forward to run<br>
        <kbd>👉 Right thumb</kbd> drag to turn · hold to fire machine guns<br>`;
   return `${scheme}<kbd>⬆️</kbd> jump jets — clear a ledge onto high ground<br>
       <kbd>🚀</kbd> rockets (<span style="color:#ffd23c">🛢️ 20</span>) &nbsp;

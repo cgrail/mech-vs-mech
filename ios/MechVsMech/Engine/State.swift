@@ -104,6 +104,7 @@ final class TouchInput {
     private let lock = NSLock()
     private var _move = 0.0        // forward/back, −1..1 (sign is what matters)
     private var _strafe = 0.0      // strafe, −1..1
+    private var _boost = false     // stick pushed hard forward (or a hard lean): run, not walk
     private var _yaw: Double?      // gyro target yaw in radians (nil = yaw controlled directly)
     private var _firing = false    // machine guns held
     private var _jump = false      // one-shot jump request, consumed per frame
@@ -116,6 +117,10 @@ final class TouchInput {
     var strafe: Double {
         get { lock.lock(); defer { lock.unlock() }; return _strafe }
         set { lock.lock(); _strafe = newValue; lock.unlock() }
+    }
+    var boost: Bool {
+        get { lock.lock(); defer { lock.unlock() }; return _boost }
+        set { lock.lock(); _boost = newValue; lock.unlock() }
     }
     var yaw: Double? {
         get { lock.lock(); defer { lock.unlock() }; return _yaw }

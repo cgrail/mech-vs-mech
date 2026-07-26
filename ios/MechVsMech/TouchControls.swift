@@ -5,19 +5,27 @@ import CoreMotion
    Touch + gyro controls — ports systems/mobile.js
 
    joystick — left half: floating joystick, up/down moves,
-              left/right strafes; right half: drag to turn,
-              hold to fire machine guns
+              left/right strafes, hard forward runs; right half:
+              drag to turn, hold to fire machine guns
    gyro     — compass rotates the mech 1:1 (physically turn
               around to look behind you — by design, no gain),
-              lean forward/back moves, side tilt strafes,
-              any touch fires
+              lean forward/back moves and a hard lean runs,
+              side tilt strafes, any touch fires
 
    On-screen buttons (SwiftUI, HUDView) fire rockets / place
    turrets in both schemes.
+
+   Running is the boost the keyboard has on Shift, off the one
+   input a thumb has left to give: how *far* the stick is pushed.
+   Both schemes latch it (RUN_ON to engage, RUN_OFF to let go) so
+   a thumb resting at the threshold can't stutter between walk
+   and run — the same reason the movement axes have a deadzone.
 ============================================================ */
 
 private let JOY_R: CGFloat = 48   // knob travel radius in pt
 private let DEAD = 0.25           // normalized joystick deadzone
+private let RUN_ON = 0.85         // forward stick travel that starts a run…
+private let RUN_OFF = 0.72        // …and where it drops back to a walk
 
 final class TouchControlView: UIView {
 
@@ -30,6 +38,7 @@ final class TouchControlView: UIView {
     private var joyCenter = CGPoint.zero
     private var moveActive = false      // hysteresis latch for the fwd/back axis
     private var strafeActive = false    // hysteresis latch for the strafe axis
+    private var running = false         // …and for the run, at the rim of the same axis
     private var lookTouch: UITouch?
     private var lookX: CGFloat = 0
 
@@ -70,6 +79,17 @@ final class TouchControlView: UIView {
         return active ? v : 0
     }
 
+    /* the run, and the only feedback there is room for: the knob goes gold */
+    private func setRunning(_ on: Bool) {
+        if on == running { return }
+        running = on
+        input?.boost = on
+        joyKnob.backgroundColor = on ? UIColor(rgb: 0xffd23c).withAlphaComponent(0.55)
+                                     : UIColor(white: 1, alpha: 0.4)
+        joyBase.layer.borderColor = on ? UIColor(rgb: 0xffd23c).withAlphaComponent(0.7).cgColor
+                                       : UIColor(white: 1, alpha: 0.35).cgColor
+    }
+
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard playing else { return }
         for t in touches {
@@ -108,6 +128,9 @@ final class TouchControlView: UIView {
                 // crossing a single threshold) → feet "dribble" while standing
                 input?.strafe = joyAxis(nx, active: &strafeActive)
                 input?.move = -joyAxis(ny, active: &moveActive)
+                // pushed to the rim and pointing forward: run. The knob says
+                // so, since a phone has no Shift key to see held down.
+                setRunning(running ? -ny > RUN_OFF : -ny > RUN_ON)
             } else if t === lookTouch && scheme() == .joystick {
                 if playing { input?.addLookDX(Double(p.x - lookX)) }
                 lookX = p.x
@@ -121,6 +144,7 @@ final class TouchControlView: UIView {
                 joyTouch = nil
                 moveActive = false
                 strafeActive = false
+                setRunning(false)
                 input?.move = 0
                 input?.strafe = 0
                 joyBase.isHidden = true
@@ -152,6 +176,9 @@ final class GyroController {
 
     private let LEAN_DEADZONE = 7.0    // degrees of forward/back lean before the mech moves
     private let STRAFE_DEADZONE = 9.0  // degrees of side tilt before the mech strafes
+    private let LEAN_RUN_ON = 19.0     // …and how far to lean to run with it
+    private let LEAN_RUN_OFF = 15.0
+    private var running = false
 
     func start(engine: GameEngine) {
         self.engine = engine
@@ -180,8 +207,12 @@ final class GyroController {
             if dYaw > .pi { dYaw -= 2 * .pi } else if dYaw < -.pi { dYaw += 2 * .pi }
             engine.touch.yaw = self.baseGameYaw + dYaw
 
+            // …and leaning hard into it is the gyro's version of pushing the
+            // stick to the rim: the same latched run
             let dLean = lean - self.baseLean
             engine.touch.move = dLean > self.LEAN_DEADZONE ? 1 : dLean < -self.LEAN_DEADZONE ? -1 : 0
+            self.running = self.running ? dLean > self.LEAN_RUN_OFF : dLean > self.LEAN_RUN_ON
+            engine.touch.boost = self.running
 
             var dTilt = tilt - self.baseTilt
             if dTilt > 180 { dTilt -= 360 } else if dTilt < -180 { dTilt += 360 }
@@ -191,8 +222,10 @@ final class GyroController {
 
     func stop() {
         motion.stopDeviceMotionUpdates()
+        running = false
         engine?.touch.yaw = nil
         engine?.touch.move = 0
         engine?.touch.strafe = 0
+        engine?.touch.boost = false
     }
 }

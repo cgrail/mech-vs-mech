@@ -117,6 +117,8 @@ Destroy the red base in the north before the enemy destroys your blue base in th
 
 Every one of those keys is a default, not a fixture: **SETTINGS** on the entry screen (or **⌨ KEY BINDINGS** in the mission menu's setup card) lists each control on its own row — press the row, press the key you want, and it is yours from then on, remembered in the browser. Taking a key off another control unbinds it there rather than firing both, and RESET TO DEFAULTS puts the whole layout back. The briefing's control legend and the weapon badges on the HUD name your keys, not the factory ones. The mouse and **Esc** are not in the list — nothing else does their job. (Touch devices have no keyboard to rebind, so the screen isn't offered there; the joystick/gyro choice stays in the setup card.)
 
+On a phone the left thumb is a floating joystick — move and strafe — and the right thumb turns the mech and holds down the machine guns; ⬆️, 🚀 and the turret button do the rest. **Push the stick right forward and the mech runs**: past about 85% of its travel the knob turns gold and you get the same 1.65× sprint the keyboard has on Shift, until you ease off. It's a latch, so a thumb hovering at the line can't stutter between walk and run. On the gyro scheme a hard forward lean does the same thing.
+
 Your guns have an arcade-style aim assist: shots snap to the nearest enemy in a narrow cone in front of you, so focus on positioning, not precision.
 
 ### Salvage Economy

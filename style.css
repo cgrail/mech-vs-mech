@@ -247,6 +247,13 @@ body.touch #touchControls { display: flex; }
   border-radius: 50%; background: rgba(120, 150, 255, .35);
   border: 2px solid #8ab4ff; transform: translate(-50%, -50%);
 }
+/* pushed to the rim: the mech is running. A phone has no Shift key to see
+   held down, so the knob is where that reads (systems/mobile.js) */
+#joystick.run { border-color: #b08a2e; }
+#joystick.run #joyKnob {
+  background: rgba(255, 210, 60, .4); border-color: #ffd23c;
+  box-shadow: 0 0 12px rgba(255, 210, 60, .5);
+}
 
 .turretIco { width: 1em; height: 1em; display: inline-block; vertical-align: -0.1em; }
 

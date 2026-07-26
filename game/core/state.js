@@ -76,6 +76,7 @@ export const touch = {
   scheme: localStorage.getItem('mechControls') === 'gyro' ? 'gyro' : 'joystick',
   move: 0,        // forward/back, −1..1 (sign is what matters)
   strafe: 0,      // strafe, −1..1 (sign is what matters)
+  boost: false,   // stick pushed hard forward (or a hard lean): run, not walk
   yaw: null,      // gyro target yaw in radians (null = yaw controlled directly)
   jump: false,    // one-shot: set by the jump button, consumed by updatePlayer
 };
