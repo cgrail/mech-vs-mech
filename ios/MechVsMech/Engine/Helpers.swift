@@ -18,36 +18,56 @@ func distXZ(_ a: Entity, _ b: Entity) -> Double { distXZ(a.x, a.z, b.x, b.z) }
 let GRAVITY = 50.0
 let JUMP_V = 22.0
 
-/* Walk animation, driven by ground actually covered — never by what the
-   controls (or the last packet) asked for. A mech leaning into a wall, a stick
-   whose release was missed and a replica whose packets stopped all report
+/* Walk animation, driven by where the walker is *getting to* — never by what
+   the controls (or the last packet) asked for. A mech leaning into a wall, a
+   stick whose release was missed and a replica whose packets stopped all report
    "moving" while standing perfectly still, and striding on the spot is the most
-   obvious thing in the game. (movedX, movedZ) is this frame's travel. The
-   amplitude eases rather than switching, so stopping settles the legs to
-   neutral instead of freezing them mid-stride.
+   obvious thing in the game.
 
-   The travel is split into the mech's own frame, so the legs move the way the
-   mech does: fore-aft is the stride (and runs backwards when it backs up),
+   The measurement is an eased anchor — where the walker was a moment ago.
+   Walking drags it a fixed distance behind (speed / STRIDE_LAG); anything that
+   *wobbles* leaves it sitting in the middle of the wobble. That distinction is
+   the whole point and a per-frame delta cannot make it: a mech wedged between a
+   wall and its own base is pushed both ways every frame, so it covers plenty of
+   ground per frame while going nowhere, and gating on that made a standing mech
+   twitch. Net displacement only counts the going-somewhere kind. It also costs
+   nothing to smooth the velocity out of the same number, which is what enemy
+   aim lead (and the wire) reads.
+
+   The lag vector is split into the mech's own frame, so the legs move the way
+   the mech does: fore-aft is the stride (and runs backwards when it backs up),
    sideways is a shuffle — both feet reach toward the direction of travel, half
    a cycle apart, so a strafing mech steps sideways instead of marching. Sets
    both leg poses; returns the amplitude (0...1) for the caller's body bob.
    (mirrors core/helpers.js) */
-let STRIDE_MIN_SPEED = 0.5   // units/s below which a walker is standing
+let STRIDE_LAG = 8.0         // 1/s: how fast the anchor catches up
+let STRIDE_MIN = 0.55        // lag (units) that counts as walking — ~4.4 u/s
+let STRIDE_JUMPED = 8.0      // …and past this it was no step: a spawn or a snap
 let STRIDE_SWING = 0.55      // fore-aft leg swing, radians
 let SHUFFLE_REACH = 0.5      // sideways leg reach, radians
 @discardableResult
-func animateWalk(_ e: Entity, movedX: Double, movedZ: Double, dt: Double, rate: Double) -> Double {
-    let moved = (movedX * movedX + movedZ * movedZ).squareRoot()
-    let walking = dt > 0 && moved / dt > STRIDE_MIN_SPEED
+func animateWalk(_ e: Entity, dt: Double, rate: Double) -> Double {
+    let k = 1 - exp(-STRIDE_LAG * dt)
+    e.anchorX += (e.x - e.anchorX) * k
+    e.anchorZ += (e.z - e.anchorZ) * k
+    var dx = e.x - e.anchorX, dz = e.z - e.anchorZ
+    var lag = (dx * dx + dz * dz).squareRoot()
+    if lag > STRIDE_JUMPED {   // respawn, map switch, a replica's teleport snap
+        e.anchorX = e.x; e.anchorZ = e.z
+        dx = 0; dz = 0; lag = 0
+    }
+    e.velX = dx * STRIDE_LAG
+    e.velZ = dz * STRIDE_LAG
+
+    let walking = lag > STRIDE_MIN
     if walking {
         e.walkPhase += dt * rate
         // local +z is forward, local +x is the mech's left (see localToWorld)
         let sy = sin(e.yaw), cy = cos(e.yaw)
-        e.strideF = (movedX * sy + movedZ * cy) / moved
-        e.strideL = (movedX * cy - movedZ * sy) / moved
+        e.strideF = (dx * sy + dz * cy) / lag
+        e.strideL = (dx * cy - dz * sy) / lag
     }
-    let k = 1 - exp(-14 * dt)
-    e.stride += ((walking ? 1.0 : 0.0) - e.stride) * k
+    e.stride += ((walking ? 1.0 : 0.0) - e.stride) * (1 - exp(-14 * dt))
     let amp = e.stride
     let s = sin(e.walkPhase)
     let swing = s * STRIDE_SWING * amp * e.strideF

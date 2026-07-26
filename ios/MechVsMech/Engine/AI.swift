@@ -253,7 +253,7 @@ extension GameEngine {
         // stride off what the mech covered, not off what it tried to do: one
         // holding its ground in a firefight, or leaning on a wall, plants its
         // feet — and one side-stepping a target shuffles rather than marching
-        let amp = animateWalk(e, movedX: e.x - e.px, movedZ: e.z - e.pz, dt: dt, rate: 7)
+        let amp = animateWalk(e, dt: dt, rate: 7)
         e.syncNode(bob: onGround ? abs(sin(e.walkPhase)) * 0.25 * amp : 0)
         e.px = e.x
         e.pz = e.z

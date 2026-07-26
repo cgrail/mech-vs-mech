@@ -64,6 +64,8 @@ final class Entity {
     var stride = 0.0         // walk-animation amplitude, eased from real movement
     var strideF = 1.0        // travel in the mech's own frame: fore-aft…
     var strideL = 0.0        // …and sideways, which shuffles instead of striding
+    var anchorX = 0.0        // where I was a moment ago — the walk measurement
+    var anchorZ = 0.0        // (a spawn away from it reads as a jump and resets)
     var strafeDir = 1.0
     var strafeTimer = 0.0
     var stuckT = 0.0
@@ -401,6 +403,8 @@ extension GameEngine {
         e.y = level.groundHeightAt(x, z)
         e.px = x
         e.pz = z
+        e.anchorX = x
+        e.anchorZ = z
         e.speed = m.speed + rand01() * 2
         e.range = m.range
         e.damage = m.damage

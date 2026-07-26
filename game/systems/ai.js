@@ -241,7 +241,7 @@ export function updateEnemyMech(e, dt) {
   // stride off what the mech covered, not off what it tried to do: one holding
   // its ground in a firefight, or leaning on a wall, plants its feet — and one
   // side-stepping a target shuffles sideways rather than marching in place
-  const amp = animateWalk(e, e.group.position.x - e.px, e.group.position.z - e.pz, dt, 7);
+  const amp = animateWalk(e, dt, 7);
   e.group.position.y = e.y + (onGround ? Math.abs(Math.sin(e.walkPhase)) * 0.25 * amp : 0);
   e.px = e.group.position.x;
   e.pz = e.group.position.z;

@@ -77,6 +77,7 @@ function makePeer(p) {
     hp: 300, maxHp: 300, alive: true,
     hitRadius: 2.4, hitHeight: 7, bar: makeBar(5), barHeight: 8.2,
     yaw, walkPhase: 0, stride: 0, strideF: 1, strideL: 0, y, vy: 0, velX: 0, velZ: 0,
+    anchorX: sp.pos.x, anchorZ: sp.pos.z,
   });
   const tag = makeNameTag(p.name, p.team);
   tag.position.y = 9.6;
@@ -228,7 +229,6 @@ export function remoteUpdate(dt) {
     const tx = st.x + st.vx * st.age, tz = st.z + st.vz * st.age;
     const p = e.group.position;
     if (Math.hypot(tx - p.x, tz - p.z) > 14) { p.x = tx; p.z = tz; e.y = st.y; } // snap after teleports
-    const ox = p.x, oz = p.z;   // after the snap: a teleport is not a stride
     const k = 1 - Math.exp(-12 * dt);
     p.x += (tx - p.x) * k;
     p.z += (tz - p.z) * k;
@@ -236,13 +236,14 @@ export function remoteUpdate(dt) {
     const dyaw = Math.atan2(Math.sin(st.yaw - e.yaw), Math.cos(st.yaw - e.yaw));
     e.yaw += dyaw * Math.min(1, 12 * dt);
     e.group.rotation.y = e.yaw;
-    e.velX = st.vx;
-    e.velZ = st.vz;
 
     // a replica walks on the ground it actually covers, so legs stop the moment
     // the packets stop coming — a stale "moving" flag can't outlive it — and a
     // strafing peer shuffles sideways just like the pilot flying it sees
-    const amp = animateWalk(e, p.x - ox, p.z - oz, dt, 9);
+    const amp = animateWalk(e, dt, 9);
+    // …but the owner's own velocity beats the one measured off the easing
+    e.velX = st.vx;
+    e.velZ = st.vz;
     p.y = e.y + Math.abs(Math.sin(e.walkPhase)) * 0.25 * amp;
 
     e.model.lampR.material.emissiveIntensity = blink ? 3 : 0.3;

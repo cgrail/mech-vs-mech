@@ -131,34 +131,54 @@ export function updateVertical(e, dt) {
   return false;
 }
 
-/* Walk animation, driven by ground actually covered — never by what the
-   controls (or the last packet) asked for. A mech leaning into a wall, a
+/* Walk animation, driven by where the walker is *getting to* — never by what
+   the controls (or the last packet) asked for. A mech leaning into a wall, a
    joystick whose release was missed and a replica whose packets stopped all
    report "moving" while standing perfectly still, and striding on the spot is
-   the most obvious thing in the game. (movedX, movedZ) is this frame's travel.
-   The amplitude eases rather than switching, so stopping settles the legs to
-   neutral instead of freezing them mid-stride.
+   the most obvious thing in the game.
 
-   The travel is split into the mech's own frame, so the legs move the way the
-   mech does: fore-aft is the stride (and runs backwards when it backs up),
+   The measurement is an eased anchor — where the walker was a moment ago.
+   Walking drags it a fixed distance behind (speed / STRIDE_LAG); anything that
+   *wobbles* leaves it sitting in the middle of the wobble. That distinction is
+   the whole point and a per-frame delta cannot make it: a mech wedged between
+   a wall and its own base is pushed both ways every frame, so it covers plenty
+   of ground per frame while going nowhere, and gating on that made a standing
+   mech twitch. Net displacement only counts the going-somewhere kind. It also
+   costs nothing to smooth the velocity out of the same number, which is what
+   enemy aim lead (and the wire) reads.
+
+   The lag vector is split into the mech's own frame, so the legs move the way
+   the mech does: fore-aft is the stride (and runs backwards when it backs up),
    sideways is a shuffle — both feet reach toward the direction of travel, half
    a cycle apart, so a strafing mech steps sideways instead of marching. Sets
    both leg poses; returns the amplitude (0..1) for the caller's body bob. */
-export const STRIDE_MIN_SPEED = 0.5;   // units/s below which a walker is standing
-const STRIDE_SWING = 0.55;             // fore-aft leg swing, radians
-const SHUFFLE_REACH = 0.5;             // sideways leg reach, radians
-export function animateWalk(e, movedX, movedZ, dt, rate) {
-  const moved = Math.hypot(movedX, movedZ);
-  const walking = dt > 0 && moved / dt > STRIDE_MIN_SPEED;
+const STRIDE_LAG = 8;         // 1/s: how fast the anchor catches up
+const STRIDE_MIN = 0.55;      // lag (units) that counts as walking — ~4.4 u/s
+const STRIDE_JUMPED = 8;      // …and past this it was no step: a spawn or a snap
+const STRIDE_SWING = 0.55;    // fore-aft leg swing, radians
+const SHUFFLE_REACH = 0.5;    // sideways leg reach, radians
+export function animateWalk(e, dt, rate) {
+  const p = e.group.position;
+  e.anchorX += (p.x - e.anchorX) * (1 - Math.exp(-STRIDE_LAG * dt));
+  e.anchorZ += (p.z - e.anchorZ) * (1 - Math.exp(-STRIDE_LAG * dt));
+  let dx = p.x - e.anchorX, dz = p.z - e.anchorZ;
+  let lag = Math.hypot(dx, dz);
+  if (lag > STRIDE_JUMPED) {  // respawn, map switch, a replica's teleport snap
+    e.anchorX = p.x; e.anchorZ = p.z;
+    dx = 0; dz = 0; lag = 0;
+  }
+  e.velX = dx * STRIDE_LAG;
+  e.velZ = dz * STRIDE_LAG;
+
+  const walking = lag > STRIDE_MIN;
   if (walking) {
     e.walkPhase += dt * rate;
     // local +z is forward, local +x is the mech's left (see localToWorld)
     const sy = Math.sin(e.yaw), cy = Math.cos(e.yaw);
-    e.strideF = (movedX * sy + movedZ * cy) / moved;
-    e.strideL = (movedX * cy - movedZ * sy) / moved;
+    e.strideF = (dx * sy + dz * cy) / lag;
+    e.strideL = (dx * cy - dz * sy) / lag;
   }
-  const k = 1 - Math.exp(-14 * dt);
-  const amp = e.stride += ((walking ? 1 : 0) - e.stride) * k;
+  const amp = e.stride += ((walking ? 1 : 0) - e.stride) * (1 - Math.exp(-14 * dt));
   const s = Math.sin(e.walkPhase);
   const swing = s * STRIDE_SWING * amp * e.strideF;
   const reach = SHUFFLE_REACH * amp * e.strideL;

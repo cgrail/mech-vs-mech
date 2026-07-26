@@ -123,6 +123,8 @@ extension GameEngine {
         e.x = sp.pos.x
         e.z = sp.pos.z
         e.y = y
+        e.anchorX = sp.pos.x
+        e.anchorZ = sp.pos.z
         e.yaw = atan2(sp.face.x - sp.pos.x, sp.face.z - sp.pos.z)
         e.bar = HealthBar(width: 5)
         e.syncNode()
@@ -298,7 +300,6 @@ extension GameEngine {
             if hypot(tx - e.x, tz - e.z) > 14 {   // snap after teleports
                 e.x = tx; e.z = tz; e.y = st.y
             }
-            let ox = e.x, oz = e.z   // after the snap: a teleport is not a stride
             let k = 1 - exp(-12 * dt)
             e.x += (tx - e.x) * k
             e.z += (tz - e.z) * k
@@ -306,14 +307,15 @@ extension GameEngine {
             let dyaw = angDiff(st.yaw, e.yaw)
             e.yaw += dyaw * min(1, 12 * dt)
             e.node.eulerAngles.y = Float(e.yaw)
-            e.velX = st.vx
-            e.velZ = st.vz
             peer.st = st
 
             // a replica walks on the ground it actually covers, so legs stop the
             // moment packets stop coming — a stale "moving" flag can't outlive
             // it — and a strafing peer shuffles just as its own pilot sees
-            let amp = animateWalk(e, movedX: e.x - ox, movedZ: e.z - oz, dt: dt, rate: 9)
+            let amp = animateWalk(e, dt: dt, rate: 9)
+            // …but the owner's own velocity beats the one measured off the easing
+            e.velX = st.vx
+            e.velZ = st.vz
             e.syncNode(bob: abs(sin(e.walkPhase)) * 0.25 * amp)
 
             e.lampR?.emission.intensity = blink ? 3 : 0.3

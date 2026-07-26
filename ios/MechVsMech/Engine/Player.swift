@@ -30,6 +30,8 @@ extension GameEngine {
         e.x = sp.pos.x
         e.z = sp.pos.z
         e.y = level.groundHeightAt(sp.pos.x, sp.pos.z)
+        e.anchorX = sp.pos.x
+        e.anchorZ = sp.pos.z
         e.yaw = spawnYaw
         e.bar = HealthBar(width: 5)
         e.syncNode()
@@ -131,18 +133,12 @@ extension GameEngine {
         if ts < 0 { move -= right }
         if ts > 0 { move += right }
 
-        let px = player.x, pz = player.z
         if simd_length_squared(move) > 0 {
             move = simd_normalize(move)
             player.x += move.x * speed * dt
             player.z += move.z * speed * dt
         }
         collideCircle(x: &player.x, z: &player.z, r: 2.2, y: player.y)
-        // ground actually covered — walking into a wall is standing still, both
-        // for the animation below and for the lead enemy AI puts on its shots
-        let movedX = player.x - px, movedZ = player.z - pz
-        player.velX = dt > 0 ? movedX / dt : 0
-        player.velZ = dt > 0 ? movedZ / dt : 0
         jump(dt: dt)
         let onGround = updateVertical(player, dt: dt)
         player.onGround = onGround
@@ -155,7 +151,9 @@ extension GameEngine {
         player.node.eulerAngles.y = Float(player.yaw)
 
         // walk animation + bob
-        let amp = animateWalk(player, movedX: movedX, movedZ: movedZ, dt: dt, rate: 9)
+        // …also where velX/velZ (the lead enemy AI puts on its shots) is
+        // measured, from ground covered rather than from the controls
+        let amp = animateWalk(player, dt: dt, rate: 9)
         player.syncNode(bob: onGround ? abs(sin(player.walkPhase)) * 0.25 * amp : 0)
 
         // police light blink

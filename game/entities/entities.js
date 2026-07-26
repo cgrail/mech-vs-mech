@@ -205,7 +205,7 @@ export function makeEnemyMech(x, z) {
     hitRadius: 2.4, hitHeight: 7, bar, barHeight: 8.2,
     speed: m.speed + Math.random() * 2, range: m.range, damage: m.damage,
     fireInterval: m.fireInterval, cool: 1 + Math.random(),
-    retarget: 0, target: null, aggro: null, aggroT: 0, yaw: 0, walkPhase: Math.random() * 6, stride: 0, strideF: 1, strideL: 0,
+    retarget: 0, target: null, aggro: null, aggroT: 0, yaw: 0, walkPhase: Math.random() * 6, stride: 0, strideF: 1, strideL: 0, anchorX: x, anchorZ: z,
     strafeDir: 1, strafeTimer: 0, stuckT: 0, detourT: 0, detourSide: 0,
     px: x, pz: z, y, vy: 0, onGround: true, jumpCool: 0,
   });
