@@ -2,6 +2,7 @@ import { MP, connect, disconnect, connected, on, send } from '../net/net.js';
 import { game, MODES } from '../core/state.js';
 import { levelName, levels, levelMeta, levelParam } from '../world/world.js';
 import { switchMap } from '../core/mapswitch.js';
+import { BOOT, bootReload } from '../core/boot.js';
 import { startGame, backToLobby } from '../core/flow.js';
 import { audioCtx } from '../systems/audio.js';
 
@@ -16,12 +17,12 @@ import { audioCtx } from '../systems/audio.js';
    room's creator owns it and picks the map and the mode (base
    assault or capture the flag) everyone plays — the server holds
    both choices, so joiners just see them. The server deals out
-   match credentials and every rostered player reloads into
-   ?level=<the room's map>&mp=1, with the mode in the credentials
-   (see net.js).
+   match credentials and every rostered player reloads with them —
+   the room's map, and the mode — in the boot handoff (core/boot.js,
+   read by net.js).
 
-   Match boot (?mp=1): reconnect, rejoin by token, then a READY
-   handshake so the fight starts for everyone at once.
+   Match boot: reconnect, rejoin by token, then a READY handshake so
+   the fight starts for everyone at once.
 ============================================================ */
 const modeScreen = document.getElementById('modeScreen');
 const mpScreen = document.getElementById('mpScreen');
@@ -51,6 +52,20 @@ const readyBtn = document.getElementById('readyBtn');
 
 const TEAM_MAX = 5; // mirrors the server's cap; the server enforces it
 const show = (el, on) => el.classList.toggle('mpHidden', !on);
+
+/* A match starts by reloading into it: the credentials, the room's map and
+   "open on the match screen" ride along in the boot handoff. Used both from
+   the lobby and from a finished match's NEXT MAP. */
+function enterMatch(m, name) {
+  bootReload({
+    screen: 'match',
+    level: m.level,
+    match: {
+      matchId: m.matchId, token: m.token, playerId: m.playerId,
+      team: m.team, name, roster: m.roster, mode: m.mode,
+    },
+  });
+}
 
 /* map picker: the level bundle this page loaded is the server's own, so the
    options match what the server will accept in setLevel */
@@ -171,16 +186,7 @@ if (MP.active) {
     matchFail(m.message);
   });
   /* the follow-up match: same credentials dance as the lobby's matchStart */
-  on('matchStart', (m) => {
-    sessionStorage.setItem('mechMpMatch', JSON.stringify({
-      matchId: m.matchId, token: m.token, playerId: m.playerId,
-      team: m.team, name: MP.name, roster: m.roster, mode: m.mode,
-    }));
-    const url = new URL(location.href);
-    url.searchParams.set('level', m.level);
-    url.searchParams.set('mp', '1');
-    location.href = url.href;
-  });
+  on('matchStart', (m) => enterMatch(m, MP.name));
   on('peerLeft', (m) => {
     if (game.state !== 'menu' || matchDead) return;
     gone.add(m.id);
@@ -407,11 +413,9 @@ function onOpen() {
 }
 
 if (!MP.active) {
-  // ?mp=1 without match credentials (bookmark, reopened tab): back to mode select
-  if (new URLSearchParams(location.search).get('mp') === '1') {
-    const url = new URL(location.href);
-    url.searchParams.delete('mp');
-    history.replaceState(null, '', url);
+  // handed a match screen but no usable credentials (a malformed handoff):
+  // index.html already opened it, so put the mode select back
+  if (BOOT.screen === 'match') {
     matchScreen.classList.add('hidden');
     modeScreen.classList.remove('hidden');
   }
@@ -474,20 +478,10 @@ if (!MP.active) {
   });
   on('lobby', (m) => renderList({ players: m.players, rooms: m.rooms }));
 
-  on('matchStart', (m) => {
-    sessionStorage.setItem('mechMpMatch', JSON.stringify({
-      matchId: m.matchId, token: m.token, playerId: m.playerId,
-      team: m.team, name: myName, roster: m.roster, mode: m.mode,
-    }));
-    const url = new URL(location.href);
-    url.searchParams.set('level', m.level);
-    url.searchParams.set('mp', '1');
-    location.href = url.href;
-  });
+  on('matchStart', (m) => enterMatch(m, myName));
 
   // coming back from a match: straight into the lobby with the same name
-  if (sessionStorage.getItem('mechMpReturn')) {
-    sessionStorage.removeItem('mechMpReturn');
+  if (BOOT.screen === 'lobby') {
     autoJoin = true;
     showMpScreen(true);
   }

@@ -1,6 +1,7 @@
 import { scene, lockPointer } from '../world/scene.js';
-import { levelName, levels, levelMeta, levelParam } from '../world/world.js';
+import { levelName, levels, levelMeta, levelParam, rememberLevel } from '../world/world.js';
 import { switchMap, isSwitchingMap } from './mapswitch.js';
+import { BOOT, bootReload } from './boot.js';
 import { game, stats, difficulty, touch, MODES, CAPTURES_TO_WIN } from './state.js';
 import { entities, redBase } from '../entities/entities.js';
 import { audioCtx, boomSfx, startMusic, duckMusic } from '../systems/audio.js';
@@ -112,11 +113,9 @@ function showLevelScreen(show) {
 document.getElementById('levelBtn').addEventListener('click', () => showLevelScreen(true));
 document.getElementById('levelBack').addEventListener('click', () => showLevelScreen(false));
 
-/* redeploy / next level is a reload — stay in the single-player menu */
-if (sessionStorage.getItem('mechSpMenu')) {
-  sessionStorage.removeItem('mechSpMenu');
-  showModeScreen(false);
-}
+/* redeploy / next level is a reload — stay in the single-player menu
+   (index.html already unhid it before first paint, off the same flag) */
+if (BOOT.screen === 'menu') showModeScreen(false);
 
 levelCur.textContent = levelName.toUpperCase(); // fallback for unlisted levels
 
@@ -140,10 +139,7 @@ function goLevel(name, hideOverlay) {
     if (hideOverlay) overlay.classList.remove('hidden');
     stepTarget = null;
     reflectLevel();
-    // REDEPLOY is a plain location.reload(), so keep ?level= truthful
-    const url = new URL(location.href);
-    url.searchParams.set('level', levelParam(levelName));
-    history.replaceState(null, '', url);
+    rememberLevel(levelName); // the pick is browser state — a refresh comes back to it
   });
 }
 
@@ -243,14 +239,12 @@ function applyDifficulty() {
 }
 
 /* on victory, the end screen advances to the next level in the bundle */
-let nextLevelUrl = null;
+let nextLevel = null;
 
 function findNextLevel() {
   const i = levels.findIndex((l) => l.name === levelName);
   if (i < 0 || i + 1 >= levels.length) return null; // unlisted or last level
-  const url = new URL(location.href);
-  url.searchParams.set('level', levelParam(levels[i + 1].name));
-  return url.href;
+  return levels[i + 1].name;
 }
 
 export function endGame(victory, reason) {
@@ -258,7 +252,7 @@ export function endGame(victory, reason) {
   game.state = 'over';
   if (document.exitPointerLock) document.exitPointerLock(); // undefined on iOS Safari
   setTimeout(() => {
-    nextLevelUrl = victory && !MP.active ? findNextLevel() : null;
+    nextLevel = victory && !MP.active ? findNextLevel() : null;
     showLevelScreen(false);
     overlay.classList.remove('hidden');
     overlay.querySelector('h1').textContent = victory ? 'VICTORY'
@@ -298,9 +292,9 @@ export function endGame(victory, reason) {
         `<b>MISSION REPORT — ${MODES[game.mode].label} · ${difficulty().label}</b><br>Kills: <b>${stats.kills}</b> · Waves survived: <b>${stats.wave}</b> · Turrets built: <b>${stats.turretsBuilt}</b>` +
         (game.mode === 'ctf' ? ` · Captures: <b>${stats.captures.blue} : ${stats.captures.red}</b>` : '') + '<br>' +
         (victory
-          ? (nextLevelUrl ? 'Outstanding work, officer. The next district needs you.' : 'Outstanding work, officer. All districts secured.')
+          ? (nextLevel ? 'Outstanding work, officer. The next district needs you.' : 'Outstanding work, officer. All districts secured.')
           : 'The district has fallen. Redeploy and try again.');
-      document.getElementById('startBtn').textContent = nextLevelUrl ? 'NEXT LEVEL' : 'REDEPLOY';
+      document.getElementById('startBtn').textContent = nextLevel ? 'NEXT LEVEL' : 'REDEPLOY';
     }
   }, 1400);
   showMessage(victory ? 'ENEMY BASE DESTROYED' : 'YOUR BASE HAS FALLEN', victory ? '#7CFF6B' : '#ff5040');
@@ -308,13 +302,12 @@ export function endGame(victory, reason) {
   duckMusic();
 }
 
-/* leave a multiplayer match: reload without ?mp and reopen the lobby */
+/* leave a multiplayer match: reload straight back into the lobby. The match
+   credentials were consumed at boot, so this load simply isn't a match any
+   more; the map goes unmentioned, and the lobby opens on the remembered
+   single-player one. */
 export function backToLobby() {
-  sessionStorage.removeItem('mechMpMatch');
-  sessionStorage.setItem('mechMpReturn', '1');
-  const url = new URL(location.href);
-  url.searchParams.delete('mp');
-  location.href = url.href;
+  bootReload({ screen: 'lobby' });
 }
 
 /* used by the DEPLOY button (single player) and the multiplayer
@@ -335,10 +328,9 @@ export function startGame() {
 document.getElementById('startBtn').addEventListener('click', (e) => {
   if (game.state === 'over') {
     if (MP.active) { backToLobby(); return; }
-    // continuing the single-player session: skip mode select after the reload
-    sessionStorage.setItem('mechSpMenu', '1');
-    if (nextLevelUrl) location.href = nextLevelUrl;
-    else location.reload();
+    // continuing the single-player session: the reload is handed the map and
+    // "open on the mission menu", so it skips the mode select (core/boot.js)
+    bootReload({ screen: 'menu', level: levelParam(nextLevel || levelName) });
     return;
   }
   e.currentTarget.blur();

@@ -88,7 +88,7 @@ Instead of the command line, `DOMAIN`/`EMAIL` can live in a `.env` file next to 
 **MAP EDITOR** on the start screen opens a tile painter for the level format itself — one character per 8×8 tile, the same thing `levels/levels.txt` holds. Pick ground, low ground, high ground, wall, ramp or **chasm** from the palette and paint with the left mouse button (the right button clears back to ground); the marker tools place the player spawn, both bases, red turrets and enemy spawn points. Width and height go from 10 to 64 tiles, and **START FROM…** loads any existing map as a starting point.
 
 - **▶ PLAY** saves the map and flies it in behind the mission menu, ready to deploy.
-- **💾 SAVE** keeps it in the browser (it shows up in the level select with a ★, and `?level=<name>` works).
+- **💾 SAVE** keeps it in the browser — it shows up in the level select with a ★, and the game remembers whichever map you last picked.
 - **📋 COPY TEXT** copies the finished `=== name` block — paste it at the end of [levels/levels.txt](levels/levels.txt) (and copy that file to `ios/MechVsMech/Resources/`) to make the map part of the game for real.
 
 Editor maps live in your browser only, so they are single player: multiplayer matches are always staged on maps the server itself ships.

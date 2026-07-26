@@ -24,7 +24,7 @@
     const explain = (text) => {
       if (/is not in levels\/levels\.txt/.test(text)) return {
         title: 'LEVEL NOT FOUND',
-        hint: 'This link points to a level that does not exist. Reset the address to play the default level.',
+        hint: 'The level this page tried to open does not exist. Reset the game to play the default district.',
       };
       if (/^Level "|contains no levels/.test(text)) return {
         title: 'BROKEN LEVEL',
@@ -69,11 +69,19 @@
       const reload = el('button', '', '↻ RELOAD');
       reload.addEventListener('click', () => location.reload());
       btns.appendChild(reload);
-      if (location.search) { // a bad ?level= / stale ?mp= is fixed by dropping the params
-        const reset = el('button', 'ghost', 'RESET URL & RELOAD');
-        reset.addEventListener('click', () => { location.href = location.pathname; });
-        btns.appendChild(reset);
-      }
+      // The game remembers its map in the browser, not in the address bar, so
+      // a map that has gone missing can't be escaped by editing the URL — this
+      // forgets it (and any half-consumed boot handoff) and starts clean.
+      const reset = el('button', 'ghost', 'RESET & RELOAD');
+      reset.addEventListener('click', () => {
+        try { localStorage.removeItem('mechLevel'); sessionStorage.removeItem('mechBoot'); } catch { /* private mode */ }
+        const p = new URLSearchParams(location.search);
+        p.delete('level');
+        p.delete('mp'); // in case the boot script never got to strip them
+        const q = p.toString(); // ?server= is deployment config, not game state — keep it
+        location.href = location.pathname + (q ? '?' + q : '');
+      });
+      btns.appendChild(reset);
       moreEl = el('div', 'errMore');
       ov.append(el('h1', '', '⚠ ' + title), el('p', 'errHint', hint), el('pre', 'errDetail', detail || text), moreEl, btns);
       document.body.appendChild(ov);
@@ -104,6 +112,36 @@
       if (foreign(r && r.stack)) return;
       show((r && r.message) || String(r), r && r.stack);
     });
+  })();
+</script>
+
+<script>
+  /* Boot handoff — see game/core/boot.js.
+
+     The game keeps its state in the browser, never in the address bar. What a
+     programmatic reload has to carry across (which map, which screen to open
+     on, the multiplayer match credentials) is parked in sessionStorage by
+     whoever triggers the reload, and consumed here — exactly once, before any
+     module runs. A manual refresh therefore finds nothing and always starts
+     from the entry screen.
+
+     A ?level=<n|name> deep link still works as a one-shot: it is folded into
+     the same object and then wiped out of the address bar. */
+  window.__mechBoot = (() => {
+    let boot = null;
+    try { boot = JSON.parse(sessionStorage.getItem('mechBoot')); } catch { /* corrupt */ }
+    try { sessionStorage.removeItem('mechBoot'); } catch { /* private mode */ }
+    if (!boot || typeof boot !== 'object') boot = {};
+
+    const params = new URLSearchParams(location.search);
+    if (!boot.level && params.get('level')) boot.level = params.get('level');
+    if (params.has('level') || params.has('mp')) {
+      params.delete('level');
+      params.delete('mp'); // matches used to boot on this; credentials travel in the handoff now
+      const q = params.toString(); // ?server= and anything else stays
+      history.replaceState(null, '', location.pathname + (q ? '?' + q : '') + location.hash);
+    }
+    return boot;
   })();
 </script>
 
@@ -261,24 +299,18 @@
 </div>
 
 <script>
-  // continuing a single-player session (redeploy / next level): skip the mode
-  // select before first paint (flow.js reads and clears the flag once it's up)
-  if (sessionStorage.getItem('mechSpMenu')) {
-    document.getElementById('modeScreen').classList.add('hidden');
-    document.getElementById('menuScreen').classList.remove('hidden');
-  }
-  // (a level switch needs nothing here: it swaps the map in place, without
-  // a reload — see core/mapswitch.js)
-  // booting straight into a multiplayer match: show its screen before first paint
-  if (new URLSearchParams(location.search).get('mp') === '1') {
-    document.getElementById('modeScreen').classList.add('hidden');
-    document.getElementById('matchScreen').classList.remove('hidden');
-  }
-  // returning from a match to the lobby: show it before first paint (lobby.js
-  // reads the flag and reconnects once it's up)
-  if (sessionStorage.getItem('mechMpReturn')) {
-    document.getElementById('modeScreen').classList.add('hidden');
-    document.getElementById('mpScreen').classList.remove('hidden');
+  // Open on the screen the boot handoff asks for, before first paint:
+  // 'menu' continues a single-player session (redeploy / next level), 'match'
+  // boots straight into a multiplayer match, 'lobby' comes back from one.
+  // A plain refresh carries nothing and lands on the mode select — and a level
+  // switch needs nothing here either, it swaps the map in place without a
+  // reload (core/mapswitch.js).
+  {
+    const id = { menu: 'menuScreen', match: 'matchScreen', lobby: 'mpScreen' }[window.__mechBoot.screen];
+    if (id) {
+      document.getElementById('modeScreen').classList.add('hidden');
+      document.getElementById(id).classList.remove('hidden');
+    }
   }
 </script>
 

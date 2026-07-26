@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { BOOT } from '../core/boot.js';
 
 /* ============================================================
    Level loading + terrain
@@ -12,8 +13,9 @@ import * as THREE from 'three';
    their left):
      P player spawn · B blue base · R red base
      T red turret   · S enemy wave spawn point
-   Pick a level with ?level=2 or ?level=name; a name not in the
-   bundle falls back to levels/<name>.txt (handy for drafts)
+   Which level loads is browser state, not a URL parameter (see
+   core/boot.js); a name not in the bundle falls back to
+   levels/<name>.txt (handy for drafts)
 ============================================================ */
 export const TILE = 8;
 export const LOW = -4;            // floor of the lowest tier
@@ -423,7 +425,12 @@ export function rebuildWorld(parent, text, name) {
    Load the level before the rest of the game boots
    (top-level await: every module importing this one waits)
 ============================================================ */
-const param = new URLSearchParams(location.search).get('level') || '1';
+/* Nothing is read from the address bar: a programmatic reload hands the map
+   over in the boot object (core/boot.js), and a plain refresh falls back to
+   the one the browser remembers from the level select. */
+export const LEVEL_KEY = 'mechLevel';
+const remembered = !BOOT.level; // a remembered map may have gone missing; a handed-over one may not
+const param = BOOT.level || localStorage.getItem(LEVEL_KEY) || '1';
 /* the map the world is currently built on. A `let`, because the level
    select and the lobby swap maps in place (see core/mapswitch.js) and
    ES module bindings are live — every importer follows it. */
@@ -470,8 +477,16 @@ for (const l of userLevels()) {
   if (!levels.some((b) => b.name === l.name)) levels.push({ name: l.name, text: l.text, user: true });
 }
 
-/* numeric levels keep their short ?level=N form, named levels use the name */
+/* numeric levels travel as their short number, named levels as the name —
+   the form the server, the boot handoff and the remembered map all use */
 export const levelParam = (name) => name.match(/^level(\d+)$/)?.[1] ?? name;
+
+/* The level select's choice is browser state (it used to be ?level=). The
+   lobby deliberately does *not* call this: a room's map is server state, so
+   previewing one must not move the map single player comes back to. */
+export function rememberLevel(name) {
+  try { localStorage.setItem(LEVEL_KEY, levelParam(name)); } catch { /* private mode */ }
+}
 
 /* a level's menu entry — its first comment line, "# TITLE — description".
    Used by the level select (flow.js) and the lobby's map picker (lobby.js);
@@ -486,9 +501,18 @@ export function levelMeta({ name, text }) {
 }
 
 let levelText = levels.find((l) => l.name === levelName)?.text;
+if (levelText === undefined && remembered) {
+  /* A remembered map that is gone — an editor map deleted, a bundle entry
+     renamed, a browser profile older than the build. There is no address bar
+     to correct any more, so the game must not be able to brick itself on it:
+     fall back to the first district. (A map handed over by a reload or a
+     deep link still fails loudly below — that is a real mismatch.) */
+  levelName = levels[0].name;
+  levelText = levels[0].text;
+}
 if (levelText === undefined) {
   // not in the bundle — try a standalone file, so a draft level can be
-  // played with ?level=<name> before it's merged into levels.txt
+  // played from a ?level=<name> link before it's merged into levels.txt
   let res;
   try {
     res = await fetch(`levels/${encodeURIComponent(levelName)}.txt`);
@@ -499,3 +523,7 @@ if (levelText === undefined) {
   levelText = await res.text();
 }
 parseLevel(levelText, levelName);
+
+/* a multiplayer match plays the room's map, which is nobody's choice to
+   remember — every other boot path is the map the player picked */
+if (!BOOT.match) rememberLevel(levelName);

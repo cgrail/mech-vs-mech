@@ -1,24 +1,26 @@
 /* ============================================================
    Multiplayer transport + session flags
 
-   Import-clean (no game imports) so any module can use it without
-   cycles. MP is decided synchronously from the URL + sessionStorage
-   at module load, so modules that build entities at import time
-   (player.js, entities.js) can branch on it during boot.
+   Import-clean (its only import is core/boot.js, which imports
+   nothing) so any module can use it without cycles. MP is decided
+   synchronously at module load, so modules that build entities at
+   import time (player.js, entities.js) can branch on it during boot.
 
-   A multiplayer match is a page reload into ?mp=1 with the match
-   credentials (id, token, playerId, team, roster) parked in
-   sessionStorage by the lobby. Up to 5 players per team; each
-   client owns its player and the turrets it builds, identified
-   by its playerId.
+   A multiplayer match is a page reload whose boot handoff carries
+   the match credentials (id, token, playerId, team, roster) — the
+   lobby parks them, index.html consumes them once. Up to 5 players
+   per team; each client owns its player and the turrets it builds,
+   identified by its playerId. Consumed once means a refresh mid-match
+   drops out to the entry screen rather than silently rejoining.
 ============================================================ */
+import { BOOT } from '../core/boot.js';
+
+/* the one URL parameter left, and the game never writes it: ?server= points a
+   page at a game server other than the one that served it (see the README) */
 const params = new URLSearchParams(location.search);
 
-let session = null;
-if (params.get('mp') === '1') {
-  try { session = JSON.parse(sessionStorage.getItem('mechMpMatch')); } catch { /* stale/absent */ }
-  if (session && session.team !== 'blue' && session.team !== 'red') session = null; // stale pre-team-mode credentials
-}
+let session = BOOT.match || null;
+if (session && session.team !== 'blue' && session.team !== 'red') session = null; // malformed credentials
 
 export const MP = session ? {
   active: true,

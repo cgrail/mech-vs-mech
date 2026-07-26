@@ -1,4 +1,4 @@
-import { levels, levelMeta, levelParam, validateLevel, userLevels, USER_LEVELS_KEY } from '../world/world.js';
+import { levels, levelMeta, validateLevel, userLevels, USER_LEVELS_KEY, rememberLevel } from '../world/world.js';
 import { switchMap, isSwitchingMap } from '../core/mapswitch.js';
 
 /* ============================================================
@@ -345,9 +345,7 @@ document.getElementById('edPlay').addEventListener('click', () => {
   overlay.classList.add('hidden');
   switchMap(name, () => {
     overlay.classList.remove('hidden');
-    const url = new URL(location.href);
-    url.searchParams.set('level', levelParam(name));
-    history.replaceState(null, '', url);
+    rememberLevel(name); // like any level pick: browser state, not a URL parameter
     levelsChanged(); // flow.js re-marks the list on the map it landed on
   });
 });
