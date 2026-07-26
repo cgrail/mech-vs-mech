@@ -21,6 +21,9 @@
 [x] evan bigger maps
     → level57 THE SPRAWL (47x61) and level58 THE EXPANSE (55x71), both well
       past the old 41x51 maximum; `npm run check-levels` validates the bundle
-[ ] capture the flag mode
+[x] capture the flag mode
+    → 🚩 CAPTURE THE FLAG in the mission menu and as a room mode in
+      multiplayer; flag stands derive from the base markers, so every map
+      works (game/systems/ctf.js ↔ ios Engine/CTF.swift)
 [ ] nicer graphics
 [ ] option to fall off cliff or off level.
