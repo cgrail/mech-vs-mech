@@ -152,7 +152,7 @@ Some districts are split by a **chasm** — tiles with no floor at all. Walk off
 
 ### Fog of War
 
-🌫️ **FOG OF WAR** in the menu trades the god's-eye view for sensors: the district closes in around your mech, and enemy mechs and turrets only exist while they're within sensor range *and* in line of sight — break contact behind a wall and they vanish from the world and from your minimap. Bases and your own team are always visible. It's a view setting, not a rule: it only ever hides things from you, so it works in multiplayer too, and it's remembered between sessions.
+🌫️ **FOG OF WAR** in the menu trades the god's-eye view for sensors: the district closes in around your mech, and enemy mechs and turrets only exist while they're within sensor range *and* in line of sight — break contact behind a wall and they fade out of the world and off your minimap. Coming back into contact fades them in just as smoothly, and an enemy shooting from cover stays hidden: its muzzle flash and tracers only appear once the shot clears the corner, so nothing gives away a mech you can't see. Bases and your own team are always visible. It's a view setting, not a rule: it only ever hides things from you, so it works in multiplayer too, and it's remembered between sessions.
 
 ## Look
 

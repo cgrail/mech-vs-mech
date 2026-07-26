@@ -19,9 +19,12 @@ final class Projectile {
     weak var src: Entity?
     var life: Double
     var trail: Double        // rockets pulse an exhaust glow behind them (<0: not a rocket)
+    var covert: Bool         // fog of war: fired out of sight, so not drawn yet
+    var covertT = 0.0        // when to re-test whether it has cleared cover
 
     init(node: SCNNode, pos: SIMD3<Double>, vel: SIMD3<Double>, team: Team,
-         damage: Double, rocket: Bool, cosmetic: Bool, src: Entity?, life: Double) {
+         damage: Double, rocket: Bool, cosmetic: Bool, src: Entity?, life: Double,
+         covert: Bool) {
         self.node = node
         self.pos = pos
         self.vel = vel
@@ -32,6 +35,7 @@ final class Projectile {
         self.src = src
         self.life = life
         self.trail = rocket ? 0 : -1
+        self.covert = covert
     }
 }
 
@@ -80,10 +84,15 @@ extension GameEngine {
         node.castsShadow = false
         node.position = SCNVector3(pos.x, pos.y, pos.z)
         orient(node, along: dir)
+        /* fog of war: a shot out of a spot I can't see must not give its shooter
+           away — it stays undrawn until it clears their cover (Vision.swift) */
+        let covert = covertShot(pos, team)
+        node.isHidden = covert
         scene.rootNode.addChildNode(node)
         projectiles.append(Projectile(
             node: node, pos: pos, vel: dir * speed, team: team,
-            damage: damage, rocket: rocket, cosmetic: cosmetic, src: src, life: life
+            damage: damage, rocket: rocket, cosmetic: cosmetic, src: src, life: life,
+            covert: covert
         ))
         // multiplayer: broadcast my shots so every other client shows a cosmetic copy
         if isMP && !cosmetic {
@@ -193,11 +202,24 @@ extension GameEngine {
             p.pos += p.vel * dt
             p.node.position = SCNVector3(p.pos.x, p.pos.y, p.pos.z)
             p.life -= dt
+            /* a covert shot (fog of war) becomes visible the moment it flies out
+               of the cover it was fired from, and stays visible from then on — a
+               tracer is stopped by terrain anyway, so it cannot sneak back out */
+            if p.covert {
+                p.covertT -= dt
+                if p.covertT <= 0 {
+                    p.covertT = 0.05
+                    if inSight(p.pos.x, p.pos.y, p.pos.z) {
+                        p.covert = false
+                        p.node.isHidden = false
+                    }
+                }
+            }
             if p.trail >= 0 {
                 p.trail -= dt
                 if p.trail <= 0 {
                     p.trail = 0.045
-                    spawnFlash(p.pos, scale: 1.8, color: 0xff8a3a)
+                    if !p.covert { spawnFlash(p.pos, scale: 1.8, color: 0xff8a3a) }
                 }
             }
             var dead = p.life <= 0

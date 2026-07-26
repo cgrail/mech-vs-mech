@@ -175,6 +175,11 @@ One flat `entities` array (everything with hp); `kind` is `player | mech | turre
 
 `systems/vision.js` (`Engine/Vision.swift`) is the optional fog of war: with `game.fogOfWar` on it tightens the render fog and hides enemy mechs/turrets that are out of sensor range or out of line of sight, marking each with `e.seen` (the minimap reads it). It is a **local view setting** — never sent over the wire, never affecting simulation — which is why it is allowed in PvP where difficulty scaling is not.
 
+Two rules stop it reading as a glitch rather than as fog, and both have to hold on either side of a new feature:
+
+- **Contact is faded, not switched.** The line-of-sight sweep is the expensive part, so it runs on its own budget (`TICK`) while the fade (`FADE`) runs every frame — which is also what hides the sweep's coarseness. Web sets `opacity` per material (models build their own, so it is safe per entity) and only turns `transparent` on *while* a fade runs; iOS just sets `node.opacity`, which cascades. An entity created between two sweeps has no verdict yet: teammates and bases default visible, enemies default hidden, so nothing ever flashes into view.
+- **A shot from somewhere you can't see is not drawn either.** Muzzle flashes and tracers out of thin air gave away every hidden mech the moment it fired. `hiddenShooter(e)` gates the flash (free — it reads the sweep's verdict), `covertShot(pos, team)` marks the projectile, and `projectiles.js` re-tests a covert shot every 0.05 s so it appears the instant it clears cover. The projectile test is **team-based, not shooter-based**, because a replicated multiplayer shot arrives without its shooter.
+
 ### Enemy mechs navigate, they don't path-find
 
 `ai.js` steering is three probes plus one piece of memory, and all of it is mirrored in `AI.swift`:

@@ -128,7 +128,8 @@ extension GameEngine {
             let az = target.z + target.velZ * tof * lead
             let dir = simd_normalize(SIMD3(ax, aimY(target), az) - muzzle)
             spawnProjectile(pos: muzzle, dir: dir, speed: 100, damage: e.damage, team: e.team, life: 1, src: e)
-            spawnFlash(muzzle, scale: 2.2, color: e.team == .blue ? 0xbfe6ff : 0xffb37a)
+            // fog of war: a flash at a mech I can't see would advertise it (Vision.swift)
+            if !hiddenShooter(e) { spawnFlash(muzzle, scale: 2.2, color: e.team == .blue ? 0xbfe6ff : 0xffb37a) }
             audio.laser(vol: 0.03, startF: e.team == .blue ? 2200 : 1300)
         }
     }
@@ -269,7 +270,7 @@ extension GameEngine {
             var dir = simd_normalize(SIMD3(ax - muzzle.x, aimY(target) - muzzle.y, az - muzzle.z))
             dir = rotateY(dir, spread)
             spawnProjectile(pos: muzzle, dir: dir, speed: 70, damage: e.damage, team: .red, life: 1.4, src: e)
-            spawnFlash(muzzle, scale: 2.2, color: 0xffb37a)
+            if !hiddenShooter(e) { spawnFlash(muzzle, scale: 2.2, color: 0xffb37a) }  // hidden shooter: no flash
             audio.laser(vol: 0.025, startF: 1100)
         }
     }

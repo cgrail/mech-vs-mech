@@ -7,6 +7,7 @@ import { distXZ } from '../core/helpers.js';
 import { spawnExplosion, spawnSpark, spawnFlash } from './particles.js';
 import { boomSfx } from '../systems/audio.js';
 import { player } from './player.js';
+import { covertShot, inSight } from '../systems/vision.js';
 import { updateHud } from '../ui/hud.js';
 import { endGame } from '../core/flow.js';
 import { MP, sendGame } from '../net/net.js';
@@ -43,6 +44,10 @@ export function spawnProjectile(opts) {
   }
   mesh.position.copy(opts.pos);
   mesh.lookAt(_look.copy(opts.pos).add(opts.dir));
+  /* fog of war: a shot out of a spot I can't see must not give its shooter
+     away — it stays undrawn until it clears their cover (systems/vision.js) */
+  const covert = covertShot(opts.pos, opts.team);
+  mesh.visible = !covert;
   scene.add(mesh);
   projectiles.push({
     mesh, pos: mesh.position,
@@ -50,6 +55,7 @@ export function spawnProjectile(opts) {
     team: opts.team, damage: opts.damage, rocket: !!opts.rocket,
     src: opts.src || null, life: opts.life || 3,
     cosmetic: !!opts.cosmetic, // replicated enemy shot: visuals only
+    covert, covertT: 0,        // fog of war: hidden until it comes into view
     trail: opts.rocket ? 0 : -1, // rockets pulse an exhaust glow behind them
   });
   if (MP.active && !opts.cosmetic) {
@@ -159,9 +165,19 @@ export function updateProjectiles(dt) {
     const p = projectiles[i];
     p.pos.addScaledVector(p.vel, dt);
     p.life -= dt;
+    /* a covert shot (fog of war) becomes visible the moment it flies out of
+       the cover it was fired from, and stays visible from then on — a tracer
+       is stopped by terrain anyway, so it can't sneak back out of sight */
+    if (p.covert) {
+      p.covertT -= dt;
+      if (p.covertT <= 0) {
+        p.covertT = 0.05;
+        if (inSight(p.pos.x, p.pos.y, p.pos.z)) { p.covert = false; p.mesh.visible = true; }
+      }
+    }
     if (p.trail >= 0) {
       p.trail -= dt;
-      if (p.trail <= 0) { p.trail = 0.045; spawnFlash(p.pos, 1.8, 0xff8a3a); }
+      if (p.trail <= 0) { p.trail = 0.045; if (!p.covert) spawnFlash(p.pos, 1.8, 0xff8a3a); }
     }
     let dead = p.life <= 0;
     let boom = false;
