@@ -76,6 +76,19 @@ enum GamePhase {
     case menu, playing, over
 }
 
+/* ============================================================
+   Game modes — mirrors MODES in game/core/state.js
+
+   assault  the original: waves + destroy the enemy base
+   ctf      capture the flag (Engine/CTF.swift) — both bases get a
+            flag in their courtyard, carry the enemy's to your own
+            stand. Bases stay destructible, so the modes stack.
+============================================================ */
+enum GameMode: String, CaseIterable {
+    case assault, ctf
+    var label: String { self == .ctf ? "🚩 CAPTURE THE FLAG" : "⚔ BASE ASSAULT" }
+}
+
 enum ControlScheme: String {
     case joystick, gyro
 }

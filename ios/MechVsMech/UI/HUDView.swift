@@ -33,6 +33,7 @@ struct HUDView: View {
                     baseBar(label: "ENEMY BASE", frac: model.hud.foeBaseFrac, color: Color(hex: 0xff5040))
                 }
                 .padding(.top, 8)
+                if model.hud.ctf { ctfBar }
                 if let msg = model.message {
                     Text(msg.text)
                         .font(.system(size: 17, weight: .black, design: .rounded))
@@ -172,6 +173,38 @@ struct HUDView: View {
                 .buttonStyle(MenuButtonStyle())
             }
         }
+    }
+
+
+    /* capture the flag: my captures, both flag states, theirs — the HUD
+       equivalent of the web build's #ctfBar */
+    private var ctfBar: some View {
+        HStack(spacing: 10) {
+            Text("\(model.hud.myCaptures)")
+                .font(.system(size: 18, weight: .black, design: .rounded))
+                .foregroundColor(Color(hex: 0x9fc4ff))
+            flagState(model.hud.myFlag, mine: true)
+            Text("FIRST TO \(CAPTURES_TO_WIN)")
+                .font(.system(size: 9, weight: .bold)).kerning(1)
+                .foregroundColor(Color(hex: 0x6a7594))
+            flagState(model.hud.foeFlag, mine: false)
+            Text("\(model.hud.foeCaptures)")
+                .font(.system(size: 18, weight: .black, design: .rounded))
+                .foregroundColor(Color(hex: 0xff9f9f))
+        }
+        .padding(.horizontal, 12).padding(.vertical, 4)
+        .background(RoundedRectangle(cornerRadius: 6).fill(Color.black.opacity(0.45)))
+        .shadow(color: .black, radius: 3)
+    }
+
+    private func flagState(_ state: FlagState, mine: Bool) -> some View {
+        let text = state == .home ? "HOME" : state == .carried ? "TAKEN" : "DROPPED"
+        let color = state == .carried ? Color(hex: 0xff5040)
+            : state == .dropped ? Color(hex: 0xffd23c)
+            : Color(hex: mine ? 0x9fc4ff : 0xff9f9f)
+        return Text("🚩 \(text)")
+            .font(.system(size: 10, weight: .bold)).kerning(1)
+            .foregroundColor(color)
     }
 
     private func baseBar(label: String, frac: Double, color: Color) -> some View {

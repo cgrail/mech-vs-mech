@@ -17,7 +17,9 @@ let BLUE_PAL = Palette(body: 0x2b4fd8, accent: 0x6fd2ff)
 let RED_PAL = Palette(body: 0xa42a20, accent: 0xffb03a)
 
 final class Entity {
-    enum Kind { case player, mech, turret, base }
+    /* `flag` is a capture-the-flag objective (CTF.swift): a walk-onto
+       target with no hp that never enters the engine's `entities` array */
+    enum Kind { case player, mech, turret, base, flag }
 
     let kind: Kind
     let team: Team
@@ -63,6 +65,7 @@ final class Entity {
     var pz = 0.0
     var velX = 0.0
     var velZ = 0.0
+    var flagRunner = false   // capture the flag: this mech goes for the flag
 
     // model parts (mech: legs + lamps, turret: head)
     var legL: SCNNode?

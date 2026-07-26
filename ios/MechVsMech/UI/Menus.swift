@@ -57,7 +57,8 @@ struct MenuScreen: View {
                 if over {
                     TitleBlock(
                         eyebrow: nil,
-                        h1: model.victory ? "VICTORY" : (model.isMPMatch ? "DEFEAT" : "BASE LOST"),
+                        h1: model.victory ? "VICTORY"
+                            : (model.isMPMatch || model.engine.mode == .ctf ? "DEFEAT" : "BASE LOST"),
                         h1Color: model.victory ? Skin.green : Skin.danger,
                         h2: model.endReason ?? (model.victory ? "ENEMY BASE DESTROYED — DISTRICT SECURED" : "YOUR BASE WAS DESTROYED")
                     )
@@ -102,6 +103,12 @@ struct MenuScreen: View {
                     HStack(spacing: 10) {
                         PillToggle(label: "🕹️ JOYSTICK", selected: model.scheme == .joystick) { model.scheme = .joystick }
                         PillToggle(label: "📱 GYRO", selected: model.scheme == .gyro) { model.scheme = .gyro }
+                    }
+                    // base assault or capture the flag (Engine/CTF.swift)
+                    HStack(spacing: 10) {
+                        ForEach(GameMode.allCases, id: \.self) { m in
+                            PillToggle(label: m.label, selected: model.mode == m) { model.mode = m }
+                        }
                     }
                     HStack(spacing: 10) {
                         ForEach(DifficultyKey.allCases, id: \.self) { key in
@@ -174,7 +181,10 @@ struct MenuScreen: View {
         let controls = model.scheme == .gyro
             ? "🧭 Turn phone to rotate mech · 📱 lean forward/back to move\n📱 tilt sideways to strafe · 👆 touch the screen to fire"
             : "👈 Left thumb — floating joystick, move & strafe\n👉 Right thumb — drag to turn · hold to fire machine guns"
-        return Text("MISSION: Destroy the red enemy base at the far end of the district before enemy assault mechs destroy yours. Enemy waves march on your base — build turrets to hold them off.\n\n\(controls)\n⬆️ jump jets — clear a ledge onto high ground\n🚀 rockets (🛢️ 20) · 🛰️ build turret in front of you (🛢️ 100)")
+        let mission = model.mode == .ctf
+            ? "MISSION: Take the red flag from the enemy courtyard and run it back to your own stand — \(CAPTURES_TO_WIN) captures win the district. The enemy is after yours: a dropped flag goes home by itself after 25s, or instantly if you touch it. Destroying the enemy base still wins outright."
+            : "MISSION: Destroy the red enemy base at the far end of the district before enemy assault mechs destroy yours. Enemy waves march on your base — build turrets to hold them off."
+        return Text("\(mission)\n\n\(controls)\n⬆️ jump jets — clear a ledge onto high ground\n🚀 rockets (🛢️ 20) · 🛰️ build turret in front of you (🛢️ 100)")
     }
 
     private var reportPanel: some View {
@@ -186,13 +196,17 @@ struct MenuScreen: View {
                 ? "District secured, officer. Head back to the lobby for the next battle."
                 : "The district has fallen. Return to the lobby and take the rematch."
             let matesLine = mates.isEmpty ? "" : "Fought beside \(mates.joined(separator: " · "))\n"
-            return Text("MULTIPLAYER — \(mp.myTeam.wire.uppercased()) TEAM vs \(foes.joined(separator: " · "))\n\(matesLine)Kills: \(stats.kills) · Turrets built: \(stats.turretsBuilt)\n\(flavor)")
+            let caps = model.engine.mode == .ctf
+                ? " · Captures: \(stats.captures[mp.myTeam] ?? 0) : \(stats.captures[mp.enemyTeam] ?? 0)" : ""
+            return Text("MULTIPLAYER \(model.engine.mode.label) — \(mp.myTeam.wire.uppercased()) TEAM vs \(foes.joined(separator: " · "))\n\(matesLine)Kills: \(stats.kills) · Turrets built: \(stats.turretsBuilt)\(caps)\n\(flavor)")
         }
         let flavor = model.victory
             ? (model.hasNextLevel ? "Outstanding work, officer. The next district needs you."
                                   : "Outstanding work, officer. All districts secured.")
             : "The district has fallen. Redeploy and try again."
-        return Text("MISSION REPORT — \(DIFFICULTIES[model.difficultyKey]!.label)\nKills: \(stats.kills) · Waves survived: \(stats.wave) · Turrets built: \(stats.turretsBuilt)\n\(flavor)")
+        let caps = model.engine.mode == .ctf
+            ? " · Captures: \(stats.captures[.blue] ?? 0) : \(stats.captures[.red] ?? 0)" : ""
+        return Text("MISSION REPORT — \(model.engine.mode.label) · \(DIFFICULTIES[model.difficultyKey]!.label)\nKills: \(stats.kills) · Waves survived: \(stats.wave) · Turrets built: \(stats.turretsBuilt)\(caps)\n\(flavor)")
     }
 }
 

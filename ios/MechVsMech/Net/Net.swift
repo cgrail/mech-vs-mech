@@ -27,6 +27,7 @@ struct MPConfig {
     let roster: [MPPlayer]     // everyone in the match, me included
     let matchId: String
     let token: String
+    let mode: GameMode         // the room's mode, played by everyone in the match
     var enemyTeam: Team { myTeam.enemy }
 }
 

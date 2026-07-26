@@ -23,6 +23,7 @@ struct Stats {
     var turretsBuilt = 0
     var kills = 0
     var wave = 0
+    var captures: [Team: Int] = [.blue: 0, .red: 0]   // capture the flag
 }
 
 struct HudSnapshot: Equatable {
@@ -33,6 +34,12 @@ struct HudSnapshot: Equatable {
     var foeBaseFrac = 1.0
     var canRocket = true
     var canTurret = true
+    // capture the flag (hidden in assault mode)
+    var ctf = false
+    var myCaptures = 0
+    var foeCaptures = 0
+    var myFlag: FlagState = .home
+    var foeFlag: FlagState = .home
 }
 
 protocol EngineDelegate: AnyObject {
@@ -48,6 +55,9 @@ final class GameEngine {
     let levelInfo: LevelInfo
     let level: Level
     var difficulty: Difficulty
+    /// base assault or capture the flag; in multiplayer it is the room's,
+    /// dealt out with the match credentials (MPConfig.mode)
+    let mode: GameMode
 
     // multiplayer: nil in single player. When set, red-side AI/waves are off,
     // the player joins mp.myTeam, and damage to the enemy team is network-routed.
@@ -86,6 +96,9 @@ final class GameEngine {
     var player: Entity!
     var blueBase: Entity!
     var redBase: Entity!
+    /// capture-the-flag flags, built with the world (CTF.swift). Present in
+    /// both modes; hidden and never updated in assault.
+    var flags: [Team: Flag] = [:]
     var spawnPos = P2()
     var spawnYaw = 0.0
     var gunSide = 1.0
@@ -104,10 +117,13 @@ final class GameEngine {
     private let actionLock = NSLock()
     private var lastHud: HudSnapshot?
 
-    init(levelInfo: LevelInfo, difficultyKey: DifficultyKey, mp: MPConfig? = nil, net: Net? = nil) throws {
+    init(levelInfo: LevelInfo, difficultyKey: DifficultyKey, mode: GameMode = .assault,
+         mp: MPConfig? = nil, net: Net? = nil) throws {
         self.levelInfo = levelInfo
         self.level = try Level(text: levelInfo.text, name: levelInfo.name)
         self.difficulty = DIFFICULTIES[difficultyKey]!
+        // a match plays its room's mode; single player plays the menu's
+        self.mode = mp?.mode ?? mode
         self.mp = mp
         self.net = net
 
@@ -161,6 +177,7 @@ final class GameEngine {
                 makeTurretEntity(team: .red, x: t.x, z: t.z)
             }
         }
+        setupFlags()   // capture the flag: a stand in each base's courtyard
         setupPlayer()
         if isMP { initMatch() }   // spawn replicas for every other player
     }
@@ -204,7 +221,8 @@ final class GameEngine {
         applyFog()   // normal play fog, or the tight one when fog of war is on
         if !isMP { applyDifficulty() }   // PvP is symmetric: no difficulty scaling
         phase = .playing
-        delegate?.engineMessage("DESTROY THE ENEMY BASE", colorHex: 0xffd23c)
+        delegate?.engineMessage(mode == .ctf ? "TAKE THEIR FLAG — DEFEND YOURS" : "DESTROY THE ENEMY BASE",
+                                colorHex: 0xffd23c)
     }
 
     /* the red side gets its stats from the chosen difficulty */
@@ -268,6 +286,7 @@ final class GameEngine {
             }
             separateMechs()
             updateProjectiles(dt: dt)
+            updateCtf(dt: dt)      // capture the flag, if that's the mode
             updateVision(dt: dt)   // fog of war, if it's on: what is still drawn
 
             // passive salvage income (fixed rate in PvP so both sides earn the same)
@@ -332,6 +351,13 @@ final class GameEngine {
         hud.foeBaseFrac = max(0, foeBase.hp / foeBase.maxHp)
         hud.canRocket = stats.salvage >= Costs.rocket
         hud.canTurret = stats.salvage >= Costs.turret
+        hud.ctf = mode == .ctf
+        if hud.ctf {
+            hud.myCaptures = stats.captures[myTeam] ?? 0
+            hud.foeCaptures = stats.captures[enemyTeam] ?? 0
+            hud.myFlag = flags[myTeam]?.state ?? .home
+            hud.foeFlag = flags[enemyTeam]?.state ?? .home
+        }
         if hud != lastHud {
             lastHud = hud
             delegate?.engineHud(hud)

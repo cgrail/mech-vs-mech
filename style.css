@@ -400,19 +400,20 @@ body.touch #ctrlRow { display: flex; }
 }
 #mpRoomBar {
   display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  flex-wrap: wrap; /* map + mode + leave don't fit one line on a phone */
   width: min(560px, 86vw);
 }
 #mpRoomName { font-size: 14px; font-weight: 800; letter-spacing: 2px; color: #ffd23c; }
-/* the map the room plays: a picker for its owner, a label for everyone else */
-#mpMapRow { display: flex; align-items: center; gap: 8px; min-width: 0; }
-#mpMapRow .lbl { font-size: 11px; letter-spacing: 2px; color: #8a92ad; }
-#mpMapName { font-size: 12px; font-weight: 700; letter-spacing: 1px; color: #cdd8ff; }
-#mpMapSelect {
+/* what the room plays: pickers for its owner, labels for everyone else */
+#mpMapRow, #mpModeRow { display: flex; align-items: center; gap: 8px; min-width: 0; }
+#mpMapRow .lbl, #mpModeRow .lbl { font-size: 11px; letter-spacing: 2px; color: #8a92ad; }
+#mpMapName, #mpModeName { font-size: 12px; font-weight: 700; letter-spacing: 1px; color: #cdd8ff; }
+#mpMapSelect, #mpModeSelect {
   max-width: min(240px, 40vw); font: inherit; font-size: 12px; letter-spacing: 1px;
   padding: 6px 8px; border-radius: 6px; cursor: pointer;
   background: rgba(20, 24, 40, .9); border: 1px solid #3a4468; color: #cdd8ff;
 }
-#mpMapSelect:focus { outline: 1px solid #6f83c9; }
+#mpMapSelect:focus, #mpModeSelect:focus { outline: 1px solid #6f83c9; }
 
 /* team pick: two rosters side by side */
 #mpTeams { display: flex; gap: 14px; width: min(560px, 86vw); }

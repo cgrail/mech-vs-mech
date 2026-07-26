@@ -64,6 +64,18 @@ final class AppModel: ObservableObject {
     @Published var scheme: ControlScheme {
         didSet { UserDefaults.standard.set(scheme.rawValue, forKey: "mechControls") }
     }
+    /* base assault or capture the flag — a single-player choice, remembered
+       like the difficulty. A multiplayer match plays its room's mode instead
+       (MPConfig.mode), so this is not offered in the lobby.
+       Switching it rebuilds the menu engine: the flags are built with the
+       world, so the map behind the menu shows the stands right away. */
+    @Published var mode: GameMode {
+        didSet {
+            guard mode != oldValue else { return }
+            UserDefaults.standard.set(mode.rawValue, forKey: "mechMode")
+            if !isMPMatch && screen != .playing { rebuildEngine() }
+        }
+    }
     /* fog of war (Engine/Vision.swift): remembered like the difficulty, and
        applied to a running match right away */
     @Published var fogOfWar: Bool {
@@ -93,21 +105,28 @@ final class AppModel: ObservableObject {
         difficultyKey = DifficultyKey(rawValue: UserDefaults.standard.string(forKey: "mechDifficulty") ?? "") ?? .medium
         scheme = ControlScheme(rawValue: UserDefaults.standard.string(forKey: "mechControls") ?? "") ?? .joystick
         fogOfWar = UserDefaults.standard.bool(forKey: "mechFog")
-        engine = Self.makeEngine(info: loaded.first ?? Self.fallbackInfo, difficultyKey: .medium)
+        let savedMode = GameMode(rawValue: UserDefaults.standard.string(forKey: "mechMode") ?? "") ?? .assault
+        mode = savedMode
+        engine = Self.makeEngine(info: loaded.first ?? Self.fallbackInfo,
+                                 difficultyKey: .medium, mode: savedMode)
         engine.delegate = self
         lobby = LobbyModel(app: self)
     }
 
     private static func makeEngine(info: LevelInfo, difficultyKey: DifficultyKey,
+                                   mode: GameMode = .assault,
                                    mp: MPConfig? = nil, net: Net? = nil) -> GameEngine {
-        if let e = try? GameEngine(levelInfo: info, difficultyKey: difficultyKey, mp: mp, net: net) { return e }
+        if let e = try? GameEngine(levelInfo: info, difficultyKey: difficultyKey,
+                                   mode: mode, mp: mp, net: net) { return e }
         // a broken level in the bundle: fall back to the built-in map
-        return try! GameEngine(levelInfo: fallbackInfo, difficultyKey: difficultyKey, mp: mp, net: net)
+        return try! GameEngine(levelInfo: fallbackInfo, difficultyKey: difficultyKey,
+                               mode: mode, mp: mp, net: net)
     }
 
     private func rebuildEngine(mp: MPConfig? = nil, net: Net? = nil, info: LevelInfo? = nil) {
         previewName = nil   // any rebuild drops the lobby's map preview
-        engine = Self.makeEngine(info: info ?? levelInfo, difficultyKey: difficultyKey, mp: mp, net: net)
+        engine = Self.makeEngine(info: info ?? levelInfo, difficultyKey: difficultyKey,
+                                 mode: mode, mp: mp, net: net)
         engine.delegate = self
         hud = HudSnapshot()
         respawnVisible = false

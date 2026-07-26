@@ -285,9 +285,10 @@ export function endGame(victory, reason) {
       const mates = MP.roster.filter((p) => p.team === MP.myTeam && p.id !== MP.playerId).map((p) => p.name);
       const foes = MP.roster.filter((p) => p.team !== MP.myTeam).map((p) => p.name);
       document.getElementById('briefing').innerHTML =
-        `<b>MULTIPLAYER — ${MP.myTeam.toUpperCase()} TEAM vs ${esc(foes.join(' · '))}</b><br>` +
+        `<b>MULTIPLAYER ${MODES[game.mode].label} — ${MP.myTeam.toUpperCase()} TEAM vs ${esc(foes.join(' · '))}</b><br>` +
         (mates.length ? `Fought beside <b>${esc(mates.join(' · '))}</b><br>` : '') +
-        `Kills: <b>${stats.kills}</b> · Turrets built: <b>${stats.turretsBuilt}</b><br>` +
+        `Kills: <b>${stats.kills}</b> · Turrets built: <b>${stats.turretsBuilt}</b>` +
+        (game.mode === 'ctf' ? ` · Captures: <b>${stats.captures[MP.myTeam]} : ${stats.captures[MP.enemyTeam]}</b>` : '') + '<br>' +
         (victory
           ? 'District secured, officer. Head back to the lobby for the next battle.'
           : 'The district has fallen. Return to the lobby and take the rematch.');

@@ -20,6 +20,11 @@ import simd
      build    a turret was built
      die      an entity its owner simulates died → mirror it
      respawn  a player redeployed
+     fgrab/fdrop/fret/fcap
+              capture the flag: what the sender's mech did with a
+              flag. Flags are shared and unowned like the bases, so
+              only the client simulating that mech reports it and
+              everyone else mirrors it (CTF.swift)
 
    Damage to owned entities is shooter-reported but owner-applied,
    so hp has exactly one authority. Base hp converges because every
@@ -204,6 +209,9 @@ extension GameEngine {
         case "die":   // an entity died on its owner's client — mirror it
             guard let id = jStr(d, "id"), let e = netRegistry[id], e.alive, e.owner == from else { return }
             killEntity(e)
+
+        case "fgrab", "fdrop", "fret", "fcap":
+            onFlagMsg(t, d)   // capture the flag — shared, unowned state
 
         case "respawn":
             guard let peer else { return }

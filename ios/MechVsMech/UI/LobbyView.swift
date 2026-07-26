@@ -121,7 +121,8 @@ private struct LobbyBody: View {
                                     Text(r.name)
                                         .font(.system(size: 14, weight: .bold)).kerning(2)
                                         .foregroundColor(Skin.lightText)
-                                    Text(lobby.mapTitle(r.level))
+                                    Text(lobby.mapTitle(r.level)
+                                        + (r.mode == .ctf ? " · 🚩 CTF" : ""))
                                         .font(.system(size: 11)).kerning(1)
                                         .foregroundColor(Skin.dimText)
                                 }
@@ -173,6 +174,7 @@ private struct LobbyBody: View {
             .frame(width: colWidth)
 
             mapRow
+            modeRow
 
             if pickingMap {
                 mapList
@@ -242,6 +244,27 @@ private struct LobbyBody: View {
                     .font(.system(size: 10)).kerning(1)
                     .foregroundColor(Skin.dimText)
             }
+        }
+        .frame(width: colWidth)
+    }
+
+    /* the mode this room plays, on the same rule as the map: its creator
+       taps to switch it, everyone else reads it */
+    private var modeRow: some View {
+        HStack(spacing: 8) {
+            Text("MODE")
+                .font(.system(size: 11, weight: .bold)).kerning(2)
+                .foregroundColor(Skin.dimText)
+            if lobby.iOwnRoom {
+                ForEach(GameMode.allCases, id: \.self) { m in
+                    PillToggle(label: m.label, selected: lobby.roomMode == m) { lobby.setMode(m) }
+                }
+            } else {
+                Text(lobby.roomMode.label)
+                    .font(.system(size: 12, weight: .bold)).kerning(1)
+                    .foregroundColor(Skin.lightText)
+            }
+            Spacer(minLength: 4)
         }
         .frame(width: colWidth)
     }

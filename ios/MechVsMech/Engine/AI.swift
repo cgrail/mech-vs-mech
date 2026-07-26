@@ -147,6 +147,10 @@ extension GameEngine {
             // priority: whoever shot us recently > player in sight > close /
             // already-damaged blue turret > blue base
             var t: Entity? = e.aggroT > 0 ? e.aggro : nil
+            // capture the flag: the objective outranks everything but
+            // retaliation — runners fetch the enemy flag, a carrier runs it
+            // home, the rest hunt whoever took ours (CTF.swift picks which)
+            if t == nil, mode == .ctf { t = ctfGoal(e) }
             if t == nil, player.alive, distXZ(e, player) < cfg.sight { t = player }
             if t == nil {
                 var bs = Double.infinity
@@ -167,7 +171,9 @@ extension GameEngine {
         guard let target = e.target, target.alive else { return }
 
         let d = distXZ(e, target)
-        let attackRange = target.kind == .base ? 32 : e.range
+        // a flag (or a flag stand) is walked onto, not shot at, so it pulls the
+        // mech all the way in — the pickup/capture radius does the rest
+        let attackRange = target.kind == .base ? 32 : target.kind == .flag ? 3 : e.range
         // open fire on the player as soon as they're spotted, while still closing to preferred range
         let fireRange = target === player ? cfg.sight : attackRange
         let clear = !losBlocked(e.x, e.y + 4.5, e.z, target.x, aimY(target), target.z)
@@ -248,7 +254,7 @@ extension GameEngine {
 
         // fire: lead moving targets, tighter spread on harder difficulties
         let aimDiff = abs(angDiff(desired, e.yaw))
-        if d < fireRange && clear && aimDiff < 0.25 && e.cool <= 0 {
+        if d < fireRange && clear && aimDiff < 0.25 && e.cool <= 0 && target.kind != .flag {
             e.cool = e.fireInterval * (0.8 + rand01() * 0.5)
             let muzzle = localToWorld(e, rand01() < 0.5 ? -2.2 : 2.2, 4.5, 2.7)
             let tof = d / 70
@@ -279,13 +285,17 @@ extension GameEngine {
             : level.enemySpawns
         pts.sort { distXZ($0.x, $0.z, redBase.x, redBase.z) < distXZ($1.x, $1.z, redBase.x, redBase.z) }
         for i in 0..<n {
+            let m: Entity
             if w.flank && stats.wave >= 2 && pts.count > 1 && i % 3 == 2 {
                 let p = pts[1 + i % (pts.count - 1)]
-                makeEnemyMech(x: p.x + (rand01() - 0.5) * 6, z: p.z + (rand01() - 0.5) * 6)
+                m = makeEnemyMech(x: p.x + (rand01() - 0.5) * 6, z: p.z + (rand01() - 0.5) * 6)
             } else {
                 let x = (Double(i) - Double(n - 1) / 2) * 7
-                makeEnemyMech(x: pts[0].x + x + (rand01() - 0.5) * 3, z: pts[0].z + (rand01() - 0.5) * 4)
+                m = makeEnemyMech(x: pts[0].x + x + (rand01() - 0.5) * 3, z: pts[0].z + (rand01() - 0.5) * 4)
             }
+            // capture the flag: every other mech of a wave goes for the flag,
+            // the rest fight — a whole wave rushing the stand leaves nobody home
+            m.flagRunner = i % 2 == 0
         }
         delegate?.engineMessage("WAVE \(stats.wave) INCOMING", colorHex: 0xff9a5a)
         audio.beep(f: 90, f2: 55, dur: 0.6, type: .sawtooth, vol: 0.12)

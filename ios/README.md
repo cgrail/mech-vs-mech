@@ -35,6 +35,7 @@ Adding a Swift file anywhere under `MechVsMech/` automatically joins the target
 | `MechVsMech/Engine/Helpers.swift` | `game/core/helpers.js` |
 | `MechVsMech/Engine/Entities.swift`, `Player.swift`, `Projectiles.swift`, `Particles.swift` | `game/entities/*` |
 | `MechVsMech/Engine/AI.swift`, `Build.swift`, `Audio.swift` | `game/systems/ai.js`, `build.js`, `audio.js` |
+| `MechVsMech/Engine/CTF.swift` | `game/systems/ctf.js` (capture the flag) |
 | `MechVsMech/Engine/GameEngine.swift` | `game/main.js` + `world/scene.js` + `core/flow.js` |
 | `MechVsMech/TouchControls.swift` | `game/systems/mobile.js` |
 | `MechVsMech/UI/*`, `AppModel.swift` | `game/ui/hud.js` + the overlay screens |
@@ -48,6 +49,13 @@ Node server at `wss://mech.grails.de/ws` (the same lobby the browser uses, so iO
 and web players share rooms). Flow mirrors the web: enter a callsign → create or
 join a room → pick blue or red (max 5/side) → START MATCH once both sides have a
 pilot → a READY handshake deploys everyone at once.
+
+The room's creator picks its **map and its mode** (⚔ BASE ASSAULT or 🚩 CAPTURE
+THE FLAG, `setMode`); both travel with the match credentials, so a phone and a
+browser in the same room always play the same game. Capture the flag itself is
+`Engine/CTF.swift` — flag stands derived from the base markers, flags shared and
+unowned like the bases, and the `fgrab`/`fdrop`/`fret`/`fcap` relay events
+identical to the web build's.
 
 Point it at a different backend by setting the `mechServer` UserDefaults string
 (e.g. `ws://192.168.1.20:8080/ws` for a local `npm start`). ATS allows the
@@ -92,6 +100,11 @@ not been compiled)
 - Menu: map orbits behind the overlay; level select previews the chosen map.
 - Deploy on level 1, joystick scheme: move/strafe/turn/fire, build a turret,
   fire a rocket, survive a wave, destroy the red base → VICTORY → NEXT LEVEL.
+- **Capture the flag**: pick 🚩 CAPTURE THE FLAG in the mission menu — both
+  courtyards should show a stand with a flag on it and the HUD a capture score.
+  Walk onto the red flag, run it to your own stand (score), die carrying it
+  (it drops, and goes home 25s later), and check that raiding mechs steal yours
+  and run it back. Three captures ends the match.
 - Ramps walkable, ledges block walking up but allow dropping down, cliff rims
   block shots until you reach the edge (all driven by the terrain grid).
 - **Gyro scheme on a real device**: verify turn direction is 1:1 and correct,

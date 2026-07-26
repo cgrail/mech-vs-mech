@@ -25,6 +25,7 @@ struct RoomInfo: Identifiable {
     let count: Int
     let owner: Int       // the pilot who created it — only they pick the map
     let level: String    // the map everyone in this room will play
+    let mode: GameMode   // …and the mode they will play it in
 }
 
 struct LobbyPlayer: Identifiable {
@@ -146,7 +147,8 @@ final class LobbyModel: ObservableObject {
     func join() {
         let n = name.trimmingCharacters(in: .whitespaces)
         guard !n.isEmpty else { return }
-        net.send(["type": "join", "name": n, "level": app?.currentLevelParam() ?? "1"])
+        net.send(["type": "join", "name": n, "level": app?.currentLevelParam() ?? "1",
+                  "mode": (app?.mode ?? .assault).rawValue])
     }
     func createRoom() { net.send(["type": "createRoom"]) }
     func joinRoom(_ id: Int) { net.send(["type": "joinRoom", "roomId": id]) }
@@ -157,6 +159,8 @@ final class LobbyModel: ObservableObject {
     func nextMatch() { net.send(["type": "nextMatch"]) }
     /* pick the room's map — the server rejects this from anyone but its owner */
     func setLevel(_ param: String) { net.send(["type": "setLevel", "level": param]) }
+    /* …and its mode, same rule */
+    func setMode(_ mode: GameMode) { net.send(["type": "setMode", "mode": mode.rawValue]) }
 
     func pickTeam(_ team: Team) {
         // tapping my own team steps back off the roster
@@ -256,7 +260,8 @@ final class LobbyModel: ObservableObject {
         for r in (obj["rooms"] as? [[String: Any]]) ?? [] {
             guard let id = jInt(r, "id") else { continue }
             rs.append(RoomInfo(id: id, name: jStr(r, "name") ?? "ROOM", count: jInt(r, "count") ?? 0,
-                               owner: jInt(r, "owner") ?? 0, level: jStr(r, "level") ?? "1"))
+                               owner: jInt(r, "owner") ?? 0, level: jStr(r, "level") ?? "1",
+                               mode: GameMode(rawValue: jStr(r, "mode") ?? "") ?? .assault))
         }
         var ps: [LobbyPlayer] = []
         for p in (obj["players"] as? [[String: Any]]) ?? [] {
@@ -280,8 +285,8 @@ final class LobbyModel: ObservableObject {
             let red = members.filter { $0.team == .red }.count
             if myTeam == nil { setStatus("PICK A TEAM — BLUE OR RED") }
             else if blue == 0 || red == 0 { setStatus("WAITING FOR PILOTS ON THE OTHER TEAM…") }
-            else if iOwnRoom { setStatus("READY — YOUR ROOM, YOUR MAP: EVERYONE FIGHTS ON \(roomMapTitle)") }
-            else { setStatus("READY — THE ROOM PLAYS \(roomMapTitle), PICKED BY ITS CREATOR") }
+            else if iOwnRoom { setStatus("READY — YOUR ROOM, YOUR CALL: \(roomMode.label) ON \(roomMapTitle)") }
+            else { setStatus("READY — THE ROOM PLAYS \(roomMode.label) ON \(roomMapTitle), PICKED BY ITS CREATOR") }
         }
     }
 
@@ -319,6 +324,7 @@ final class LobbyModel: ObservableObject {
     /* the map is the creator's call; everyone else just reads it */
     var iOwnRoom: Bool { myId != nil && myRoomInfo?.owner == myId }
     var roomMapParam: String { myRoomInfo?.level ?? "1" }
+    var roomMode: GameMode { myRoomInfo?.mode ?? .assault }
     var roomMapTitle: String { mapTitle(roomMapParam) }
 
     /* ◂ / ▸ in the room: the neighbouring map in the server's list, wrapping
@@ -352,7 +358,8 @@ final class LobbyModel: ObservableObject {
             }
         }
         let config = MPConfig(playerId: pid, myTeam: team, name: myName,
-                              roster: roster, matchId: matchId, token: token)
+                              roster: roster, matchId: matchId, token: token,
+                              mode: GameMode(rawValue: jStr(obj, "mode") ?? "") ?? .assault)
         let levelParam = jStr(obj, "level") ?? "1"
         pending = (config, levelParam)
         bootRoster = roster

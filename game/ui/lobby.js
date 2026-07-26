@@ -1,5 +1,5 @@
 import { MP, connect, disconnect, connected, on, send } from '../net/net.js';
-import { game } from '../core/state.js';
+import { game, MODES } from '../core/state.js';
 import { levelName, levels, levelMeta, levelParam } from '../world/world.js';
 import { switchMap } from '../core/mapswitch.js';
 import { startGame, backToLobby } from '../core/flow.js';
@@ -13,10 +13,12 @@ import { audioCtx } from '../systems/audio.js';
    5 per side) → once both teams have at least one pilot, anyone
    on a team can START MATCH. Rooms are independent: each stages
    its own match, so several groups can fight in parallel. The
-   room's creator owns it and picks the map everyone plays (the
-   server holds that choice, so joiners just see it). The server
-   deals out match credentials and every rostered player reloads
-   into ?level=<the room's map>&mp=1 (see net.js).
+   room's creator owns it and picks the map and the mode (base
+   assault or capture the flag) everyone plays — the server holds
+   both choices, so joiners just see them. The server deals out
+   match credentials and every rostered player reloads into
+   ?level=<the room's map>&mp=1, with the mode in the credentials
+   (see net.js).
 
    Match boot (?mp=1): reconnect, rejoin by token, then a READY
    handshake so the fight starts for everyone at once.
@@ -38,6 +40,8 @@ const mapSelect = document.getElementById('mpMapSelect');
 const mapPrevBtn = document.getElementById('mpMapPrev');
 const mapNextBtn = document.getElementById('mpMapNext');
 const mapNameEl = document.getElementById('mpMapName');
+const modeSelect = document.getElementById('mpModeSelect');
+const modeNameEl = document.getElementById('mpModeName');
 const leaveBtn = document.getElementById('mpLeaveBtn');
 const teamsEl = document.getElementById('mpTeams');
 const listEl = document.getElementById('mpList');
@@ -111,7 +115,8 @@ if (MP.active) {
     const sub2 = document.createElement('div');
     sub2.className = 'sub';
     sub2.textContent = matchMsg
-      || `YOU FIGHT FOR THE ${MP.myTeam.toUpperCase()} TEAM — DESTROY THEIR BASE`;
+      || `YOU FIGHT FOR THE ${MP.myTeam.toUpperCase()} TEAM — `
+        + (game.mode === 'ctf' ? 'TAKE THEIR FLAG' : 'DESTROY THEIR BASE');
     matchInfo.appendChild(sub2);
   }
 
@@ -169,7 +174,7 @@ if (MP.active) {
   on('matchStart', (m) => {
     sessionStorage.setItem('mechMpMatch', JSON.stringify({
       matchId: m.matchId, token: m.token, playerId: m.playerId,
-      team: m.team, name: MP.name, roster: m.roster,
+      team: m.team, name: MP.name, roster: m.roster, mode: m.mode,
     }));
     const url = new URL(location.href);
     url.searchParams.set('level', m.level);
@@ -241,7 +246,7 @@ function resetLobbyUi() {
 function doJoin() {
   const name = nameInput.value.trim();
   if (!name) { nameInput.focus(); return; }
-  send({ type: 'join', name, level: levelParam(levelName) });
+  send({ type: 'join', name, level: levelParam(levelName), mode: game.mode });
 }
 
 function clearBanner() {
@@ -299,7 +304,8 @@ function renderList(state) {
       n.textContent = r.name;
       const st = document.createElement('span');
       st.className = 'st';
-      st.textContent = `${r.count} PILOT${r.count === 1 ? '' : 'S'} · ${mapTitle(r.level)}`;
+      st.textContent = `${r.count} PILOT${r.count === 1 ? '' : 'S'} · ${mapTitle(r.level)}`
+        + (r.mode === 'ctf' ? ' · 🚩 CTF' : '');
       const b = document.createElement('button');
       b.textContent = 'JOIN';
       b.addEventListener('click', () => send({ type: 'joinRoom', roomId: r.id }));
@@ -343,6 +349,14 @@ function renderList(state) {
   else mapNameEl.textContent = mapTitle(map);
   previewMap(map); // the room's map is what orbits behind the overlay
 
+  /* the mode rides along with the map: the owner picks, everyone else reads */
+  const mode = room && MODES[room.mode] ? room.mode : 'assault';
+  const canPickMode = !!room && room.owner === myId;
+  show(modeSelect, canPickMode);
+  show(modeNameEl, !canPickMode);
+  if (canPickMode) { if (modeSelect.value !== mode) modeSelect.value = mode; }
+  else modeNameEl.textContent = MODES[mode].label;
+
   for (const team of ['blue', 'red']) {
     const col = document.getElementById(team === 'blue' ? 'mpTeamBlue' : 'mpTeamRed');
     const list = col.querySelector('.tList');
@@ -378,8 +392,8 @@ function renderList(state) {
   startBtn.disabled = !myTeam || !blue || !red;
   if (!myTeam) setStatus('PICK A TEAM — BLUE OR RED');
   else if (!blue || !red) setStatus('WAITING FOR PILOTS ON THE OTHER TEAM…');
-  else if (canPick) setStatus(`READY — YOUR ROOM, YOUR MAP: EVERYONE FIGHTS ON ${mapTitle(map)}`);
-  else setStatus(`READY — THE ROOM PLAYS ${mapTitle(map)}, PICKED BY ITS CREATOR`);
+  else if (canPick) setStatus(`READY — YOUR ROOM, YOUR CALL: ${MODES[mode].label} ON ${mapTitle(map)}`);
+  else setStatus(`READY — THE ROOM PLAYS ${MODES[mode].label} ON ${mapTitle(map)}, PICKED BY ITS CREATOR`);
 }
 
 function onOpen() {
@@ -431,6 +445,7 @@ if (!MP.active) {
     mapSelect.value = next.param;
     send({ type: 'setLevel', level: next.param });
   };
+  modeSelect.addEventListener('change', () => send({ type: 'setMode', mode: modeSelect.value }));
   mapPrevBtn.addEventListener('click', () => stepMap(-1));
   mapNextBtn.addEventListener('click', () => stepMap(1));
   for (const btn of teamsEl.querySelectorAll('button')) {
@@ -462,7 +477,7 @@ if (!MP.active) {
   on('matchStart', (m) => {
     sessionStorage.setItem('mechMpMatch', JSON.stringify({
       matchId: m.matchId, token: m.token, playerId: m.playerId,
-      team: m.team, name: myName, roster: m.roster,
+      team: m.team, name: myName, roster: m.roster, mode: m.mode,
     }));
     const url = new URL(location.href);
     url.searchParams.set('level', m.level);
