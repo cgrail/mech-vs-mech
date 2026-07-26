@@ -251,11 +251,9 @@ extension GameEngine {
         if e.y < FALL_DEATH_Y { killEntity(e); return }   // pushed into a chasm
 
         // stride off what the mech covered, not off what it tried to do: one
-        // holding its ground in a firefight, or leaning on a wall, plants its feet
-        let amp = stridePhase(e, moved: distXZ(e.x, e.z, e.px, e.pz), dt: dt, rate: 7)
-        let sw = sin(e.walkPhase) * 0.55 * amp
-        e.legL?.eulerAngles.x = Float(sw)
-        e.legR?.eulerAngles.x = Float(-sw)
+        // holding its ground in a firefight, or leaning on a wall, plants its
+        // feet — and one side-stepping a target shuffles rather than marching
+        let amp = animateWalk(e, movedX: e.x - e.px, movedZ: e.z - e.pz, dt: dt, rate: 7)
         e.syncNode(bob: onGround ? abs(sin(e.walkPhase)) * 0.25 * amp : 0)
         e.px = e.x
         e.pz = e.z

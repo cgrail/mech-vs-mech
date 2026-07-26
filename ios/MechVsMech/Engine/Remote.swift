@@ -310,12 +310,10 @@ extension GameEngine {
             e.velZ = st.vz
             peer.st = st
 
-            // a replica strides on the ground it actually covers, so legs stop
-            // the moment packets stop coming — a stale "moving" flag can't outlive it
-            let amp = stridePhase(e, moved: hypot(e.x - ox, e.z - oz), dt: dt, rate: 9)
-            let sw = sin(e.walkPhase) * 0.55 * amp
-            e.legL?.eulerAngles.x = Float(sw)
-            e.legR?.eulerAngles.x = Float(-sw)
+            // a replica walks on the ground it actually covers, so legs stop the
+            // moment packets stop coming — a stale "moving" flag can't outlive
+            // it — and a strafing peer shuffles just as its own pilot sees
+            let amp = animateWalk(e, movedX: e.x - ox, movedZ: e.z - oz, dt: dt, rate: 9)
             e.syncNode(bob: abs(sin(e.walkPhase)) * 0.25 * amp)
 
             e.lampR?.emission.intensity = blink ? 3 : 0.3

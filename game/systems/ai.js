@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { LEVEL, STEP, VOID_EDGE, FALL_DEATH_Y, groundHeightAt } from '../world/world.js';
 import { entities, blueBase, redBase, makeEnemyMech } from '../entities/entities.js';
 import { game, stats, difficulty } from '../core/state.js';
-import { distXZ, losBlocked, localToWorld, nearestEnemyOf, collideCircle, updateVertical, aimYOf, stridePhase, JUMP_V } from '../core/helpers.js';
+import { distXZ, losBlocked, localToWorld, nearestEnemyOf, collideCircle, updateVertical, aimYOf, animateWalk, JUMP_V } from '../core/helpers.js';
 import { spawnProjectile, killEntity } from '../entities/projectiles.js';
 import { spawnFlash } from '../entities/particles.js';
 import { hiddenShooter } from './vision.js';
@@ -239,12 +239,9 @@ export function updateEnemyMech(e, dt) {
   if (e.y < FALL_DEATH_Y) { killEntity(e); return; }   // pushed into a chasm
 
   // stride off what the mech covered, not off what it tried to do: one holding
-  // its ground in a firefight, or leaning on a wall, plants its feet
-  const moved = Math.hypot(e.group.position.x - e.px, e.group.position.z - e.pz);
-  const amp = stridePhase(e, moved, dt, 7);
-  const sw = Math.sin(e.walkPhase) * 0.55 * amp;
-  e.model.legL.rotation.x = sw;
-  e.model.legR.rotation.x = -sw;
+  // its ground in a firefight, or leaning on a wall, plants its feet — and one
+  // side-stepping a target shuffles sideways rather than marching in place
+  const amp = animateWalk(e, e.group.position.x - e.px, e.group.position.z - e.pz, dt, 7);
   e.group.position.y = e.y + (onGround ? Math.abs(Math.sin(e.walkPhase)) * 0.25 * amp : 0);
   e.px = e.group.position.x;
   e.pz = e.group.position.z;

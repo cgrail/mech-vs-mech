@@ -141,7 +141,6 @@ extension GameEngine {
         // ground actually covered — walking into a wall is standing still, both
         // for the animation below and for the lead enemy AI puts on its shots
         let movedX = player.x - px, movedZ = player.z - pz
-        let moved = (movedX * movedX + movedZ * movedZ).squareRoot()
         player.velX = dt > 0 ? movedX / dt : 0
         player.velZ = dt > 0 ? movedZ / dt : 0
         jump(dt: dt)
@@ -156,10 +155,7 @@ extension GameEngine {
         player.node.eulerAngles.y = Float(player.yaw)
 
         // walk animation + bob
-        let amp = stridePhase(player, moved: moved, dt: dt, rate: 9)
-        let sw = sin(player.walkPhase) * 0.55 * amp
-        player.legL?.eulerAngles.x = Float(sw)
-        player.legR?.eulerAngles.x = Float(-sw)
+        let amp = animateWalk(player, movedX: movedX, movedZ: movedZ, dt: dt, rate: 9)
         player.syncNode(bob: onGround ? abs(sin(player.walkPhase)) * 0.25 * amp : 0)
 
         // police light blink

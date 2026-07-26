@@ -4,7 +4,7 @@ import { BLUE, RED, entities, makeBar, makeMech, registerEntity } from './entiti
 import { game, stats, touch, COSTS } from '../core/state.js';
 import { keys } from '../systems/input.js';
 import { groundHeightAt, FALL_DEATH_Y } from '../world/world.js';
-import { forwardOf, localToWorld, losBlocked, collideCircle, updateVertical, aimYOf, spawnPointFor, teamIndexOf, stridePhase, JUMP_V } from '../core/helpers.js';
+import { forwardOf, localToWorld, losBlocked, collideCircle, updateVertical, aimYOf, spawnPointFor, teamIndexOf, animateWalk, JUMP_V } from '../core/helpers.js';
 import { spawnProjectile, killEntity } from './projectiles.js';
 import { spawnFlash } from './particles.js';
 import { beep, laserSfx } from '../systems/audio.js';
@@ -25,7 +25,7 @@ export const player = registerEntity({
   netId: `player:${MP.playerId}`, owner: MP.playerId,
   hp: 300, maxHp: 300, alive: true,
   hitRadius: 2.4, hitHeight: 7, bar: playerBar, barHeight: 8.2,
-  yaw: spawnYaw, walkPhase: 0, stride: 0, velX: 0, velZ: 0,
+  yaw: spawnYaw, walkPhase: 0, stride: 0, strideF: 1, strideL: 0, velX: 0, velZ: 0,
   y: groundHeightAt(SPAWN.x, SPAWN.z), vy: 0, onGround: true,
   gunCool: 0, rocketCool: 0, jumpCool: 0, lastDamaged: -99, respawnAt: 0,
 });
@@ -156,7 +156,6 @@ export function updatePlayer(dt) {
   // ground actually covered — walking into a wall is standing still, both for
   // the animation below and for the lead the enemy AI puts on its shots
   const movedX = player.group.position.x - px, movedZ = player.group.position.z - pz;
-  const moved = Math.hypot(movedX, movedZ);
   player.velX = dt > 0 ? movedX / dt : 0;
   player.velZ = dt > 0 ? movedZ / dt : 0;
   jump(dt);
@@ -171,10 +170,7 @@ export function updatePlayer(dt) {
   player.group.rotation.y = player.yaw;
 
   // walk animation + bob
-  const amp = stridePhase(player, moved, dt, 9 * boost);
-  const sw = Math.sin(player.walkPhase) * 0.55 * amp;
-  playerModel.legL.rotation.x = sw;
-  playerModel.legR.rotation.x = -sw;
+  const amp = animateWalk(player, movedX, movedZ, dt, 9 * boost);
   player.group.position.y = player.y + (onGround ? Math.abs(Math.sin(player.walkPhase)) * 0.25 * amp : 0);
 
   // police light blink

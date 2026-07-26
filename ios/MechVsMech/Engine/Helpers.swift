@@ -22,18 +22,41 @@ let JUMP_V = 22.0
    controls (or the last packet) asked for. A mech leaning into a wall, a stick
    whose release was missed and a replica whose packets stopped all report
    "moving" while standing perfectly still, and striding on the spot is the most
-   obvious thing in the game. `moved` is this frame's XZ distance. The amplitude
-   eases rather than switches, so stopping settles the legs to neutral instead
-   of freezing them mid-stride. Returns that amplitude (0...1): scale both the
-   leg swing and the body bob by it. (mirrors core/helpers.js) */
+   obvious thing in the game. (movedX, movedZ) is this frame's travel. The
+   amplitude eases rather than switching, so stopping settles the legs to
+   neutral instead of freezing them mid-stride.
+
+   The travel is split into the mech's own frame, so the legs move the way the
+   mech does: fore-aft is the stride (and runs backwards when it backs up),
+   sideways is a shuffle — both feet reach toward the direction of travel, half
+   a cycle apart, so a strafing mech steps sideways instead of marching. Sets
+   both leg poses; returns the amplitude (0...1) for the caller's body bob.
+   (mirrors core/helpers.js) */
 let STRIDE_MIN_SPEED = 0.5   // units/s below which a walker is standing
+let STRIDE_SWING = 0.55      // fore-aft leg swing, radians
+let SHUFFLE_REACH = 0.5      // sideways leg reach, radians
 @discardableResult
-func stridePhase(_ e: Entity, moved: Double, dt: Double, rate: Double) -> Double {
+func animateWalk(_ e: Entity, movedX: Double, movedZ: Double, dt: Double, rate: Double) -> Double {
+    let moved = (movedX * movedX + movedZ * movedZ).squareRoot()
     let walking = dt > 0 && moved / dt > STRIDE_MIN_SPEED
-    if walking { e.walkPhase += dt * rate }
+    if walking {
+        e.walkPhase += dt * rate
+        // local +z is forward, local +x is the mech's left (see localToWorld)
+        let sy = sin(e.yaw), cy = cos(e.yaw)
+        e.strideF = (movedX * sy + movedZ * cy) / moved
+        e.strideL = (movedX * cy - movedZ * sy) / moved
+    }
     let k = 1 - exp(-14 * dt)
     e.stride += ((walking ? 1.0 : 0.0) - e.stride) * k
-    return e.stride
+    let amp = e.stride
+    let s = sin(e.walkPhase)
+    let swing = s * STRIDE_SWING * amp * e.strideF
+    let reach = SHUFFLE_REACH * amp * e.strideL
+    e.legL?.eulerAngles.x = Float(swing)
+    e.legR?.eulerAngles.x = Float(-swing)
+    e.legL?.eulerAngles.z = Float((0.5 + 0.5 * s) * reach)
+    e.legR?.eulerAngles.z = Float((0.5 - 0.5 * s) * reach)
+    return amp
 }
 
 /* where guns auto-point on a target (torso height above its ground) */

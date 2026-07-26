@@ -62,6 +62,8 @@ final class Entity {
     var aggroT = 0.0
     var walkPhase = 0.0
     var stride = 0.0         // walk-animation amplitude, eased from real movement
+    var strideF = 1.0        // travel in the mech's own frame: fore-aft…
+    var strideL = 0.0        // …and sideways, which shuffles instead of striding
     var strafeDir = 1.0
     var strafeTimer = 0.0
     var stuckT = 0.0

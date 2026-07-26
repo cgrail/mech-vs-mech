@@ -4,7 +4,7 @@ import { MP, on, sendGame, netRegistry } from '../net/net.js';
 import { entities, makeBar, makeMech, makeTurretEntity, registerEntity, blueBase, redBase, BLUE, RED } from '../entities/entities.js';
 import { player } from '../entities/player.js';
 import { spawnProjectile, killEntity, damageEntity } from '../entities/projectiles.js';
-import { spawnPointFor, teamIndexOf, stridePhase } from '../core/helpers.js';
+import { spawnPointFor, teamIndexOf, animateWalk } from '../core/helpers.js';
 import { onFlagMsg } from './ctf.js';
 import { groundHeightAt } from '../world/world.js';
 import { game } from '../core/state.js';
@@ -76,7 +76,7 @@ function makePeer(p) {
     netId: `player:${p.id}`,
     hp: 300, maxHp: 300, alive: true,
     hitRadius: 2.4, hitHeight: 7, bar: makeBar(5), barHeight: 8.2,
-    yaw, walkPhase: 0, stride: 0, y, vy: 0, velX: 0, velZ: 0,
+    yaw, walkPhase: 0, stride: 0, strideF: 1, strideL: 0, y, vy: 0, velX: 0, velZ: 0,
   });
   const tag = makeNameTag(p.name, p.team);
   tag.position.y = 9.6;
@@ -239,12 +239,10 @@ export function remoteUpdate(dt) {
     e.velX = st.vx;
     e.velZ = st.vz;
 
-    // a replica strides on the ground it actually covers, so legs stop the
-    // moment the packets stop coming — a stale "moving" flag can't outlive it
-    const amp = stridePhase(e, Math.hypot(p.x - ox, p.z - oz), dt, 9);
-    const sw = Math.sin(e.walkPhase) * 0.55 * amp;
-    e.model.legL.rotation.x = sw;
-    e.model.legR.rotation.x = -sw;
+    // a replica walks on the ground it actually covers, so legs stop the moment
+    // the packets stop coming — a stale "moving" flag can't outlive it — and a
+    // strafing peer shuffles sideways just like the pilot flying it sees
+    const amp = animateWalk(e, p.x - ox, p.z - oz, dt, 9);
     p.y = e.y + Math.abs(Math.sin(e.walkPhase)) * 0.25 * amp;
 
     e.model.lampR.material.emissiveIntensity = blink ? 3 : 0.3;
