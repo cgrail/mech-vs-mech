@@ -147,15 +147,16 @@ private func makeWallImage() -> UIImage {
     return UIGraphicsGetImageFromCurrentImageContext()!
 }
 
-/* the dusk gradient the district sits in; the fog takes its horizon colour
-   so distant terrain melts into it (scene.js does the same on the web) */
-func makeSkyImage() -> UIImage {
+/* the gradient the district sits under — dusk by day, and the night sky fog
+   of war brings down (the look's four stops, zenith → ground haze; the fog
+   takes the horizon one so distant terrain melts into it). scene.js builds
+   the same two on the web. */
+func makeSkyImage(_ stops: [Int]) -> UIImage {
     let w = 4, h = 256
     UIGraphicsBeginImageContextWithOptions(CGSize(width: w, height: h), true, 1)
     defer { UIGraphicsEndImageContext() }
     let g = UIGraphicsGetCurrentContext()!
-    let colors = [UIColor(rgb: 0x070a14).cgColor, UIColor(rgb: 0x151d33).cgColor,
-                  UIColor(rgb: 0x2a3350).cgColor, UIColor(rgb: 0x3b3a4a).cgColor]
+    let colors = stops.map { UIColor(rgb: $0).cgColor }
     let grad = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(),
                           colors: colors as CFArray, locations: [0, 0.55, 0.82, 1])!
     g.drawLinearGradient(grad, start: .zero, end: CGPoint(x: 0, y: h), options: [])

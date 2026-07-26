@@ -232,7 +232,7 @@ export function addFogOption(list) {
       localStorage.setItem('mechFog', v ? '1' : '0');
       if (game.state === 'playing') applyFog();
     },
-    title: 'Sensors only: enemies fade out of sight',
+    title: 'Nightfall: your lamp and your sensors are all you get',
   });
 }
 addFogOption(optList);
@@ -391,7 +391,7 @@ export function backToLobby() {
 export function startGame() {
   audioCtx();
   startMusic();
-  applyFog(); // normal play fog, or the tight one when fog of war is on
+  applyFog(); // daylight district, or nightfall + the mech's lamp with fog of war on
   if (!MP.active) applyDifficulty(); // PvP is symmetric: no difficulty scaling
   overlay.classList.add('hidden');
   hud.classList.add('active');

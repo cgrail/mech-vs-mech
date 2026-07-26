@@ -1,4 +1,5 @@
-import { scene } from '../world/scene.js';
+import * as THREE from 'three';
+import { scene, setNight } from '../world/scene.js';
 import { entities } from '../entities/entities.js';
 import { player } from '../entities/player.js';
 import { game } from '../core/state.js';
@@ -7,9 +8,11 @@ import { losBlocked, aimYOf } from '../core/helpers.js';
 /* ============================================================
    Fog of war — an optional, purely local view restriction
 
-   With it on the district closes in: the render fog sits just
-   past the mech, and enemy mechs and turrets are drawn only as
-   far as the sensors reach them.
+   With it on the district closes in: night falls over it (the
+   `night` look in world/scene.js), the render fog sits just past
+   the mech, the mech's own sensor lamp is most of the light
+   there is, and enemy mechs and turrets are drawn only as far as
+   the sensors reach them.
 
    Contact is a *strength*, never a flag — that is the whole
    design, and what an earlier boolean version got wrong. A
@@ -54,12 +57,77 @@ const FADE_OUT = 0.5;                // …and to dissolve once it is really gon
 const HOLD = 0.4;                    // sensor lock: contact is kept this long after it breaks
 const GHOST = 6;                     // seconds a lost contact stays on the minimap
 
-/* the play fog for the current setting — called when a game starts and
-   whenever the option is toggled */
+/* ---------- the sensor lamp ----------
+   What makes a dark district playable rather than a black screen: a spot
+   mounted on the mech's sensor block, pointing where the mech is pointing,
+   plus a dim omni so the mech itself is a machine rather than a silhouette.
+
+   Two decisions worth keeping. It rides its own node instead of hanging off
+   `player.group`, because the group is taken out of the scene while the
+   mech is dead (projectiles.js) — a lamp parented to it would black the
+   district out for the four seconds of the respawn wait, and would change
+   the scene's light count on every death, which costs a shader rebuild.
+   Left where it fell, it reads as the wreck still burning. And it is built
+   the first time fog of war is switched on, never before: the day district
+   must not pay for two lights it cannot see.
+
+   The numbers are a low-mounted lamp's numbers. Grazing incidence does most
+   of the falloff (the ground 40 units ahead catches the beam at ~8°), so
+   `decay` is deliberately gentler than physical, and `reach` ends the pool
+   exactly where the sensors stop caring. */
+const LAMP = {
+  color: 0xdbe8ff,
+  intensity: 22,       // candela; tuned against the night look's exposure
+  decay: 0.6,          // physical is 2 — far too dark at the rim to play
+  reach: VISION_R,     // the lit pool ends where sensor contact does
+  angle: 0.62,         // half-angle of the cone, radians
+  penumbra: 0.65,      // soft rim: a hard cone edge reads as a texture bug
+  fillColor: 0x9ab6ff,
+  fillIntensity: 5,    // the omni at the cockpit, so the mech is lit at all
+  fillReach: 22,       // kept short: this one is for the machine, not the ground
+};
+let rig = null;
+
+function lamp() {
+  if (rig) return rig;
+  rig = new THREE.Group();
+  const spot = new THREE.SpotLight(LAMP.color, LAMP.intensity, LAMP.reach, LAMP.angle, LAMP.penumbra, LAMP.decay);
+  spot.position.set(0, 5.9, 0.6);          // the sensor block, above the cockpit
+  spot.target.position.set(0, 0, 26);      // forward, tilted ~13° down
+  spot.castShadow = true;                  // the sun handed its shadow pass over
+  spot.shadow.mapSize.set(1024, 1024);
+  spot.shadow.camera.near = 1.5;           // far comes from the light's distance
+  spot.shadow.bias = -0.0008;
+  spot.shadow.normalBias = 0.5;            // tiles are 8 units; acne needs the slope bias
+  const fill = new THREE.PointLight(LAMP.fillColor, LAMP.fillIntensity, LAMP.fillReach, 1);
+  fill.position.set(0, 5, 0);
+  rig.add(spot, spot.target, fill);
+  return rig;
+}
+
+/* the lamp rides the mech — while it is alive. A dead mech's lamp stays
+   where it fell rather than following the wreck out of the scene. `always`
+   is the moment it is switched on, which puts it on the mech whatever state
+   the mech is in, rather than leaving it out at the map's centre. */
+function rideMech(always) {
+  if (!rig || !(always || player.alive)) return;
+  rig.position.copy(player.group.position);
+  rig.rotation.y = player.yaw;
+}
+
+/* the play fog, the district's lighting and the lamp for the current
+   setting — called when a game starts and whenever the option is toggled.
+   All of it lands together, so the switch is one change of weather. */
 export function applyFog() {
-  const f = game.fogOfWar ? FOG : CLEAR;
+  const on = !!game.fogOfWar;
+  const f = on ? FOG : CLEAR;
   scene.fog.near = f.near;
   scene.fog.far = f.far;
+  setNight(on);
+  if (on) {
+    scene.add(lamp());
+    rideMech(true);   // in place for the first frame, not at the map's centre
+  } else if (rig) scene.remove(rig);
 }
 
 /* ---------- sensor contact with a bare world point ----------
@@ -146,6 +214,8 @@ export function updateVision(dt) {
     return;
   }
   hiding = true;
+
+  rideMech();
 
   /* the sweep: the expensive part, so it runs on its own budget */
   acc -= dt;

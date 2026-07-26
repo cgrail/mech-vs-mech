@@ -5,9 +5,11 @@ import SceneKit
    Fog of war — an optional, purely local view restriction.
    Ports systems/vision.js.
 
-   With it on the district closes in: the render fog sits just
-   past the mech, and enemy mechs and turrets are drawn only as
-   far as the sensors reach them.
+   With it on the district closes in: night falls over it (the
+   NIGHT_LOOK in GameEngine.swift), the render fog sits just past
+   the mech, the mech's own sensor lamp is most of the light
+   there is, and enemy mechs and turrets are drawn only as far as
+   the sensors reach them.
 
    Contact is a *strength*, never a flag — that is the whole
    design, and what an earlier boolean version got wrong. A
@@ -52,14 +54,104 @@ private let FADE_IN = 0.12                       // seconds a contact takes to m
 private let FADE_OUT = 0.5                       // …and to dissolve once it is really gone
 private let HOLD = 0.4                           // sensor lock: contact is kept this long after it breaks
 
+/* ---------- the sensor lamp ----------
+   What makes a dark district playable rather than a black screen: a spot
+   mounted on the mech's sensor block, pointing where the mech is pointing,
+   plus a dim omni so the mech itself is a machine rather than a silhouette.
+
+   Two decisions worth keeping, both shared with vision.js. It rides its own
+   node instead of hanging off the player's, because that node is taken out
+   of the scene while the mech is dead (Projectiles.swift) — a lamp parented
+   to it would black the district out for the four seconds of the respawn
+   wait. Left where it fell, it reads as the wreck still burning. And it is
+   built the first time fog of war is switched on, never before: the day
+   district must not pay for two lights it cannot see.
+
+   The numbers are a low-mounted lamp's numbers. Grazing incidence does most
+   of the falloff (the ground 40 units ahead catches the beam at ~8°), so
+   the falloff exponent is deliberately gentler than physical, and the pool
+   ends at VISION_R, exactly where the sensors stop caring. The intensities
+   are lumens against the base beacons' omni (Entities.swift, 1500 over 45
+   units), not the web's candela — the two builds are tuned to look alike,
+   not to hold the same numbers. */
+private let LAMP_TILT = 0.227      // radians the beam is tipped down (~13°)
+
 extension GameEngine {
 
-    /* the play fog for the current setting — called when a match starts and
-       whenever the option is toggled mid-game */
+    private func makeLamp() -> SCNNode {
+        let rig = SCNNode()
+        // the mount faces the mech's +Z (a SceneKit light shines down its own
+        // -Z) and its child tips the beam down. Two nodes, one axis each, so
+        // neither rotation depends on the order euler angles are applied in.
+        let mount = SCNNode()
+        mount.position = SCNVector3(0, 5.9, 0.6)      // the sensor block, above the cockpit
+        mount.eulerAngles.y = .pi
+        let tilt = SCNNode()
+        tilt.eulerAngles.x = -Float(LAMP_TILT)
+        let spot = SCNLight()
+        spot.type = .spot
+        spot.color = UIColor(rgb: 0xdbe8ff)
+        spot.intensity = 3000
+        spot.attenuationStartDistance = 8
+        spot.attenuationEndDistance = CGFloat(VISION_R)
+        spot.attenuationFalloffExponent = 0.6         // physical is 2 — too dark at the rim to play
+        // degrees off the beam's axis, so this is the web's 0.62 rad cone;
+        // the gap between the two is its soft rim (the web's `penumbra`) —
+        // a hard cone edge on the ground reads as a texture bug
+        spot.spotInnerAngle = 13
+        spot.spotOuterAngle = 36
+        spot.castsShadow = true                       // the sun handed its shadow pass over
+        spot.shadowMapSize = CGSize(width: 1024, height: 1024)
+        spot.shadowSampleCount = 8
+        spot.shadowRadius = 3
+        spot.shadowColor = UIColor(white: 0, alpha: 0.8)
+        spot.zNear = 1.5
+        spot.zFar = CGFloat(VISION_R)
+        tilt.light = spot
+        mount.addChildNode(tilt)
+        rig.addChildNode(mount)
+
+        let fill = SCNLight()                         // so the mech is lit at all
+        fill.type = .omni
+        fill.color = UIColor(rgb: 0x9ab6ff)
+        fill.intensity = 300
+        fill.attenuationStartDistance = 0
+        fill.attenuationEndDistance = 22              // short: for the machine, not the ground
+        let fillNode = SCNNode()
+        fillNode.light = fill
+        fillNode.position = SCNVector3(0, 5, 0)
+        rig.addChildNode(fillNode)
+        return rig
+    }
+
+    /* the lamp rides the mech — while it is alive. A dead mech's lamp stays
+       where it fell rather than following the wreck out of the scene.
+       `always` is the moment it is switched on, which puts it on the mech
+       whatever state the mech is in, rather than leaving it out at the
+       map's centre. */
+    private func rideMech(always: Bool = false) {
+        guard let rig = lampRig, always || player.alive else { return }
+        rig.position = player.node.position
+        rig.eulerAngles.y = Float(player.yaw)
+    }
+
+    /* the play fog, the district's lighting and the lamp for the current
+       setting — called when a match starts and whenever the option is
+       toggled mid-game. All of it lands together, so the switch is one
+       change of weather. */
     func applyFog() {
         let f = fogOfWar ? FOG : CLEAR
         scene.fogStartDistance = f.near
         scene.fogEndDistance = f.far
+        applyLook(night: fogOfWar)
+        if fogOfWar {
+            let rig = lampRig ?? makeLamp()
+            lampRig = rig
+            if rig.parent == nil { scene.rootNode.addChildNode(rig) }
+            rideMech(always: true)   // in place for the first frame, not at the map's centre
+        } else {
+            lampRig?.removeFromParentNode()
+        }
     }
 
     /* ---------- sensor contact with a bare world point ----------
@@ -137,6 +229,8 @@ extension GameEngine {
             return
         }
         visionHiding = true
+
+        rideMech()
 
         /* the sweep: the expensive part, so it runs on its own budget */
         visionAcc -= dt

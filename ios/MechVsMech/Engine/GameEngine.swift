@@ -18,6 +18,52 @@ import UIKit
    the delegate hops to main itself).
 ============================================================ */
 
+/* ============================================================
+   The two looks — ports the LOOK table in world/scene.js
+
+   A district is lit one of two ways, and the whole look moves in
+   one piece: sky gradient, fog colour, both lights and the tone
+   mapping (here: the HDR camera's exposure and bloom). `day` is
+   the game as it has always looked. `night` is what fog of war
+   switches the district into — the light version of it: the
+   district goes dark and the mech carries the only lamp worth
+   the name (Vision.swift), instead of a lit district with
+   contacts faded out of it.
+
+   Why one table rather than a couple of dimmed lights: HDR rolls
+   the top end off, so lights that read as over-bright on paper
+   are what a lit district needs — and dimming them without
+   lifting the exposure with them gives a muddy district, not a
+   dark one. The night sun stays on as a cool moonlight fill
+   (silhouettes, so nobody walks into a wall they cannot see) and
+   hands its shadow map to the mech's lamp: at this intensity its
+   own shadows are invisible anyway, so the district still pays
+   for exactly one shadow pass.
+
+   Change any one line of a look and retune the rest of it — on
+   both builds, or the same district reads differently on a phone.
+============================================================ */
+struct SceneLook {
+    let sky: [Int]              // zenith → horizon haze → ground haze
+    let horizon: Int            // the fog's colour: the sky's own haze band
+    let ambient: Int, ambientIntensity: CGFloat
+    let sun: Int, sunIntensity: CGFloat, sunShadow: Bool
+    let exposure: CGFloat       // EV offset on the HDR camera (web: toneMappingExposure)
+    let bloom: CGFloat
+}
+
+let DAY_LOOK = SceneLook(
+    sky: [0x070a14, 0x151d33, 0x2a3350, 0x3b3a4a], horizon: 0x2a3350,
+    ambient: 0x9db4d8, ambientIntensity: 500,
+    sun: 0xfff2d8, sunIntensity: 1200, sunShadow: true,
+    exposure: 0, bloom: 0.55)
+
+let NIGHT_LOOK = SceneLook(
+    sky: [0x01020a, 0x040712, 0x0b1020, 0x14161f], horizon: 0x0b1020,
+    ambient: 0x2c3b63, ambientIntensity: 87,
+    sun: 0x8fa8e0, sunIntensity: 160, sunShadow: false,
+    exposure: 0.3, bloom: 0.75)
+
 struct Stats {
     var salvage = 150.0
     var turretsBuilt = 0
@@ -74,6 +120,10 @@ final class GameEngine {
 
     let scene = SCNScene()
     let cameraNode = SCNNode()
+    /* the light rig, kept so the look table can retune it (applyLook);
+       nothing else may touch these two */
+    private let ambientLight = SCNLight()
+    private let sunLight = SCNLight()
 
     var phase: GamePhase = .menu
     /// Single-player pause: freezes the sim while the in-game menu overlay is
@@ -111,6 +161,8 @@ final class GameEngine {
     var fogOfWar = false
     var visionAcc = 0.0
     var visionHiding = false
+    /// the mech's sensor lamp, built the first time fog of war is switched on
+    var lampRig: SCNNode?
     var nextWaveAt = 5.0
     private var salvageTrickle = 0.0
     private var lastTime: TimeInterval?
@@ -132,33 +184,23 @@ final class GameEngine {
         self.net = net
 
         // renderer/scene/lights — ports world/scene.js
-        // dusk gradient behind the district; the fog takes its horizon colour
-        scene.background.contents = makeSkyImage()
-        scene.fogColor = UIColor(rgb: 0x2a3350)
         scene.fogDensityExponent = 1
         // menu shows the whole map — fog pulled back until DEPLOY (flow.js)
         scene.fogStartDistance = 300
         scene.fogEndDistance = 900
 
-        let ambient = SCNLight()
-        ambient.type = .ambient
-        ambient.color = UIColor(rgb: 0x9db4d8)   // hemisphere-light stand-in
-        ambient.intensity = 500
+        ambientLight.type = .ambient   // hemisphere-light stand-in
         let ambientNode = SCNNode()
-        ambientNode.light = ambient
+        ambientNode.light = ambientLight
         scene.rootNode.addChildNode(ambientNode)
 
-        let sun = SCNLight()
-        sun.type = .directional
-        sun.color = UIColor(rgb: 0xfff2d8)
-        sun.intensity = 1200
-        sun.castsShadow = true
-        sun.shadowMapSize = CGSize(width: 2048, height: 2048)
-        sun.shadowSampleCount = 8
-        sun.shadowRadius = 3
-        sun.automaticallyAdjustsShadowProjection = true
+        sunLight.type = .directional
+        sunLight.shadowMapSize = CGSize(width: 2048, height: 2048)
+        sunLight.shadowSampleCount = 8
+        sunLight.shadowRadius = 3
+        sunLight.automaticallyAdjustsShadowProjection = true
         let sunNode = SCNNode()
-        sunNode.light = sun
+        sunNode.light = sunLight
         sunNode.position = SCNVector3(60, 120, 40)
         sunNode.look(at: SCNVector3(0, 0, 0))
         scene.rootNode.addChildNode(sunNode)
@@ -169,15 +211,16 @@ final class GameEngine {
         camera.zFar = 600
         // HDR + a restrained bloom: the native stand-in for the web build's
         // ACES tone mapping, and what makes muzzle flashes and the base
-        // beacons glow instead of clipping to white
+        // beacons glow instead of clipping to white. Its exposure and its
+        // bloom belong to the look, like the lights (applyLook).
         camera.wantsHDR = true
-        camera.bloomIntensity = 0.55
         camera.bloomThreshold = 0.85
         camera.bloomBlurRadius = 6
         camera.wantsExposureAdaptation = false
         cameraNode.camera = camera
         cameraNode.position = SCNVector3(0, 40, 140)
         scene.rootNode.addChildNode(cameraNode)
+        applyLook(night: false)   // the menu previews a map in daylight
 
         buildWorld(level: level, parent: scene.rootNode)
 
@@ -194,6 +237,24 @@ final class GameEngine {
         setupFlags()   // capture the flag: a stand in each base's courtyard
         setupPlayer()
         if isMP { initMatch() }   // spawn replicas for every other player
+    }
+
+    /* Switch the district between the two looks (the tables above). The only
+       caller is `applyFog` (Vision.swift), which owns the rest of the
+       fog-of-war view — the render fog's near/far and the mech's lamp — so
+       the whole look lands in one frame. The menu keeps the day rig whatever
+       the setting says: the orbit camera is previewing a map, not flying it. */
+    func applyLook(night: Bool) {
+        let look = night ? NIGHT_LOOK : DAY_LOOK
+        scene.background.contents = makeSkyImage(look.sky)
+        scene.fogColor = UIColor(rgb: look.horizon)
+        ambientLight.color = UIColor(rgb: look.ambient)
+        ambientLight.intensity = look.ambientIntensity
+        sunLight.color = UIColor(rgb: look.sun)
+        sunLight.intensity = look.sunIntensity
+        sunLight.castsShadow = look.sunShadow
+        cameraNode.camera?.exposureOffset = look.exposure
+        cameraNode.camera?.bloomIntensity = look.bloom
     }
 
     /* UI-thread entry point: run `action` at the start of the next frame,
