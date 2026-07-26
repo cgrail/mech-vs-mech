@@ -18,6 +18,7 @@ import Combine
 ============================================================ */
 
 let LOBBY_TEAM_MAX = 5
+let LOBBY_ROOM_MAX = 12   // members per room: a full 5v5 plus a few undecided
 
 struct RoomInfo: Identifiable {
     let id: Int
@@ -77,6 +78,7 @@ final class LobbyModel: ObservableObject {
     private var levelCache: [String: LevelInfo] = [:]
     private var goneIds = Set<Int>()
     private var autoJoin = false
+    private var autoRoom = false   // just entered the lobby: walk into the only room going
     private var bannerTask: DispatchWorkItem?
 
     init(app: AppModel) {
@@ -201,6 +203,8 @@ final class LobbyModel: ObservableObject {
             name = myName
             UserDefaults.standard.set(myName, forKey: "mechMpName")
             phase = .rooms
+            // the room list that follows `joined` decides whether to walk in
+            autoRoom = true
 
         case "lobby":
             parseLobby(obj)
@@ -275,6 +279,19 @@ final class LobbyModel: ObservableObject {
         let me = ps.first { $0.id == myId }
         myRoom = me?.room
         myTeam = me?.team
+
+        /* One room with space in it is not a choice, so don't make it one:
+           walk straight in. Only on the way into the lobby, never again —
+           leaving a room and being pulled back into the one just left would
+           be the opposite of smooth. (game/ui/lobby.js does the same.) */
+        if autoRoom {
+            autoRoom = false
+            if myRoom == nil, rs.count == 1, rs[0].count < LOBBY_ROOM_MAX {
+                setStatus("JOINING \(rs[0].name)…")
+                joinRoom(rs[0].id)
+                return   // the roster broadcast that follows renders the room
+            }
+        }
         phase = (myRoom == nil) ? .rooms : .inRoom
         updatePreview()
 

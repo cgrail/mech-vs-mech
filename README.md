@@ -26,7 +26,7 @@ Then open [http://localhost:8080](http://localhost:8080), pick a difficulty, and
 
 ## Multiplayer
 
-Hit **MULTIPLAYER** on the start screen, give yourself a callsign, and enter the lobby. Matches are staged in **rooms**: create one or join one from the list — each room runs its own match, so several groups can fight in parallel on one server. Inside a room, pick a side — **JOIN BLUE** or **JOIN RED**, up to **5 pilots per team** — and once both teams have at least one pilot, anyone on a team can hit **START MATCH**. The pilot who **created** the room picks the **MAP** everyone fights on (it starts on the level they had selected; the XL maps at the end of the list are sized for full 5v5 battles) — joiners see the choice in the room and in the room list before they join.
+Hit **MULTIPLAYER** on the start screen, give yourself a callsign, and enter the lobby. Matches are staged in **rooms**: create one or join one from the list — and if there's only one room going and it has space, you walk straight into it — each room runs its own match, so several groups can fight in parallel on one server. Inside a room, pick a side — **JOIN BLUE** or **JOIN RED**, up to **5 pilots per team** — and once both teams have at least one pilot, anyone on a team can hit **START MATCH**. The pilot who **created** the room picks the **MAP** everyone fights on (it starts on the level they had selected; the XL maps at the end of the list are sized for full 5v5 battles) — joiners see the choice in the room and in the room list before they join.
 
 The room's creator also picks the **MODE** — ⚔ BASE ASSAULT or 🚩 CAPTURE THE FLAG — and it travels with the match, so everyone (browser and iPhone alike) fights the same game.
 

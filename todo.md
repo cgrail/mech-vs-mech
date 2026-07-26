@@ -14,4 +14,6 @@
 [x] on multiplayer, start next game when one games is finished after 10 seconds to keep the momentum going. continue with the next level
     → the end screen counts down from 10s and fires nextMatch itself; the
       first request the server sees mints the match for the whole roster
-[ ] on multiplayer, when only one room is available and there is enough capacity, directly enter that room. make it smoother
+[x] on multiplayer, when only one room is available and there is enough capacity, directly enter that room. make it smoother
+    → the first room list after joining walks you in when it holds exactly
+      one room with space; armed once, so leaving never pulls you back

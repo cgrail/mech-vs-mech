@@ -51,6 +51,7 @@ const matchInfo = document.getElementById('matchInfo');
 const readyBtn = document.getElementById('readyBtn');
 
 const TEAM_MAX = 5; // mirrors the server's cap; the server enforces it
+const ROOM_MAX = 12; // …and the room cap: a full 5v5 plus a few undecided
 const show = (el, on) => el.classList.toggle('mpHidden', !on);
 
 /* A match starts by reloading into it: the credentials, the room's map and
@@ -247,6 +248,7 @@ let myRoom = null;
 let myTeam = null;
 let joined = false;
 let autoJoin = false;    // returning from a match: rejoin with the saved name
+let autoRoom = false;    // just entered the lobby: walk into the only room going
 let manualClose = false; // BACK pressed: the socket close is expected
 let lastState = { players: [], rooms: [] };
 
@@ -327,6 +329,19 @@ function renderList(state) {
   const me = players.find((p) => p.id === myId);
   myRoom = me ? me.room : null;
   myTeam = me ? me.team : null;
+
+  /* One room with space in it is not a choice, so don't make it one: walk
+     straight in. Only on the way into the lobby (`autoRoom`), never again —
+     leaving a room and finding the browser jump you back into the room you
+     just left would be the opposite of smooth. */
+  if (autoRoom) {
+    autoRoom = false;
+    if (myRoom == null && rooms.length === 1 && rooms[0].count < ROOM_MAX) {
+      send({ type: 'joinRoom', roomId: rooms[0].id });
+      setStatus(`JOINING ${rooms[0].name}…`);
+      return; // the roster broadcast that follows renders the room
+    }
+  }
 
   show(roomsEl, myRoom == null);
   show(roomBar, myRoom != null);
@@ -500,7 +515,14 @@ if (!MP.active) {
     resetLobbyUi();
     setStatus('CANNOT REACH THE SERVER — CHECK YOUR CONNECTION AND REOPEN THIS SCREEN', '#ff8a7a');
   });
-  on('error', (m) => { if (joined) infoBanner(m.message); else setStatus(m.message, '#ff8a7a'); });
+  on('error', (m) => {
+    if (!joined) { setStatus(m.message, '#ff8a7a'); return; }
+    infoBanner(m.message);
+    // a refused join (the walk-in racing someone else into the last slot)
+    // gets no roster broadcast, so put the browser back rather than leaving
+    // "JOINING…" on screen until somebody else moves
+    renderList(lastState);
+  });
 
   on('joined', (m) => {
     myId = m.id;
@@ -508,7 +530,10 @@ if (!MP.active) {
     joined = true;
     localStorage.setItem('mechMpName', m.name);
     show(nameRow, false);
-    renderList(lastState); // the server's lobby broadcast follows right behind
+    renderList(lastState); // paint from what we have…
+    // …then arm the walk-in, so it judges the server's own room list (which
+    // follows `joined` immediately) and not the empty placeholder above
+    autoRoom = true;
   });
   on('lobby', (m) => renderList({ players: m.players, rooms: m.rooms }));
 
