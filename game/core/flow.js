@@ -7,7 +7,7 @@ import { entities, redBase } from '../entities/entities.js';
 import { audioCtx, boomSfx, startMusic, duckMusic } from '../systems/audio.js';
 import { updateHud, showMessage } from '../ui/hud.js';
 import { applyFog } from '../systems/vision.js';
-import { addOption, addHero, addPickCards, MODE_UI, modeUi } from '../ui/menu.js';
+import { addOption, addHero, addMapRow, addPickCards, MODE_UI, modeUi } from '../ui/menu.js';
 import { mapThumb, thumbBox } from '../ui/thumb.js';
 import { MP, connected } from '../net/net.js';
 
@@ -235,31 +235,16 @@ function buildLevelList() {
     const n = i + 1;
     const { title, desc } = levelMeta(entry);
 
-    const b = document.createElement('button');
-    const info = document.createElement('span');
-    info.className = 'info';
-    const t = document.createElement('span');
-    t.className = 'title';
-    t.textContent = `${n} · ${title}`;
-    info.appendChild(t);
-    if (desc) {
-      const d = document.createElement('span');
-      d.className = 'desc';
-      d.textContent = desc;
-      info.appendChild(d);
-    }
-    const check = document.createElement('span');
-    check.className = 'check';
-    check.textContent = '✓';
-    // the map's own picture, so a district is recognisable before you fly it in
-    b.append(thumbBox(entry.text), info, check);
-    b.addEventListener('click', () => {
-      if (isSwitchingMap()) return; // a switch is already flying
-      if (name === levelName) { showLevelScreen(false); return; }
-      goLevel(name, true);
+    // the same row the lobby's map picker builds (ui/menu.js)
+    const b = addMapRow(levelList, {
+      n, title, desc, text: entry.text,
+      onPick: () => {
+        if (isSwitchingMap()) return; // a switch is already flying
+        if (name === levelName) { showLevelScreen(false); return; }
+        goLevel(name, true);
+      },
     });
     levelBtns.push({ b, name });
-    levelList.appendChild(b);
   });
   document.getElementById('levelCount').textContent = `${levels.length} MAPS`;
   reflectLevel();

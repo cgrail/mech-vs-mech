@@ -247,7 +247,7 @@
     <div class="screenScroll">
       <div class="card">
         <div class="cardHead"><span class="ico">🗺</span>DISTRICTS<span class="note" id="levelCount"></span></div>
-        <div class="cardBody"><div id="levelList"></div></div>
+        <div class="cardBody"><div id="levelList" class="mapList"></div></div>
       </div>
     </div>
   </div>
@@ -337,10 +337,11 @@
           <div class="cardBody" id="mpMapRow">
             <div class="heroRow">
               <button id="mpMapPrev" class="stepTall mpHidden" aria-label="Previous map">◂</button>
-              <div class="hero" id="mpMapHero"></div>
+              <button class="hero" id="mpMapHero"></button>
               <button id="mpMapNext" class="stepTall mpHidden" aria-label="Next map">▸</button>
             </div>
-            <select id="mpMapSelect" class="mpHidden" aria-label="Map"></select>
+            <!-- the same list the level select uses, opened by the hero -->
+            <div id="mpMapList" class="mapList mpHidden"></div>
           </div>
         </div>
       </div>

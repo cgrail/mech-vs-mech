@@ -5,7 +5,7 @@ import { switchMap } from '../core/mapswitch.js';
 import { BOOT, bootReload } from '../core/boot.js';
 import { startGame, backToLobby } from '../core/flow.js';
 import { audioCtx } from '../systems/audio.js';
-import { addPickCards, MODE_UI, modeUi } from './menu.js';
+import { addMapRow, addPickCards, MODE_UI, modeUi } from './menu.js';
 import { mapThumb, thumbBox } from './thumb.js';
 
 /* ============================================================
@@ -39,7 +39,7 @@ const roomListEl = document.getElementById('mpRoomList');
 const createBtn = document.getElementById('mpCreateBtn');
 const roomBar = document.getElementById('mpRoomBar');
 const roomNameEl = document.getElementById('mpRoomName');
-const mapSelect = document.getElementById('mpMapSelect');
+const mapListEl = document.getElementById('mpMapList');
 const mapPrevBtn = document.getElementById('mpMapPrev');
 const mapNextBtn = document.getElementById('mpMapNext');
 const mapHeroEl = document.getElementById('mpMapHero');
@@ -81,7 +81,7 @@ function enterMatch(m, name) {
 /* map picker: the level bundle this page loaded is the server's own, so the
    options match what the server will accept in setLevel */
 const maps = levels.filter((l) => !l.user) // editor maps are local: the server has no copy
-  .map((l) => ({ param: levelParam(l.name), ...levelMeta(l) }));
+  .map((l) => ({ param: levelParam(l.name), text: l.text, ...levelMeta(l) }));
 const mapTitle = (param) => maps.find((m) => m.param === param)?.title || String(param).toUpperCase();
 
 /* the room's map on the same card the mission menu shows: the map's own
@@ -106,6 +106,42 @@ function renderMapHero(param, mode) {
   d.textContent = entry ? levelMeta(entry).desc : '';
   cap.append(t, m, d);
   mapHeroEl.append(pic, cap);
+}
+
+/* The map picker is the level select's own list — same rows, same behaviour,
+   built by the same `addMapRow` (ui/menu.js) — opened by tapping the hero,
+   exactly as the mission menu's map card opens the level screen and as the
+   iOS lobby's PICK A MAP card works. `shownMap` is what the card is pointed
+   at: the room's map, or the one a ◂ ▸ step just asked the server for. */
+let shownMap = '';
+const mapBtns = [];  // [{ b, param }] — the list's current-map marks
+
+function buildMapList() {
+  mapListEl.textContent = '';
+  mapBtns.length = 0;
+  maps.forEach((m, i) => {
+    const b = addMapRow(mapListEl, {
+      n: i + 1, title: m.title, desc: m.desc, text: m.text,
+      onPick: () => {
+        shownMap = m.param;
+        send({ type: 'setLevel', level: m.param }); // the broadcast confirms it
+        showMapList(false);
+      },
+    });
+    mapBtns.push({ b, param: m.param });
+  });
+}
+
+function reflectMapList() {
+  for (const { b, param } of mapBtns) b.classList.toggle('selected', param === shownMap);
+}
+
+function showMapList(on) {
+  show(mapListEl, on);
+  if (!on) return;
+  // open pointed at the district the room is on, like the level select does
+  const hit = mapBtns.find(({ param }) => param === shownMap);
+  if (hit) { hit.b.focus(); hit.b.scrollIntoView({ block: 'center' }); }
 }
 
 /* the room's mode, on the same cards the mission menu uses. The server rejects
@@ -377,6 +413,7 @@ function resetLobbyUi() {
   showCallsign(false);
   showRooms(false);
   show(roomBar, false); // the team, mode and map cards ride along inside it
+  showMapList(false);
   show(listEl, false);
   show(startBtn, false);
   clearBanner();
@@ -524,11 +561,13 @@ function renderList(state) {
      a param the page can't name.) */
   const map = room ? room.level : levelParam(levelName);
   const canPick = !!room && room.owner === myId && maps.some((m) => m.param === map);
-  show(mapSelect, canPick);
+  shownMap = map;
   show(mapPrevBtn, canPick);
   show(mapNextBtn, canPick);
-  // only when it actually differs: reassigning value closes an open dropdown
-  if (canPick && mapSelect.value !== map) mapSelect.value = map;
+  // the hero opens the list; for everyone else the card is there to be read
+  mapHeroEl.disabled = !canPick;
+  if (!canPick) showMapList(false);
+  reflectMapList();
   mapNoteEl.textContent = canPick ? '' : 'PICKED BY THE CREATOR';
   renderMapHero(map, mode);
   previewMap(map); // the room's map is what orbits behind the overlay
@@ -601,23 +640,17 @@ if (!MP.active) {
   createBtn.addEventListener('click', () => send({ type: 'createRoom' }));
   leaveBtn.addEventListener('click', () => send({ type: 'leaveRoom' }));
 
-  for (const [i, m] of maps.entries()) {
-    const opt = document.createElement('option');
-    opt.value = m.param;
-    opt.textContent = `${i + 1} · ${m.title}`;
-    mapSelect.appendChild(opt);
-  }
-  // the server rejects this from anyone but the room's owner
-  mapSelect.addEventListener('change', () => send({ type: 'setLevel', level: mapSelect.value }));
-  /* ◂ / ▸ step to the neighbouring map without opening the dropdown. The
-     select is moved along optimistically so repeated taps keep stepping —
-     the room broadcast is what confirms it (and corrects it if the server
-     refuses). */
+  buildMapList();
+  mapHeroEl.addEventListener('click', () => showMapList(mapListEl.classList.contains('mpHidden')));
+  /* ◂ / ▸ step to the neighbouring map without opening the list. The step is
+     taken from what the card is already showing, so repeated taps keep
+     stepping — the room broadcast is what confirms it (and corrects it if the
+     server refuses). */
   const stepMap = (dir) => {
-    const i = maps.findIndex((m) => m.param === mapSelect.value);
+    const i = maps.findIndex((m) => m.param === shownMap);
     if (i < 0 || maps.length < 2) return;
     const next = maps[(i + dir + maps.length) % maps.length];
-    mapSelect.value = next.param;
+    shownMap = next.param;
     send({ type: 'setLevel', level: next.param });
   };
   mapPrevBtn.addEventListener('click', () => stepMap(-1));

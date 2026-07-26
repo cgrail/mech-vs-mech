@@ -501,23 +501,23 @@ body.touch #touchControls { display: flex; }
    title, and a checkbox on the one the menu is pointed at. The list is as long
    as it is — the screen's own column is what scrolls (one scroller per screen,
    as on iOS), so the card grows and the nav bar stays put above it. */
-#levelList { display: flex; flex-direction: column; gap: 6px; width: 100%; }
-#levelList button { flex: none; }
-#overlay #levelList button {
+.mapList { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+.mapList button { flex: none; }
+#overlay .mapList button {
   display: flex; align-items: center; gap: 10px; text-align: left;
   font-size: 13px; font-weight: 800; letter-spacing: 2px; color: #cdd8ff;
   background: rgba(8, 12, 23, .85); border: 1px solid #3a4468; border-radius: 2px;
   padding: 8px;
 }
-#overlay #levelList button:hover { border-color: #6f83c9; }
-#overlay #levelList button.selected {
+#overlay .mapList button:hover { border-color: #6f83c9; }
+#overlay .mapList button.selected {
   border-color: #ffd23c; box-shadow: 0 0 12px rgba(255, 210, 60, .3);
 }
-#levelList button.selected .title { color: #ffd23c; }
-#levelList button.selected .check { color: #101427; background: #ffd23c; border-color: #ffd23c; }
-#levelList .info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-#levelList .title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#levelList .desc {
+.mapList button.selected .title { color: #ffd23c; }
+.mapList button.selected .check { color: #101427; background: #ffd23c; border-color: #ffd23c; }
+.mapList .info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.mapList .title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mapList .desc {
   font-size: 10px; font-weight: 400; letter-spacing: normal;
   color: #8a92ad; line-height: 1.4;
 }

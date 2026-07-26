@@ -31,6 +31,7 @@
    what ← → drive — so a column of N options is N stops, not 3N.
 ============================================================ */
 import { CAPTURES_TO_WIN } from '../core/state.js';
+import { thumbBox } from './thumb.js';
 
 const overlay = document.getElementById('overlay');
 
@@ -137,6 +138,35 @@ export function addHero(list, { step, activate, label = 'MAP' }) {
       d.textContent = desc || '';
     },
   };
+}
+
+/* ---------- one row of a map list ----------
+   The district's own picture (ui/thumb.js), its number and title, a line of
+   what it is, and a checkbox on the one that is picked. The level select and
+   the lobby's map picker are the same list built by the same function — the
+   iOS build has one map row too (`mapListRow` / `levelRow` in UI/) and a
+   picker that behaves differently on one platform is the thing to avoid. */
+export function addMapRow(list, { n, title, desc, text, onPick }) {
+  const b = document.createElement('button');
+  const info = document.createElement('span');
+  info.className = 'info';
+  const t = document.createElement('span');
+  t.className = 'title';
+  t.textContent = `${n} · ${title}`;
+  info.appendChild(t);
+  if (desc) {
+    const d = document.createElement('span');
+    d.className = 'desc';
+    d.textContent = desc;
+    info.appendChild(d);
+  }
+  const check = document.createElement('span');
+  check.className = 'check';
+  check.textContent = '✓';
+  b.append(thumbBox(text), info, check);
+  b.addEventListener('click', onPick);
+  list.appendChild(b);
+  return b;
 }
 
 /* ---------- cards you tick ----------
