@@ -1,3 +1,5 @@
+import { MP } from '../net/net.js';   // import-clean: no cycle
+
 /* ============================================================
    Difficulty settings
 ============================================================ */
@@ -29,9 +31,25 @@ export const DIFFICULTIES = {
 };
 
 /* ============================================================
+   Game modes
+
+   assault  the original: waves + destroy the enemy base
+   ctf      capture the flag — both bases get a flag in their
+            courtyard, carry the enemy's to your own stand.
+            Bases stay destructible, so a match can still be won
+            the old way (systems/ctf.js)
+============================================================ */
+export const MODES = {
+  assault: { label: '⚔ BASE ASSAULT' },
+  ctf: { label: '🚩 CAPTURE THE FLAG' },
+};
+export const CAPTURES_TO_WIN = 3;
+
+/* ============================================================
    Shared mutable game state
 ============================================================ */
 const saved = localStorage.getItem('mechDifficulty');
+const savedMode = localStorage.getItem('mechMode');
 
 export const game = {
   state: 'menu',          // menu | playing | over
@@ -40,6 +58,9 @@ export const game = {
   mouseDown: false,
   pointerLocked: false,
   difficulty: DIFFICULTIES[saved] ? saved : 'medium',
+  // in multiplayer the mode is the room's, dealt out with the match
+  // credentials (net.js); in single player it's this menu choice
+  mode: MP.active ? MP.mode : (MODES[savedMode] ? savedMode : 'assault'),
   // fog of war: a local view restriction, remembered like the difficulty
   // (systems/vision.js — never sent over the wire, so it is safe in PvP)
   fogOfWar: localStorage.getItem('mechFog') === '1',
@@ -59,6 +80,7 @@ export const touch = {
 export const stats = {
   salvage: 150,
   turretsBuilt: 0, kills: 0, wave: 0,
+  captures: { blue: 0, red: 0 },   // capture the flag: flags run home
 };
 
 /* salvage is the only currency: machine guns are free, everything else costs */

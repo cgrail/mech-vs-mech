@@ -9,6 +9,7 @@ import { updateProjectiles } from './entities/projectiles.js';
 import { updateParticles } from './entities/particles.js';
 import { updateTurret, updateEnemyMech, updateWaves } from './systems/ai.js';
 import { updateVision } from './systems/vision.js';
+import { updateCtf } from './systems/ctf.js';
 import { updateHud, drawMinimap } from './ui/hud.js';
 import { MP } from './net/net.js';
 import { remoteUpdate } from './systems/remote.js';
@@ -63,6 +64,7 @@ function animate() {
     }
     separateMechs();
     updateProjectiles(dt);
+    updateCtf(dt);    // capture the flag, if that's the mode: grabs, drops, scores
     updateVision(dt); // fog of war, if it's on: what is still worth drawing
 
     // passive salvage income (fixed rate in PvP so both sides earn the same)

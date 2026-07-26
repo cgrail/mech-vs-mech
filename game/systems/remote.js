@@ -5,6 +5,7 @@ import { entities, makeBar, makeMech, makeTurretEntity, registerEntity, blueBase
 import { player } from '../entities/player.js';
 import { spawnProjectile, killEntity, damageEntity } from '../entities/projectiles.js';
 import { spawnPointFor, teamIndexOf } from '../core/helpers.js';
+import { onFlagMsg } from './ctf.js';
 import { groundHeightAt } from '../world/world.js';
 import { game } from '../core/state.js';
 import { showMessage } from '../ui/hud.js';
@@ -28,6 +29,11 @@ import { endGame } from '../core/flow.js';
      build    a turret was built
      die      an entity its owner simulates died → mirror it
      respawn  a player redeployed
+     fgrab/fdrop/fret/fcap
+              capture the flag: what the sender's mech did with a
+              flag. Flags are shared and unowned like the bases, so
+              only the client simulating that mech reports it and
+              everyone else mirrors it (systems/ctf.js)
 
    Damage to owned entities is shooter-reported but owner-applied,
    so hp has exactly one authority. Base hp converges because every
@@ -175,6 +181,9 @@ function onGameMsg(d, from) {
       if (e && e.alive && e.owner === from) killEntity(e);
       break;
     }
+    case 'fgrab': case 'fdrop': case 'fret': case 'fcap':
+      onFlagMsg(d); // capture the flag — shared, unowned state
+      break;
     case 'respawn': {
       if (!peer) return;
       const e = peer.ent;

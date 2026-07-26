@@ -29,9 +29,11 @@ export const MP = session ? {
   roster: session.roster || [], // [{id, name, team}] — everyone in the match, me included
   matchId: session.matchId,
   token: session.token,
+  // the room's game mode, dealt out with the match (state.js reads it)
+  mode: session.mode === 'ctf' ? 'ctf' : 'assault',
 } : {
   active: false, playerId: 0, myTeam: 'blue', enemyTeam: 'red',
-  name: '', roster: [], matchId: null, token: null,
+  name: '', roster: [], matchId: null, token: null, mode: 'assault',
 };
 
 /* netId -> entity, for hit/hp/death events. Filled by registerEntity

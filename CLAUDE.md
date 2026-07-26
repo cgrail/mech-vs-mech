@@ -114,6 +114,17 @@ Consequences to preserve when editing maps: the fort needs a ramp up to its gate
 
 Two traps worth knowing, both found by validating rather than by eye: the side walls can fence a flank corridor off against a plateau nobody can climb, making a pit you fall into and never leave, so **check reachability in both directions** (a plain flood fill from `P` will not see it, because ledge drops are one-way); and when clearing a marker off a tile, backfill with the terrain that was actually there, since a stray `g` on an `h` plateau is exactly such a pit.
 
+### Game modes
+
+`game.mode` ([core/state.js](game/core/state.js), the `MODES` table) is `assault` (the original: waves + kill the enemy base) or `ctf`. It is a **single-player menu choice** (`#modeRow`, remembered in `localStorage`); in multiplayer it comes from the match credentials (`MP.mode`), so a match plays its room's mode and the menu row is hidden.
+
+[systems/ctf.js](game/systems/ctf.js) is the whole of capture the flag. Nothing about it is level data: each flag's stand is **derived from the base marker**, 13 units toward the enemy base — clear of the base's 9.5 hitRadius and its 16-unit platform, short of the compound's inner screen, so a flag always sits in its own courtyard and stealing it means walking into the fort. `tools/check-levels.mjs` re-derives both stands and asserts they are walkable and reachable on every map.
+
+- A flag is **not an entity** (nothing can shoot it, so it has no hp and never enters `entities`) but it is *shaped* like one — `kind: 'flag'`, `team`, `alive`, `group`, `hitRadius` — so `ai.js` can steer at it with the code it uses for a base. `f.stand` is a second such object marking home. Flag targets are walked onto, not shot at: `attackRange` drops to 3 and the fire block is skipped for `kind === 'flag'`
+- Rules: touch the enemy flag to carry it, reach your own stand to score (whether or not your own flag is home — arcade rules, no stalling), dying drops it, touching your own dropped flag returns it, and an untouched drop goes home after 25 s. `CAPTURES_TO_WIN` captures win — base destruction still ends a match too, so the modes stack rather than replace each other
+- Multiplayer: flags are **shared and unowned like the bases**. Only the client that simulates a mech reports what it did with a flag (`fgrab`/`fdrop`/`fret`/`fcap`), everyone else mirrors it; the capture message carries the absolute score so a dropped packet can't leave the sides disagreeing. The return-home countdown needs no message — every client runs it off the same drop event
+- Single-player AI: `ctfGoal(e)` decides what a red mech wants (carry it home > hunt whoever took ours > fetch theirs if it is a `flagRunner` > recover ours if it is loose). `updateWaves` marks every other mech of a wave a runner, so a wave never abandons the fight entirely
+
 ### Terrain is the single source of truth for physics
 
 `world.js` exports the queries everything else uses; there is no obstacle list:

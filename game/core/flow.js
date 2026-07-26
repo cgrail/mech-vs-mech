@@ -1,7 +1,7 @@
 import { scene, lockPointer } from '../world/scene.js';
 import { levelName, levels, levelMeta, levelParam } from '../world/world.js';
 import { switchMap, isSwitchingMap } from './mapswitch.js';
-import { game, stats, difficulty, touch } from './state.js';
+import { game, stats, difficulty, touch, MODES, CAPTURES_TO_WIN } from './state.js';
 import { entities, redBase } from '../entities/entities.js';
 import { audioCtx, boomSfx, startMusic, duckMusic } from '../systems/audio.js';
 import { updateHud, showMessage } from '../ui/hud.js';
@@ -28,6 +28,46 @@ for (const b of diffBtns) {
   });
 }
 reflectDifficulty();
+
+/* the mission briefing is the mode's rules plus the control legend; the
+   markup in index.html is the assault one, so the menu reads right before
+   any of this runs */
+const briefingEl = document.getElementById('briefing');
+const CONTROLS = `
+      <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> / <kbd>▲</kbd><kbd>▼</kbd> move &nbsp; <kbd>Mouse</kbd> / <kbd>◀</kbd><kbd>▶</kbd> aim &nbsp; <kbd>Shift</kbd> boost &nbsp; <kbd>Ctrl</kbd> jump jets<br>
+      <kbd>LMB</kbd> / <kbd>Space</kbd> fire &nbsp; <kbd>1</kbd> machine guns &nbsp; <kbd>2</kbd> rockets (<span style="color:#ffd23c">🛢️ 20</span>) &nbsp; <kbd>3</kbd> / <kbd>T</kbd> build turret in front of you (<span style="color:#ffd23c">🛢️ 100</span>)<br>
+      <kbd>Q</kbd> / <kbd>RMB</kbd> quick rocket &nbsp; — machine guns are free, rockets &amp; turrets cost salvage<br>
+      <kbd>Esc</kbd> release mouse — click canvas to re-engage`;
+const BRIEFINGS = {
+  assault: `<b style="color:#ffd23c">MISSION:</b> Destroy the <b style="color:#ff8a7a">red enemy base</b> at the far end of the
+      district before enemy assault mechs destroy <b style="color:#8ab4ff">yours</b>.<br>
+      Enemy waves march on your base — build turrets to hold them off.<br><br>${CONTROLS}`,
+  ctf: `<b style="color:#ffd23c">MISSION:</b> Take the <b style="color:#ff8a7a">red flag</b> from the enemy courtyard and run it back to
+      <b style="color:#8ab4ff">your own stand</b> — <b>${CAPTURES_TO_WIN} captures</b> win the district.<br>
+      The enemy is after yours: a dropped flag goes home by itself after 25s, or instantly if you touch it.
+      Destroying the enemy base still wins outright.<br><br>${CONTROLS}`,
+};
+
+/* game mode: base assault or capture the flag. Single player only — a
+   multiplayer match plays its room's mode, dealt out with the credentials
+   (net.js), so the row is hidden there. The flags themselves live in
+   systems/ctf.js and listen for the change. */
+const modeBtns = [...document.querySelectorAll('#modeRow button')];
+function reflectMode() {
+  for (const b of modeBtns) b.classList.toggle('selected', b.dataset.mode === game.mode);
+  briefingEl.innerHTML = BRIEFINGS[game.mode];
+}
+for (const b of modeBtns) {
+  b.addEventListener('click', () => {
+    if (!MODES[b.dataset.mode] || MP.active) return;
+    game.mode = b.dataset.mode;
+    localStorage.setItem('mechMode', game.mode);
+    reflectMode();
+    window.dispatchEvent(new Event('mech:modechanged'));
+    b.blur();
+  });
+}
+reflectMode();
 
 /* fog of war: a local view restriction (systems/vision.js), remembered like
    the difficulty. Toggling it mid-game re-fogs the district right away. */
@@ -221,7 +261,8 @@ export function endGame(victory, reason) {
     nextLevelUrl = victory && !MP.active ? findNextLevel() : null;
     showLevelScreen(false);
     overlay.classList.remove('hidden');
-    overlay.querySelector('h1').textContent = victory ? 'VICTORY' : MP.active ? 'DEFEAT' : 'BASE LOST';
+    overlay.querySelector('h1').textContent = victory ? 'VICTORY'
+      : MP.active || game.mode === 'ctf' ? 'DEFEAT' : 'BASE LOST';
     overlay.querySelector('h1').style.color = victory ? '#7CFF6B' : '#ff5040';
     overlay.querySelector('h2').textContent = reason || (victory
       ? 'ENEMY BASE DESTROYED — DISTRICT SECURED'
@@ -230,7 +271,7 @@ export function endGame(victory, reason) {
     document.getElementById('menuBack').classList.add('mpHidden');
     if (MP.active) {
       // its single-player widgets don't apply here either
-      for (const id of ['levelRow', 'diffRow', 'ctrlRow']) {
+      for (const id of ['levelRow', 'diffRow', 'ctrlRow', 'modeRow']) {
         document.getElementById(id).classList.add('mpHidden');
       }
       // roll the whole roster on to the next map without a trip through the
@@ -253,7 +294,8 @@ export function endGame(victory, reason) {
       document.getElementById('startBtn').textContent = 'BACK TO LOBBY';
     } else {
       document.getElementById('briefing').innerHTML =
-        `<b>MISSION REPORT — ${difficulty().label}</b><br>Kills: <b>${stats.kills}</b> · Waves survived: <b>${stats.wave}</b> · Turrets built: <b>${stats.turretsBuilt}</b><br>` +
+        `<b>MISSION REPORT — ${MODES[game.mode].label} · ${difficulty().label}</b><br>Kills: <b>${stats.kills}</b> · Waves survived: <b>${stats.wave}</b> · Turrets built: <b>${stats.turretsBuilt}</b>` +
+        (game.mode === 'ctf' ? ` · Captures: <b>${stats.captures.blue} : ${stats.captures.red}</b>` : '') + '<br>' +
         (victory
           ? (nextLevelUrl ? 'Outstanding work, officer. The next district needs you.' : 'Outstanding work, officer. All districts secured.')
           : 'The district has fallen. Redeploy and try again.');
@@ -285,7 +327,7 @@ export function startGame() {
   hud.classList.add('active');
   game.state = 'playing';
   if (!touch.active) lockPointer();
-  showMessage('DESTROY THE ENEMY BASE', '#ffd23c');
+  showMessage(game.mode === 'ctf' ? 'TAKE THEIR FLAG — DEFEND YOURS' : 'DESTROY THE ENEMY BASE', '#ffd23c');
   updateHud();
 }
 

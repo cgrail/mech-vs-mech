@@ -136,6 +136,12 @@ Turrets are the backbone of your defense — place them to cover your base and c
 
 Your choice is remembered between sessions.
 
+### Capture the Flag
+
+🚩 **CAPTURE THE FLAG** in the menu swaps the mission: both bases get a flag on a stand in their own courtyard. Walk onto the enemy flag to shoulder it, run it back to your own stand, and **three captures win the district**. Dying drops the flag where you fell — anyone on its team can touch it to send it home instantly, and it goes home by itself after 25 seconds if nobody does. The enemy plays the same game: half of every wave breaks off to raid your courtyard, and the rest hunt whoever is carrying their flag.
+
+Everything else stays: waves keep coming, turrets still cost salvage, and destroying the enemy base still wins outright — the flag is a second, faster way to take the district.
+
 ### Fog of War
 
 🌫️ **FOG OF WAR** in the menu trades the god's-eye view for sensors: the district closes in around your mech, and enemy mechs and turrets only exist while they're within sensor range *and* in line of sight — break contact behind a wall and they vanish from the world and from your minimap. Bases and your own team are always visible. It's a view setting, not a rule: it only ever hides things from you, so it works in multiplayer too, and it's remembered between sessions.

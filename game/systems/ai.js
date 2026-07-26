@@ -4,6 +4,7 @@ import { entities, blueBase, redBase, makeEnemyMech } from '../entities/entities
 import { game, stats, difficulty } from '../core/state.js';
 import { distXZ, losBlocked, localToWorld, nearestEnemyOf, collideCircle, updateVertical, aimYOf, JUMP_V } from '../core/helpers.js';
 import { spawnProjectile } from '../entities/projectiles.js';
+import { ctfOn, ctfGoal } from './ctf.js';
 import { beep, laserSfx } from './audio.js';
 import { player } from '../entities/player.js';
 import { showMessage } from '../ui/hud.js';
@@ -134,6 +135,10 @@ export function updateEnemyMech(e, dt) {
     e.retarget = cfg.retarget;
     // priority: whoever shot us recently > player in sight > close / already-damaged blue turret > blue base
     let t = e.aggroT > 0 ? e.aggro : null;
+    // capture the flag: the objective outranks everything but retaliation —
+    // runners fetch the enemy flag, a carrier runs it home, the rest hunt
+    // whoever is carrying ours (systems/ctf.js decides which of those it is)
+    if (!t && ctfOn()) t = ctfGoal(e);
     if (!t && player.alive && distXZ(e.group.position, player.group.position) < cfg.sight) t = player;
     if (!t) {
       let bs = Infinity;
@@ -152,7 +157,9 @@ export function updateEnemyMech(e, dt) {
 
   const tp = e.target.group.position;
   const d = distXZ(e.group.position, tp);
-  const attackRange = e.target.kind === 'base' ? 32 : e.range;
+  // a flag (or a flag stand) is walked onto, not shot at, so it pulls the
+  // mech all the way in — the pickup/capture radius does the rest
+  const attackRange = e.target.kind === 'base' ? 32 : e.target.kind === 'flag' ? 3 : e.range;
   // open fire on the player as soon as they're spotted, while still closing to preferred range
   const fireRange = e.target === player ? cfg.sight : attackRange;
   const clear = !losBlocked(e.group.position.x, e.y + 4.5, e.group.position.z, tp.x, aimYOf(e.target), tp.z);
@@ -233,7 +240,7 @@ export function updateEnemyMech(e, dt) {
 
   // fire: lead moving targets, tighter spread on harder difficulties
   const aimDiff = Math.abs(angDiff(desired, e.yaw));
-  if (d < fireRange && clear && aimDiff < 0.25 && e.cool <= 0) {
+  if (d < fireRange && clear && aimDiff < 0.25 && e.cool <= 0 && e.target.kind !== 'flag') {
     e.cool = e.fireInterval * (0.8 + Math.random() * 0.5);
     const muzzle = localToWorld(e, (Math.random() < 0.5 ? -2.2 : 2.2), 4.5, 2.7);
     const tof = d / 70;
@@ -264,13 +271,17 @@ export function updateWaves() {
   const pts = (LEVEL.enemySpawns.length ? LEVEL.enemySpawns : [{ x: rb.x, z: rb.z + 16 }])
     .slice().sort((a, b) => distXZ(a, rb) - distXZ(b, rb));
   for (let i = 0; i < n; i++) {
+    let m;
     if (w.flank && stats.wave >= 2 && pts.length > 1 && i % 3 === 2) {
       const p = pts[1 + i % (pts.length - 1)];
-      makeEnemyMech(p.x + (Math.random() - 0.5) * 6, p.z + (Math.random() - 0.5) * 6);
+      m = makeEnemyMech(p.x + (Math.random() - 0.5) * 6, p.z + (Math.random() - 0.5) * 6);
     } else {
       const x = (i - (n - 1) / 2) * 7;
-      makeEnemyMech(pts[0].x + x + (Math.random() - 0.5) * 3, pts[0].z + (Math.random() - 0.5) * 4);
+      m = makeEnemyMech(pts[0].x + x + (Math.random() - 0.5) * 3, pts[0].z + (Math.random() - 0.5) * 4);
     }
+    // capture the flag: every other mech of a wave goes for the flag, the
+    // rest fight — a whole wave rushing the stand leaves nobody defending
+    m.flagRunner = i % 2 === 0;
   }
   showMessage(`WAVE ${stats.wave} INCOMING`, '#ff9a5a');
   beep(90, 55, 0.6, 'sawtooth', 0.12);

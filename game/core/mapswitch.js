@@ -4,6 +4,7 @@ import { entities, blueBase, redBase, makeTurretEntity, removeEntity } from '../
 import { player } from '../entities/player.js';
 import { spawnPointFor } from './helpers.js';
 import { game } from './state.js';
+import { resetFlags } from '../systems/ctf.js';
 import { MP } from '../net/net.js';
 
 /* ============================================================
@@ -54,6 +55,7 @@ function replaceEntities() {
     base.group.position.set(at.x, groundHeightAt(at.x, at.z), at.z);
   }
   if (!MP.active) for (const t of LEVEL.redTurrets) makeTurretEntity('red', t.x, t.z);
+  resetFlags(); // capture-the-flag stands are derived from the new base markers
 
   const { pos, face } = spawnPointFor(player.team);
   player.y = groundHeightAt(pos.x, pos.z);

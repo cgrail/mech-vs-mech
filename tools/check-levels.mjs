@@ -96,6 +96,33 @@ function reach(f, seeds, limit, reverse = false) {
 
 const idxOf = (f, m) => (m.r * SUB + SUB / 2) * f.W + m.c * SUB + SUB / 2;
 
+/* systems/ctf.js homeSpot(), in tile space: where the capture-the-flag stand
+   lands for a base, given the same candidate offsets in world units */
+function flagSpot(lv, team) {
+  const b = team === 'blue' ? lv.markers.B[0] : lv.markers.R[0];
+  const o = team === 'blue' ? lv.markers.R[0] : lv.markers.B[0];
+  if (!b || !o) return null;
+  const height = (r, c) => {
+    const cell = lv.cells[r] && lv.cells[r][c];
+    if (!cell) return WALL_H;
+    return cell.t === 'wall' ? WALL_H : cell.t === 'ramp' ? (cell.h0 + cell.h1) / 2 : cell.h;
+  };
+  const bh = height(b.r, b.c);
+  const dc = o.c - b.c, dr = o.r - b.r;
+  const d = Math.hypot(dc, dr) || 1;
+  const dirs = [[dc / d, dr / d]];
+  dirs.push(Math.abs(dc) > Math.abs(dr) ? [Math.sign(dc), 0] : [0, Math.sign(dr)]);
+  for (const [uc, ur] of dirs) {
+    for (const rad of [13, 15, 11, 17, 9]) {
+      const c = Math.floor(b.c + 0.5 + (uc * rad) / TILE);
+      const r = Math.floor(b.r + 0.5 + (ur * rad) / TILE);
+      const h = height(r, c);
+      if (h < WALL_H - 0.01 && Math.abs(h - bh) < 1.2) return { r, c };
+    }
+  }
+  return { r: b.r, c: b.c };
+}
+
 function check(name, text) {
   const lv = parse(text, name);
   const out = [...(lv.errs || [])];
@@ -107,6 +134,12 @@ function check(name, text) {
     ...lv.markers.R.map((m) => ['R', m]), ...lv.markers.S.map((m, i) => [`S${i + 1}`, m]),
     ...lv.markers.T.map((m, i) => [`T${i + 1}`, m]),
   ];
+  // capture the flag derives a stand from each base marker — it has to be a
+  // tile a mech can stand on and walk out of, on every map in the bundle
+  for (const team of ['blue', 'red']) {
+    const s = flagSpot(lv, team);
+    if (s) keyPts.push([`${team} flag stand`, s]);
+  }
   for (const [tag, m] of keyPts) {
     if (lv.cells[m.r][m.c].t === 'wall') out.push(`${name}: marker ${tag} at row ${m.r + 1} col ${m.c + 1} sits in a wall`);
   }

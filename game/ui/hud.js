@@ -1,7 +1,8 @@
 import { ARENA, drawTerrainMinimap } from '../world/world.js';
 import { entities, blueBase, redBase } from '../entities/entities.js';
-import { game, stats, COSTS } from '../core/state.js';
+import { game, stats, COSTS, CAPTURES_TO_WIN } from '../core/state.js';
 import { player } from '../entities/player.js';
+import { flags, ctfOn } from '../systems/ctf.js';
 import { MP } from '../net/net.js';
 
 /* the "YOUR BASE" bar tracks whichever base is ours (guests play red) */
@@ -20,7 +21,30 @@ const slotTurret = document.getElementById('slotTurret');
 const baseBlueFill = document.getElementById('baseBlueFill');
 const baseRedFill = document.getElementById('baseRedFill');
 const msgEl = document.getElementById('msg');
+const ctfBar = document.getElementById('ctfBar');
+const ctfMyScore = document.getElementById('ctfMyScore');
+const ctfFoeScore = document.getElementById('ctfFoeScore');
+const ctfMyState = document.getElementById('ctfMyState');
+const ctfFoeState = document.getElementById('ctfFoeState');
 let msgTimer = null;
+
+/* capture the flag: my side left, theirs right, each with its flag's state */
+function flagState(el, f) {
+  const st = f.state === 'home' ? 'HOME' : f.state === 'carried' ? 'TAKEN' : 'DROPPED';
+  el.textContent = `🚩 ${st}`;
+  el.classList.toggle('taken', f.state === 'carried');
+  el.classList.toggle('dropped', f.state === 'dropped');
+}
+
+function updateCtfHud() {
+  ctfBar.classList.toggle('off', !ctfOn());
+  if (!ctfOn()) return;
+  ctfMyScore.textContent = stats.captures[MP.myTeam];
+  ctfFoeScore.textContent = stats.captures[MP.enemyTeam];
+  ctfBar.querySelector('.mid').textContent = `FIRST TO ${CAPTURES_TO_WIN}`;
+  flagState(ctfMyState, flags[MP.myTeam]);
+  flagState(ctfFoeState, flags[MP.enemyTeam]);
+}
 
 export function updateHud() {
   hpFill.style.height = `${Math.max(0, player.hp / player.maxHp * 100)}%`;
@@ -32,6 +56,7 @@ export function updateHud() {
   turretVal.textContent = entities.filter(e => e.alive && e.team === MP.myTeam && e.kind === 'turret').length;
   baseBlueFill.style.width = `${Math.max(0, myBase.hp / myBase.maxHp * 100)}%`;
   baseRedFill.style.width = `${Math.max(0, foeBase.hp / foeBase.maxHp * 100)}%`;
+  updateCtfHud();
 }
 
 export function showMessage(text, color) {
@@ -78,6 +103,25 @@ export function drawMinimap() {
       mctx.beginPath(); mctx.arc(x, y, 2.6, 0, 7); mctx.fill();
     }
   }
+  if (ctfOn()) {
+    for (const f of [flags.blue, flags.red]) {
+      const friendly = f.team === player.team;
+      // the stand always shows (it is where a capture happens), the flag
+      // itself only while it is out of it
+      mctx.strokeStyle = friendly ? '#8fd0ff' : '#ffb060';
+      mctx.lineWidth = 1.5;
+      mctx.beginPath();
+      mctx.arc(px(f.home.x), pz(f.home.z), 4, 0, 7);
+      mctx.stroke();
+      if (f.state === 'home') continue;
+      const x = px(f.group.position.x), y = pz(f.group.position.z);
+      mctx.fillStyle = friendly ? '#6fd2ff' : '#ff8a3a';
+      mctx.beginPath();
+      mctx.moveTo(x, y - 5); mctx.lineTo(x + 4, y); mctx.lineTo(x, y + 5); mctx.lineTo(x - 4, y);
+      mctx.closePath(); mctx.fill();
+    }
+  }
   mctx.strokeStyle = '#4a5578';
+  mctx.lineWidth = 1;
   mctx.strokeRect(0.5, 0.5, w - 1, h - 1);
 }

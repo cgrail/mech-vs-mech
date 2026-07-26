@@ -120,6 +120,11 @@
   </div>
   <div class="baseBar" id="baseBlue">YOUR BASE<div class="track"><div class="fill" id="baseBlueFill"></div></div></div>
   <div class="baseBar" id="baseRed">ENEMY BASE<div class="track"><div class="fill" id="baseRedFill"></div></div></div>
+  <div id="ctfBar" class="off">
+    <span class="side"><b id="ctfMyScore">0</b><span class="st" id="ctfMyState">🚩 HOME</span></span>
+    <span class="mid">CAPTURES</span>
+    <span class="side right"><span class="st" id="ctfFoeState">🚩 HOME</span><b id="ctfFoeScore">0</b></span>
+  </div>
   <canvas id="minimap" width="130" height="204"></canvas>
   <div id="msg"></div>
   <div id="buildHint"></div>
@@ -158,6 +163,10 @@
     <div id="ctrlRow">
       <button data-ctrl="joystick">🕹️ JOYSTICK</button>
       <button data-ctrl="gyro">📱 GYRO</button>
+    </div>
+    <div id="modeRow">
+      <button data-mode="assault" title="Waves march on your base — destroy theirs">⚔ BASE ASSAULT</button>
+      <button data-mode="ctf" title="Carry the enemy flag home three times">🚩 CAPTURE THE FLAG</button>
     </div>
     <div id="diffRow">
       <button data-diff="easy">EASY</button>

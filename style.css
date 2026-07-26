@@ -114,6 +114,30 @@ canvas { display: block; touch-action: none; }
 #baseBlue .fill { height: 100%; width: 100%; background: linear-gradient(90deg,#3d7bff,#7db5ff); }
 #baseRed  .fill { height: 100%; width: 100%; background: linear-gradient(90deg,#ff4a3d,#ff9a7d); float: right; }
 
+/* capture the flag: score + both flag states, centred under the base bars */
+#ctfBar {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  top: max(14px, env(safe-area-inset-top));
+  display: flex; align-items: center; gap: 14px;
+  padding: 5px 14px; border-radius: 6px;
+  background: rgba(8,10,16,.55); border: 1px solid rgba(74,85,120,.6);
+  font-size: 12px; font-weight: 700; letter-spacing: 2px;
+  text-shadow: 1px 1px 0 #000; white-space: nowrap;
+}
+#ctfBar.off { display: none; }
+#ctfBar .side { display: flex; align-items: center; gap: 8px; color: #9fc4ff; }
+#ctfBar .side.right { color: #ff9f9f; }
+#ctfBar b { font-size: 22px; letter-spacing: 0; }
+#ctfBar .mid { color: #6a7594; font-size: 10px; }
+#ctfBar .st.taken { color: #ff5040; animation: ctfPulse .8s infinite alternate; }
+#ctfBar .st.dropped { color: #ffd23c; }
+@keyframes ctfPulse { from { opacity: .45; } to { opacity: 1; } }
+@media (max-width: 700px) {
+  #ctfBar { gap: 8px; padding: 3px 8px; font-size: 10px; letter-spacing: 1px; }
+  #ctfBar b { font-size: 16px; }
+  #ctfBar .mid { display: none; }
+}
+
 #minimap {
   position: absolute; left: 50%; transform: translateX(-50%);
   bottom: max(18px, env(safe-area-inset-bottom));
@@ -220,10 +244,11 @@ body.touch #touchControls { display: flex; }
 #levelScreen.loading { visibility: hidden; } /* nothing until the list is complete */
 
 /* ---------- difficulty picker, control scheme, level-select entry ---------- */
-#diffRow, #optRow { display: flex; gap: 10px; }
+#diffRow, #optRow, #modeRow { display: flex; gap: 10px; }
 #ctrlRow { display: none; gap: 10px; } /* touch devices only */
 body.touch #ctrlRow { display: flex; }
 #overlay #ctrlRow button, #overlay #diffRow button, #overlay #optRow button,
+#overlay #modeRow button,
 #overlay #levelBtn, #overlay #levelBack,
 #overlay #levelPrev, #overlay #levelNext,
 #overlay #menuBack, #overlay #mpBack, #overlay button.ghost {
@@ -233,12 +258,14 @@ body.touch #ctrlRow { display: flex; }
   box-shadow: none;
 }
 #overlay #ctrlRow button:hover, #overlay #diffRow button:hover, #overlay #optRow button:hover,
+#overlay #modeRow button:hover,
 #overlay #levelBtn:hover, #overlay #levelBack:hover,
 #overlay #levelPrev:hover, #overlay #levelNext:hover,
 #overlay #menuBack:hover, #overlay #mpBack:hover, #overlay button.ghost:hover {
   border-color: #6f83c9; color: #cdd8ff; filter: none;
 }
-#overlay #ctrlRow button.selected, #overlay #diffRow button.selected, #overlay #optRow button.selected {
+#overlay #ctrlRow button.selected, #overlay #diffRow button.selected, #overlay #optRow button.selected,
+#overlay #modeRow button.selected {
   color: #101427; background: linear-gradient(#cdd8ff, #7d97e8);
   border-color: #e6ecff; box-shadow: 0 0 14px rgba(120, 150, 255, .45);
 }
