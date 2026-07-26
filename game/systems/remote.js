@@ -58,7 +58,7 @@ function makeNameTag(text, team) {
   ctx.fillStyle = team === 'red' ? '#ffb3a6' : '#a9c9ff';
   ctx.fillText(text, 128, 21);
   const tex = new THREE.CanvasTexture(cv);
-  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true }));
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true, toneMapped: false }));
   sp.scale.set(9, 9 * 40 / 256, 1);
   sp.renderOrder = 10;
   return sp;

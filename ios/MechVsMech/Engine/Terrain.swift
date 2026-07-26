@@ -275,13 +275,16 @@ func buildWorld(level: Level, parent: SCNNode) {
         parent.addChildNode(ground)
     }
 
-    func addBox(_ rect: TileRect, top: Double, texturedTop: Bool, mat: SCNMaterial) {
+    func addBox(_ rect: TileRect, top: Double, texturedTop: Bool, mat: SCNMaterial,
+                faceMats: [SCNMaterial]? = nil) {
         let w = Double(rect.w) * TILE, d = Double(rect.d) * TILE
         let bottom = LOW - 2
         let mx = -level.arenaHW + Double(rect.c) * TILE + w / 2
         let mz = -level.arenaHD + Double(rect.r) * TILE + d / 2
         let box = SCNBox(width: w, height: top - bottom, length: d, chamferRadius: 0)
-        if texturedTop {
+        if let faceMats {
+            box.materials = faceMats
+        } else if texturedTop {
             // world-aligned repeats on the +y face so the ground texture doesn't stretch
             let topMat = groundMaterial(
                 repeatX: w / TEX_SCALE, repeatY: d / TEX_SCALE,
@@ -311,19 +314,27 @@ func buildWorld(level: Level, parent: SCNNode) {
         }
     }
     for rect in greedyRects(level: level, match: { if case .wall = $0 { return true } else { return false } }) {
-        // one material per wall rect: the panel texture is tiled in world
-        // units, so merged rects of any size read at the same scale
+        // Per-face materials so the panel texture tiles in world units on a
+        // merged rect of any size: SCNBox order is +z, +x, -z, -x, top, bottom,
+        // and the two side pairs span different axes.
         let w = Double(rect.w) * TILE, d = Double(rect.d) * TILE
-        let m = SCNMaterial()
-        m.lightingModel = .physicallyBased
-        m.diffuse.contents = wallImage
-        m.diffuse.wrapS = .repeat
-        m.diffuse.wrapT = .repeat
-        m.diffuse.contentsTransform = SCNMatrix4MakeScale(
-            Float(max(w, d) / WALL_TEX_SCALE), Float((WALL_H - (LOW - 2)) / WALL_TEX_SCALE), 1)
-        m.roughness.contents = 0.85
-        m.metalness.contents = 0.1
-        addBox(rect, top: WALL_H, texturedTop: false, mat: m)
+        let h = WALL_H - (LOW - 2)
+        func wallFace(_ su: Double, _ sv: Double) -> SCNMaterial {
+            let m = SCNMaterial()
+            m.lightingModel = .physicallyBased
+            m.diffuse.contents = wallImage
+            m.diffuse.wrapS = .repeat
+            m.diffuse.wrapT = .repeat
+            m.diffuse.contentsTransform = SCNMatrix4MakeScale(Float(su), Float(sv), 1)
+            m.roughness.contents = 0.85
+            m.metalness.contents = 0.1
+            return m
+        }
+        let zFace = wallFace(w / WALL_TEX_SCALE, h / WALL_TEX_SCALE)
+        let xFace = wallFace(d / WALL_TEX_SCALE, h / WALL_TEX_SCALE)
+        let capFace = wallFace(w / WALL_TEX_SCALE, d / WALL_TEX_SCALE)
+        addBox(rect, top: WALL_H, texturedTop: false, mat: zFace,
+               faceMats: [zFace, xFace, zFace, xFace, capFace, capFace])
     }
 
     // ramps: wedge boxes

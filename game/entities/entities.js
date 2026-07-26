@@ -17,7 +17,8 @@ export function makeBar(width) {
   cv.width = 64; cv.height = 10;
   const ctx = cv.getContext('2d');
   const tex = new THREE.CanvasTexture(cv);
-  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true }));
+  // toneMapped: false — the bar is UI drawn in the world, not lit surface
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true, toneMapped: false }));
   sp.scale.set(width, width * 10 / 64, 1);
   sp.renderOrder = 10;
   function set(f) {

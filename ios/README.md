@@ -115,6 +115,10 @@ not been compiled)
   conventions live in `TouchControls.swift` (`GyroController`) and are the one
   part of the port that could not be validated off-device — flip the sign on
   `dLean` / `dTilt` / `dYaw` there if a direction is inverted.
+- **Look**: HDR/bloom is on for the camera (`GameEngine.init`) — check the frame
+  rate on the oldest device you support, and that muzzle flashes and the base
+  beacons glow without the whole district washing out. The sky gradient, the
+  panelled walls and the HUD vignette should match the web build.
 - **Multiplayer** (needs two devices, or one device + the web client): open the
   lobby on both, create/join the same room, take opposite teams, START MATCH,
   DEPLOY on both. Check that the other pilot's mech moves smoothly (state easing),

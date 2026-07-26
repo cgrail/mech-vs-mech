@@ -257,7 +257,8 @@ export function resetFlags() {
 export function refreshFlags() {
   const on = ctfOn();
   for (const f of [flags.blue, flags.red]) {
-    f.group.visible = on && f.state !== 'carried';
+    // a carried flag stays visible: it rides above its carrier on purpose
+    f.group.visible = on;
     f.stand.group.visible = on;
     f.ghost.visible = f.state !== 'home';
   }
