@@ -456,10 +456,16 @@ body.touch #touchControls { display: flex; }
 }
 #overlay .opt button:hover { border-color: #6f83c9; color: #cdd8ff; filter: none; }
 /* the map hero is an option row underneath (so ← → step it) but keeps its own
-   card skin — including under :focus, where a plain option row goes gold */
+   card skin — including under :focus, where a plain option row goes gold.
+   It also has to undo the LABEL · VALUE row's own flex: `.opt .main` centres
+   and spaces its two ends, which on this column collapses the picture to the
+   thumbnail's *intrinsic* width (one pixel per 8×8 tile, ~27px) instead of the
+   card's. Stretch, so the map fills the card the way it does in the lobby,
+   where the same hero sits outside an option row. */
 #overlay .opt button.hero {
   padding: 0; height: auto; background: rgba(8, 12, 23, .85);
   border: 2px solid #6f9bff; box-shadow: 0 0 12px rgba(61, 123, 255, .4);
+  align-items: stretch; justify-content: flex-start; gap: 0;
 }
 #overlay .opt button.hero:hover { border-color: #a8c4ff; }
 #overlay .opt button.hero:focus {

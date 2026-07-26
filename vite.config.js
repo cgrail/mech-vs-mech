@@ -11,6 +11,14 @@ export default defineConfig({
   build: {
     // world.js uses top-level await, which Vite's default target rejects
     target: 'es2022',
+    rollupOptions: {
+      output: {
+        // three is the only bare import in the tree and changes far less often
+        // than the game does; its own chunk keeps its hash — and the browser
+        // cache entry — stable across game-only rebuilds
+        manualChunks: (id) => (id.includes('node_modules/three/') ? 'three' : undefined),
+      },
+    },
   },
   plugins: [
     {
