@@ -225,6 +225,9 @@ final class LobbyModel: ObservableObject {
             name = myName
             UserDefaults.standard.set(myName, forKey: "mechMpName")
             phase = .rooms
+            // the server suffixes a callsign somebody else is already on rather
+            // than turning the join down — say so, it is the name everyone sees
+            if jBool(obj, "renamed") { showBanner("CALLSIGN TAKEN — YOU ARE \(myName)") }
             // the room list that follows `joined` decides whether to walk in
             autoRoom = true
 

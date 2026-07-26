@@ -649,6 +649,9 @@ if (!MP.active) {
     joined = true;
     localStorage.setItem('mechMpName', m.name);
     showCallsign(false);
+    // the server suffixes a callsign somebody else is already on rather than
+    // turning the join down — say so, since it is the name everyone will see
+    if (m.renamed) infoBanner(`CALLSIGN TAKEN — YOU ARE ${m.name}`);
     renderList(lastState); // paint from what we have…
     // …then arm the walk-in, so it judges the server's own room list (which
     // follows `joined` immediately) and not the empty placeholder above

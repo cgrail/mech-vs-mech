@@ -46,6 +46,7 @@ extension Team {
 func jNum(_ d: [String: Any], _ k: String) -> Double? { (d[k] as? NSNumber)?.doubleValue }
 func jInt(_ d: [String: Any], _ k: String) -> Int? { (d[k] as? NSNumber)?.intValue }
 func jStr(_ d: [String: Any], _ k: String) -> String? { d[k] as? String }
+func jBool(_ d: [String: Any], _ k: String) -> Bool { (d[k] as? NSNumber)?.boolValue ?? false }
 
 /* compact wire numbers, the toFixed() analog (4 KB server maxPayload) */
 func wire(_ v: Double, _ decimals: Int) -> Double {

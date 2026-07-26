@@ -14,7 +14,9 @@
 
    Lobby protocol (JSON) — matches are staged in rooms, so several
    groups can set up and fight in parallel:
-     → join {name, level}            ← joined {id,name} | error {message}
+     → join {name, level}            ← joined {id,name,renamed} | error {message}
+                                       (a taken callsign is suffixed, not
+                                        refused: renamed says so)
                                      ← lobby {rooms:[{id,name,count,owner,level}],
                                          players:[{id,name,room,team}]}
      → createRoom                    ← lobby (creator auto-joins; they own the
@@ -279,6 +281,22 @@ function roster() {
 
 /* names end up in client DOM/HTML — keep them to a harmless charset */
 const cleanName = (n) => String(n || '').replace(/[^\w .\-]/g, '').trim().slice(0, 16);
+/* A callsign nobody in the lobby is on: "ACE" → "ACE 2" → "ACE 3". Turning
+   somebody away over a name they can't see the owner of is a dead end — two
+   friends who both call themselves ACE would just have to guess again — so a
+   clash is settled here and the client is told the name it actually got
+   (`joined.name`, which both builds adopt and remember). The base is trimmed
+   so the suffix still fits cleanName's 16 characters. */
+function uniqueName(name) {
+  const taken = new Set([...lobby.values()].map((o) => o.name.toLowerCase()));
+  if (!taken.has(name.toLowerCase())) return name;
+  for (let n = 2; n <= MAX_CLIENTS + 1; n++) {
+    const suffix = ` ${n}`;
+    const candidate = name.slice(0, 16 - suffix.length).trim() + suffix;
+    if (!taken.has(candidate.toLowerCase())) return candidate;
+  }
+  return name;   // unreachable while the lobby is capped, but never fail on it
+}
 /* level names end up in the other players' URLs and a levels/<name>.txt fetch */
 const cleanLevel = (l) => String(l ?? '1').replace(/[^\w\-]/g, '').slice(0, 32) || '1';
 /* game mode: the room's, played by everyone in the match (see game/systems/ctf.js) */
@@ -364,12 +382,9 @@ wss.on('connection', (ws, req) => {
     switch (msg.type) {
       case 'join': {
         if (c || mr) return;
-        const name = cleanName(msg.name);
-        if (!name) { send(ws, { type: 'error', message: 'PICK A CALLSIGN FIRST' }); return; }
-        if ([...lobby.values()].some((o) => o.name.toLowerCase() === name.toLowerCase())) {
-          send(ws, { type: 'error', message: 'CALLSIGN ALREADY TAKEN' });
-          return;
-        }
+        const wanted = cleanName(msg.name);
+        if (!wanted) { send(ws, { type: 'error', message: 'PICK A CALLSIGN FIRST' }); return; }
+        const name = uniqueName(wanted);
         const client = {
           id: nextId++, ws, name,
           level: cleanLevel(msg.level), // the level this player has loaded; used if they start the match
@@ -378,7 +393,7 @@ wss.on('connection', (ws, req) => {
         };
         lobby.set(client.id, client);
         ws.client = client;
-        send(ws, { type: 'joined', id: client.id, name });
+        send(ws, { type: 'joined', id: client.id, name, renamed: name !== wanted });
         roster();
         break;
       }
