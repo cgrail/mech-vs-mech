@@ -3,9 +3,9 @@ import { scene } from '../world/scene.js';
 import { BLUE, RED, entities, makeBar, makeMech, registerEntity } from './entities.js';
 import { game, stats, touch, COSTS } from '../core/state.js';
 import { keys } from '../systems/input.js';
-import { groundHeightAt } from '../world/world.js';
+import { groundHeightAt, FALL_DEATH_Y } from '../world/world.js';
 import { forwardOf, localToWorld, losBlocked, collideCircle, updateVertical, aimYOf, spawnPointFor, teamIndexOf, JUMP_V } from '../core/helpers.js';
-import { spawnProjectile } from './projectiles.js';
+import { spawnProjectile, killEntity } from './projectiles.js';
 import { beep, laserSfx } from '../systems/audio.js';
 import { updateHud, showMessage } from '../ui/hud.js';
 import { MP, sendGame } from '../net/net.js';
@@ -157,6 +157,12 @@ export function updatePlayer(dt) {
   jump(dt);
   const onGround = updateVertical(player, dt);
   player.onGround = onGround;
+  // walked into a chasm ("v" tiles have no floor): the fall is the kill
+  if (player.y < FALL_DEATH_Y) {
+    showMessage('LOST IN THE CHASM', '#ff5040');
+    killEntity(player);
+    return;
+  }
   player.group.rotation.y = player.yaw;
 
   // walk animation + bob

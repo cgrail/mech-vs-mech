@@ -19,6 +19,14 @@ export const TILE = 8;
 export const LOW = -4;            // floor of the lowest tier
 export const WALL_H = 10;         // absolute top of wall tiles
 export const STEP = 0.75;         // tallest ledge a mech can step up while walking
+/* void tiles ("v") have no floor at all: groundHeightAt reports this, which
+   is below everything, so walkers fall through them forever and shots fly
+   across. VOID_EDGE is the "is there any floor here" test — anything under
+   it is a hole, not a tier (used by the AI probes and the fall check). */
+export const VOID_H = -1000;
+export const VOID_EDGE = LOW - 1;
+/* fallen this far past the lowest tier = gone; the walker is killed */
+export const FALL_DEATH_Y = LOW - 50;
 
 const TIER = { l: -4, g: 0, h: 4 };
 
@@ -56,8 +64,8 @@ export function validateLevel(text, name) {
       throw new Error(`Level "${name}": terrain row ${r + 1} is ${lines[r].length} tiles wide but the widest row is ${cols} — all rows must be equal length`);
     }
     for (let c = 0; c < cols; c++) {
-      if (!'glhwrPBRTS'.includes(lines[r][c])) {
-        throw new Error(`Level "${name}": unknown tile character "${lines[r][c]}" at row ${r + 1}, column ${c + 1} — valid tiles are g l h w r and markers P B R T S`);
+      if (!'glhwrvPBRTS'.includes(lines[r][c])) {
+        throw new Error(`Level "${name}": unknown tile character "${lines[r][c]}" at row ${r + 1}, column ${c + 1} — valid tiles are g l h w r v and markers P B R T S`);
       }
     }
   }
@@ -102,6 +110,7 @@ function parseLevel(text, name) {
   cells = chars.map((row) => row.map((ch) => {
     if (ch === 'w') return { t: 'wall', h: WALL_H };
     if (ch === 'r') return { t: 'ramp', axis: 'x', h0: 0, h1: 0 };
+    if (ch === 'v') return { t: 'void', h: VOID_H };   // a hole with no floor
     return { t: 'flat', h: TIER[ch] ?? 0 };
   }));
 
@@ -139,6 +148,7 @@ function cellAt(x, z) {
 export function groundHeightAt(x, z) {
   const cell = cellAt(x, z);
   if (!cell || cell.t === 'wall') return WALL_H;
+  if (cell.t === 'void') return VOID_H;   // nothing to stand on, nothing to stop a shot
   if (cell.t === 'ramp') {
     const f = cell.axis === 'x'
       ? (x + ARENA.hw) / TILE - Math.floor((x + ARENA.hw) / TILE)
@@ -187,7 +197,9 @@ export function drawTerrainMinimap(g, w, h) {
   for (let r = 0; r < LEVEL.rows; r++) {
     for (let c = 0; c < LEVEL.cols; c++) {
       const cell = cells[r][c];
-      if (cell.t === 'wall') {
+      if (cell.t === 'void') {
+        g.fillStyle = '#05060a';      // a hole reads as a gap in the district
+      } else if (cell.t === 'wall') {
         g.fillStyle = '#525f78';
       } else {
         const hh = cell.t === 'ramp' ? (cell.h0 + cell.h1) / 2 : cell.h;
@@ -278,18 +290,23 @@ export function createWorld(parent) {
   const rampMat = new THREE.MeshStandardMaterial({ color: 0x6b6555, roughness: 0.9 });
   const wallMat = new THREE.MeshStandardMaterial({ color: 0x4d5a66, roughness: 0.9 });
 
-  // base plane at the lowest tier
-  const pw = LEVEL.cols * TILE + 40, pd = LEVEL.rows * TILE + 40;
-  const planeTex = groundTex.clone();
-  planeTex.repeat.set(pw / TEX_SCALE, pd / TEX_SCALE);
-  const ground = new THREE.Mesh(
-    new THREE.PlaneGeometry(pw, pd),
-    new THREE.MeshStandardMaterial({ map: planeTex, roughness: 0.95 })
-  );
-  ground.rotation.x = -Math.PI / 2;
-  ground.position.y = LOW;
-  ground.receiveShadow = true;
-  group.add(ground);
+  // Base plane at the lowest tier — one quad for the whole map, plus a margin
+  // that frames it. A map with void tiles can't have it: the holes have to be
+  // holes, so its lowest tier is built from merged tile rects instead (below).
+  const hasVoid = cells.some((row) => row.some((c) => c.t === 'void'));
+  if (!hasVoid) {
+    const pw = LEVEL.cols * TILE + 40, pd = LEVEL.rows * TILE + 40;
+    const planeTex = groundTex.clone();
+    planeTex.repeat.set(pw / TEX_SCALE, pd / TEX_SCALE);
+    const ground = new THREE.Mesh(
+      new THREE.PlaneGeometry(pw, pd),
+      new THREE.MeshStandardMaterial({ map: planeTex, roughness: 0.95 })
+    );
+    ground.rotation.x = -Math.PI / 2;
+    ground.position.y = LOW;
+    ground.receiveShadow = true;
+    group.add(ground);
+  }
 
   function addBox(rect, top, mat) {
     const w = rect.w * TILE, d = rect.d * TILE, bottom = LOW - 2;
@@ -307,9 +324,11 @@ export function createWorld(parent) {
     group.add(m);
   }
 
-  // raised flat terrain, one merged box set per height tier
+  // raised flat terrain, one merged box set per height tier (on a map with
+  // holes the lowest tier is drawn too — there is no plane under it)
   const tierMats = [sideMat, sideMat, topMat, sideMat, sideMat, sideMat];
-  const heights = [...new Set(cells.flat().filter((c) => c.t === 'flat' && c.h > LOW).map((c) => c.h))];
+  const heights = [...new Set(cells.flat()
+    .filter((c) => c.t === 'flat' && (hasVoid || c.h > LOW)).map((c) => c.h))];
   for (const h of heights) {
     for (const rect of greedyRects((c) => c.t === 'flat' && c.h === h)) addBox(rect, h, tierMats);
   }

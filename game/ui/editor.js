@@ -20,6 +20,7 @@ const TILES = [
   { ch: 'h', label: 'HIGH', color: '#a8a48d' },
   { ch: 'w', label: 'WALL', color: '#4d5a66' },
   { ch: 'r', label: 'RAMP', color: '#8a7f5e' },
+  { ch: 'v', label: 'CHASM', color: '#05060a' },   // no floor: walkers fall out of the world
   { ch: 'P', label: 'PLAYER', color: '#7CFF6B', unique: true },
   { ch: 'B', label: 'BLUE BASE', color: '#4d8dff', unique: true },
   { ch: 'R', label: 'RED BASE', color: '#ff5040', unique: true },

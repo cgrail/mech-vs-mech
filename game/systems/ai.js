@@ -1,9 +1,9 @@
 import * as THREE from 'three';
-import { LEVEL, STEP, groundHeightAt } from '../world/world.js';
+import { LEVEL, STEP, VOID_EDGE, FALL_DEATH_Y, groundHeightAt } from '../world/world.js';
 import { entities, blueBase, redBase, makeEnemyMech } from '../entities/entities.js';
 import { game, stats, difficulty } from '../core/state.js';
 import { distXZ, losBlocked, localToWorld, nearestEnemyOf, collideCircle, updateVertical, aimYOf, JUMP_V } from '../core/helpers.js';
-import { spawnProjectile } from '../entities/projectiles.js';
+import { spawnProjectile, killEntity } from '../entities/projectiles.js';
 import { ctfOn, ctfGoal } from './ctf.js';
 import { beep, laserSfx } from './audio.js';
 import { player } from '../entities/player.js';
@@ -37,10 +37,12 @@ function freeDist(e, yaw, max) {
   for (let s = 1.2; s <= max; s += 1.2) {
     const x = p.x + sx * s, z = p.z + cz * s;
     const hc = groundHeightAt(x, z);
-    const h = Math.max(hc,
-      groundHeightAt(x + rx * MECH_R, z + rz * MECH_R),
-      groundHeightAt(x - rx * MECH_R, z - rz * MECH_R));
-    if (h > y + STEP) return s - 1.2;
+    const hl = groundHeightAt(x + rx * MECH_R, z + rz * MECH_R);
+    const hr = groundHeightAt(x - rx * MECH_R, z - rz * MECH_R);
+    if (Math.max(hc, hl, hr) > y + STEP) return s - 1.2;
+    // a chasm under any part of the mech is as impassable as a wall — mechs
+    // drop off ledges happily, but there is no bottom to this one
+    if (Math.min(hc, hl, hr) < VOID_EDGE) return s - 1.2;
     y = hc;                  // ramps: the walking surface is the centre line
   }
   return max;
@@ -234,6 +236,7 @@ export function updateEnemyMech(e, dt) {
   }
   const onGround = updateVertical(e, dt);
   e.onGround = onGround;
+  if (e.y < FALL_DEATH_Y) { killEntity(e); return; }   // pushed into a chasm
   e.group.position.y = e.y + (stepYaw !== null && onGround ? Math.abs(Math.sin(e.walkPhase)) * 0.25 : 0);
   e.px = e.group.position.x;
   e.pz = e.group.position.z;

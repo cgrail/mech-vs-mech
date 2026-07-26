@@ -107,6 +107,9 @@ not been compiled)
   and run it back. Three captures ends the match.
 - Ramps walkable, ledges block walking up but allow dropping down, cliff rims
   block shots until you reach the edge (all driven by the terrain grid).
+- **Chasms** (level59 THE RIFT): the rift is a hole in the terrain mesh, not a
+  dark floor; walking off its lip falls forever and kills the mech, shots cross
+  it, enemy mechs refuse to walk in and funnel over the bridges instead.
 - **Gyro scheme on a real device**: verify turn direction is 1:1 and correct,
   lean forward = move forward, right-edge-down = strafe right. The sign
   conventions live in `TouchControls.swift` (`GyroController`) and are the one

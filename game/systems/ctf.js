@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { scene } from '../world/scene.js';
-import { LEVEL, WALL_H, groundHeightAt } from '../world/world.js';
+import { LEVEL, WALL_H, VOID_EDGE, groundHeightAt } from '../world/world.js';
 import { entities, BLUE, RED } from '../entities/entities.js';
 import { game, stats, CAPTURES_TO_WIN } from '../core/state.js';
 import { showMessage, updateHud } from '../ui/hud.js';
@@ -152,6 +152,8 @@ function grabFlag(f, e, announce) {
 }
 
 function dropFlag(f, pos, announce) {
+  // dropped over a chasm there would be no getting it back — send it home
+  if (groundHeightAt(pos.x, pos.z) < VOID_EDGE) { returnFlag(f, announce, true); return; }
   f.carrier = null;
   f.state = 'dropped';
   f.dropT = RETURN_AFTER;

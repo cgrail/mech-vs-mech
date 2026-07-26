@@ -21,6 +21,8 @@ extension Level {
         switch cellAt(x, z) {
         case .none, .some(.wall):
             return WALL_H
+        case .some(.void):
+            return VOID_H   // nothing to stand on, nothing to stop a shot
         case .some(.ramp(let axisX, let h0, let h1)):
             let f = axisX
                 ? (x + arenaHW) / TILE - floor((x + arenaHW) / TILE)
@@ -41,6 +43,7 @@ extension Level {
                 let h: Double
                 switch cell {
                 case .none, .some(.wall): h = WALL_H
+                case .some(.void): h = VOID_H       // a hole never pushes anything out
                 case .some(.ramp(_, let h0, let h1)): h = min(h0, h1)
                 case .some(.flat(let fh)): h = fh
                 }
@@ -205,15 +208,20 @@ func buildWorld(level: Level, parent: SCNNode) {
     let rampMat = pbrMaterial(color: 0x6b6555, roughness: 0.9)
     let wallMat = pbrMaterial(color: 0x4d5a66, roughness: 0.9)
 
-    // base plane at the lowest tier
-    let pw = Double(level.cols) * TILE + 40
-    let pd = Double(level.rows) * TILE + 40
-    let plane = SCNPlane(width: pw, height: pd)
-    plane.firstMaterial = groundMaterial(repeatX: pw / TEX_SCALE, repeatY: pd / TEX_SCALE)
-    let ground = SCNNode(geometry: plane)
-    ground.eulerAngles.x = -.pi / 2
-    ground.position.y = Float(LOW)
-    parent.addChildNode(ground)
+    // Base plane at the lowest tier — one quad for the whole map plus a
+    // framing margin. A map with void tiles can't have it: the holes have to
+    // be holes, so its lowest tier is built from merged tile rects instead.
+    let hasVoid = level.cells.contains { row in row.contains { if case .void = $0 { return true } else { return false } } }
+    if !hasVoid {
+        let pw = Double(level.cols) * TILE + 40
+        let pd = Double(level.rows) * TILE + 40
+        let plane = SCNPlane(width: pw, height: pd)
+        plane.firstMaterial = groundMaterial(repeatX: pw / TEX_SCALE, repeatY: pd / TEX_SCALE)
+        let ground = SCNNode(geometry: plane)
+        ground.eulerAngles.x = -.pi / 2
+        ground.position.y = Float(LOW)
+        parent.addChildNode(ground)
+    }
 
     func addBox(_ rect: TileRect, top: Double, texturedTop: Bool, mat: SCNMaterial) {
         let w = Double(rect.w) * TILE, d = Double(rect.d) * TILE
@@ -241,7 +249,8 @@ func buildWorld(level: Level, parent: SCNNode) {
     var heights = Set<Double>()
     for row in level.cells {
         for cell in row {
-            if case .flat(let h) = cell, h > LOW { heights.insert(h) }
+            // on a map with holes the lowest tier is drawn too: no plane under it
+            if case .flat(let h) = cell, hasVoid || h > LOW { heights.insert(h) }
         }
     }
     for h in heights {

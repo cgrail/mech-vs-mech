@@ -35,10 +35,12 @@ extension GameEngine {
         while s <= maxD {
             let x = e.x + sx * s, z = e.z + cz * s
             let hc = level.groundHeightAt(x, z)
-            let h = Swift.max(hc,
-                              level.groundHeightAt(x + rx * MECH_R, z + rz * MECH_R),
-                              level.groundHeightAt(x - rx * MECH_R, z - rz * MECH_R))
-            if h > y + STEP { return s - 1.2 }
+            let hl = level.groundHeightAt(x + rx * MECH_R, z + rz * MECH_R)
+            let hr = level.groundHeightAt(x - rx * MECH_R, z - rz * MECH_R)
+            if Swift.max(hc, hl, hr) > y + STEP { return s - 1.2 }
+            // a chasm under any part of the mech is as impassable as a wall —
+            // mechs drop off ledges happily, but there is no bottom to this one
+            if Swift.min(hc, hl, hr) < VOID_EDGE { return s - 1.2 }
             y = hc              // ramps: the walking surface is the centre line
             s += 1.2
         }
@@ -248,6 +250,7 @@ extension GameEngine {
         }
         let onGround = updateVertical(e, dt: dt)
         e.onGround = onGround
+        if e.y < FALL_DEATH_Y { killEntity(e); return }   // pushed into a chasm
         e.syncNode(bob: stepYaw != nil && onGround ? abs(sin(e.walkPhase)) * 0.25 : 0)
         e.px = e.x
         e.pz = e.z

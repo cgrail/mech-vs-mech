@@ -2494,3 +2494,50 @@ wgggggwwwwwggggggggggggwgggggggwgggggggggggggggwwwwwggw
 wggggggggggggggggggggggwgggBgggwggggggggggggggggggggggw
 wggggggggggggggggggggggwgggggggwggggggggggggggggggggggw
 wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww
+
+=== level59
+# THE RIFT — a chasm splits the district in two: three bridges across, no floor anywhere else. Step off and you keep falling.
+# Terrain:  g ground · l low ground · h high ground · w wall · r ramp (slopes between its neighbours) · v chasm (no floor at all)
+# Markers:  P player spawn · B blue base · R red base · T red turret · S enemy wave spawn
+#           (a marker sits on the same terrain as the tile to its left)
+wwwwwwwwwwwwwwwwwwwwwwwwwwwww
+wgggggggggwgggggggwgggggggggw
+wgggggggggwgggRgggwgggggggggw
+wgggggggggwgggggggwgggggggggw
+wgggggggggwgggggggwgggggggggw
+wgggggggggwggwwwggwgggggggggw
+wgggggggggwgggggggwgggggggggw
+wgggggggggwwwgggwwwgggggggggw
+wgggggggTgggggggggggTgggggggw
+wggSggggggggwwggwwgggggggSggw
+wggggrrrrgggwwggwwggrrrrggggw
+wgggghhhhggggggggggghhhhggggw
+wgggghhhhggggggggggghhhhggggw
+wggggrrrrgggggggggggrrrrggggw
+wggggggggSgggggggggSggggggggw
+wgwwggggggggggggggggggggwwggw
+wgwwgggTggggggSggggggTggwwggw
+vgggggggggggggggggggggggggggv
+vgggggggggggggggggggggggggggv
+vvvgggvvvvvvvgggvvvvvvvgggvvv
+vvvgggvvvvvvvgggvvvvvvvgggvvv
+vvvgggvvvvvvvgggvvvvvvvgggvvv
+vgggggggggggggggggggggggggggv
+vgggggggggggggggggggggggggggv
+wgrrggggggggggTggggggggggrrgw
+wgllggggggggwwggwwgggggggllgw
+wgllggggggggwwggwwgggggggllgw
+wgrrgrrrrgggggggggggrrrrgrrgw
+wgggghhhhggggggggggghhhhggggw
+wgggghhhhggggggggggghhhhggggw
+wggggrrrrgggggggggggrrrrggggw
+wgwwggggggggggggggggggggwwggw
+wgwwggggggggggggggggggggwwggw
+wgggggggggwwwgggwwwgggggggggw
+wgggggggggwgggPgggwgggggggggw
+wgggggggggwggwwwggwgggggggggw
+wgggggggggwgggggggwgggggggggw
+wgggggggggwgggggggwgggggggggw
+wgggggggggwgggBgggwgggggggggw
+wgggggggggwgggggggwgggggggggw
+wwwwwwwwwwwwwwwwwwwwwwwwwwwww

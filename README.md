@@ -85,7 +85,7 @@ Instead of the command line, `DOMAIN`/`EMAIL` can live in a `.env` file next to 
 
 ## Map Editor
 
-**MAP EDITOR** on the start screen opens a tile painter for the level format itself — one character per 8×8 tile, the same thing `levels/levels.txt` holds. Pick ground, low ground, high ground, wall or ramp from the palette and paint with the left mouse button (the right button clears back to ground); the marker tools place the player spawn, both bases, red turrets and enemy spawn points. Width and height go from 10 to 64 tiles, and **START FROM…** loads any existing map as a starting point.
+**MAP EDITOR** on the start screen opens a tile painter for the level format itself — one character per 8×8 tile, the same thing `levels/levels.txt` holds. Pick ground, low ground, high ground, wall, ramp or **chasm** from the palette and paint with the left mouse button (the right button clears back to ground); the marker tools place the player spawn, both bases, red turrets and enemy spawn points. Width and height go from 10 to 64 tiles, and **START FROM…** loads any existing map as a starting point.
 
 - **▶ PLAY** saves the map and flies it in behind the mission menu, ready to deploy.
 - **💾 SAVE** keeps it in the browser (it shows up in the level select with a ★, and `?level=<name>` works).
@@ -145,6 +145,10 @@ Your choice is remembered between sessions.
 Everything else stays: waves keep coming, turrets still cost salvage, and destroying the enemy base still wins outright — the flag is a second, faster way to take the district.
 
 It works in multiplayer too: the pilot who created the room picks the mode, both teams get a flag in their courtyard, and a runner who makes it home scores for the whole team.
+
+### Chasms
+
+Some districts are split by a **chasm** — tiles with no floor at all. Walk off the lip and you keep falling until your mech is gone (you redeploy at your base like any other death), so bridges become the only way across and the map edge stops being a safe wall: where a rift runs out to the border, you can fall clean off the level. Enemy mechs know better and treat a chasm as a wall, which turns every bridge into a choke point. **THE RIFT** (the last map in the list) is built around one, and the map editor's chasm brush puts them in your own maps.
 
 ### Fog of War
 

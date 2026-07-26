@@ -18,7 +18,7 @@ function parse(text, name) {
   const cols = Math.max(...lines.map((l) => l.length));
   lines.forEach((l, r) => {
     if (l.length !== cols) errs.push(`${name}: row ${r + 1} is ${l.length} wide, widest is ${cols}`);
-    for (const ch of l) if (!'glhwrPBRTS'.includes(ch)) errs.push(`${name}: bad tile "${ch}" in row ${r + 1}`);
+    for (const ch of l) if (!'glhwrvPBRTS'.includes(ch)) errs.push(`${name}: bad tile "${ch}" in row ${r + 1}`);
   });
   for (const ch of 'PBRS') if (!lines.some((l) => l.includes(ch))) errs.push(`${name}: no "${ch}" marker`);
   const rows = lines.length;
@@ -36,7 +36,8 @@ function parse(text, name) {
   const cells = chars.map((row) => row.map((ch) => (
     ch === 'w' ? { t: 'wall', h: WALL_H }
       : ch === 'r' ? { t: 'ramp', axis: 'x', h0: 0, h1: 0 }
-        : { t: 'flat', h: TIER[ch] ?? 0 })));
+        : ch === 'v' ? { t: 'void', h: WALL_H }   // a hole: nothing walks across it
+          : { t: 'flat', h: TIER[ch] ?? 0 })));
   const flatH = (r, c) => (cells[r] && cells[r][c] && cells[r][c].t === 'flat' ? cells[r][c].h : null);
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
@@ -61,7 +62,8 @@ function field(lv) {
   for (let y = 0; y < H; y++) {
     for (let x = 0; x < W; x++) {
       const cell = lv.cells[Math.floor(y / SUB)][Math.floor(x / SUB)];
-      if (cell.t === 'wall') { solid[y * W + x] = 1; h[y * W + x] = WALL_H; continue; }
+      // walls and chasms are both "no walking here" for the flood fill
+      if (cell.t === 'wall' || cell.t === 'void') { solid[y * W + x] = 1; h[y * W + x] = WALL_H; continue; }
       if (cell.t === 'ramp') {
         const f = (cell.axis === 'x' ? x % SUB : y % SUB) / SUB;
         h[y * W + x] = cell.h0 + (cell.h1 - cell.h0) * f;
@@ -116,8 +118,9 @@ function flagSpot(lv, team) {
     for (const rad of [13, 15, 11, 17, 9]) {
       const c = Math.floor(b.c + 0.5 + (uc * rad) / TILE);
       const r = Math.floor(b.r + 0.5 + (ur * rad) / TILE);
+      const cell = lv.cells[r] && lv.cells[r][c];
       const h = height(r, c);
-      if (h < WALL_H - 0.01 && Math.abs(h - bh) < 1.2) return { r, c };
+      if (cell && cell.t !== 'void' && h < WALL_H - 0.01 && Math.abs(h - bh) < 1.2) return { r, c };
     }
   }
   return { r: b.r, c: b.c };
@@ -141,7 +144,8 @@ function check(name, text) {
     if (s) keyPts.push([`${team} flag stand`, s]);
   }
   for (const [tag, m] of keyPts) {
-    if (lv.cells[m.r][m.c].t === 'wall') out.push(`${name}: marker ${tag} at row ${m.r + 1} col ${m.c + 1} sits in a wall`);
+    const t = lv.cells[m.r][m.c].t;
+    if (t === 'wall' || t === 'void') out.push(`${name}: marker ${tag} at row ${m.r + 1} col ${m.c + 1} sits in a ${t === 'void' ? 'chasm' : 'wall'}`);
   }
   // every marker must be mutually reachable with jump-assisted walking
   const seeds = spawn.map((m) => idxOf(f, m));

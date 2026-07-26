@@ -214,6 +214,11 @@ extension GameEngine {
     }
 
     private func dropFlag(_ f: Flag, x: Double, z: Double, announce: Bool) {
+        // dropped over a chasm there would be no getting it back — send it home
+        if level.groundHeightAt(x, z) < VOID_EDGE {
+            returnFlag(f, announce: announce, byTouch: true)
+            return
+        }
         f.carrier = nil
         f.state = .dropped
         f.dropT = RETURN_AFTER

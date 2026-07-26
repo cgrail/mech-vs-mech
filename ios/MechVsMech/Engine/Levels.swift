@@ -18,6 +18,13 @@ let TILE = 8.0
 let LOW = -4.0          // floor of the lowest tier
 let WALL_H = 10.0       // absolute top of wall tiles
 let STEP = 0.75         // tallest ledge a mech can step up while walking
+/* void tiles ("v") have no floor: groundHeightAt reports VOID_H, which is
+   below everything, so walkers fall through them forever and shots fly
+   across. VOID_EDGE is the "is there any floor here" test (AI probes, the
+   fall check); past FALL_DEATH_Y a walker is gone. */
+let VOID_H = -1000.0
+let VOID_EDGE = LOW - 1
+let FALL_DEATH_Y = LOW - 50
 
 private let TIER: [Character: Double] = ["l": -4, "g": 0, "h": 4]
 
@@ -30,6 +37,7 @@ enum Cell {
     case flat(h: Double)
     case wall
     case ramp(axisX: Bool, h0: Double, h1: Double)
+    case void      // a hole with no floor at all
 }
 
 struct LevelParseError: Error {
@@ -187,7 +195,7 @@ final class Level {
             if row.count != cols {
                 throw LevelParseError(message: "Level \"\(name)\": terrain row \(r + 1) is \(row.count) tiles wide but the widest row is \(cols) — all rows must be equal length")
             }
-            for (c, ch) in row.enumerated() where !"glhwrPBRTS".contains(ch) {
+            for (c, ch) in row.enumerated() where !"glhwrvPBRTS".contains(ch) {
                 throw LevelParseError(message: "Level \"\(name)\": unknown tile character \"\(ch)\" at row \(r + 1), column \(c + 1) — valid tiles are g l h w r and markers P B R T S")
             }
         }
@@ -235,6 +243,7 @@ final class Level {
         cells = chars.map { row in
             row.map { ch in
                 if ch == "w" { return Cell.wall }
+                if ch == "v" { return Cell.void }
                 if ch == "r" { return Cell.ramp(axisX: true, h0: 0, h1: 0) }
                 return Cell.flat(h: TIER[ch] ?? 0)
             }

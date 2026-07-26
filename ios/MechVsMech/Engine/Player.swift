@@ -143,6 +143,12 @@ extension GameEngine {
         jump(dt: dt)
         let onGround = updateVertical(player, dt: dt)
         player.onGround = onGround
+        // walked into a chasm ("v" tiles have no floor): the fall is the kill
+        if player.y < FALL_DEATH_Y {
+            delegate?.engineMessage("LOST IN THE CHASM", colorHex: 0xff5040)
+            killEntity(player)
+            return
+        }
         player.node.eulerAngles.y = Float(player.yaw)
 
         // walk animation + bob
