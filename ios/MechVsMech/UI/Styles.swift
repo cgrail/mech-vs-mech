@@ -42,15 +42,15 @@ struct MenuButtonStyle: ButtonStyle {
             .background(
                 Group {
                     if prominent {
-                        RoundedRectangle(cornerRadius: 8).fill(Skin.goldFill)
+                        RoundedRectangle(cornerRadius: 2).fill(Skin.goldFill)
                             .shadow(color: Skin.amber.opacity(0.5), radius: 12)
                     } else {
-                        RoundedRectangle(cornerRadius: 6).fill(Skin.panel)
+                        RoundedRectangle(cornerRadius: 2).fill(Skin.panel)
                     }
                 }
             )
             .overlay(
-                RoundedRectangle(cornerRadius: prominent ? 8 : 6)
+                RoundedRectangle(cornerRadius: 2)
                     .stroke(prominent ? Skin.goldEdge : Skin.border, lineWidth: prominent ? 2 : 1)
             )
             .foregroundColor(prominent ? Skin.ink : Skin.blueText)
@@ -58,7 +58,9 @@ struct MenuButtonStyle: ButtonStyle {
     }
 }
 
-/* difficulty / control-scheme picker button (#diffRow, #ctrlRow) */
+/* Two-value picker, still used where a row genuinely holds a pair (the
+   lobby's mode row). The mission menu uses OptionRow below instead: a row of
+   one button per value is what stopped fitting once there were four of them. */
 struct PillToggle: View {
     let label: String
     let selected: Bool
@@ -74,19 +76,87 @@ struct PillToggle: View {
                 .background(
                     Group {
                         if selected {
-                            RoundedRectangle(cornerRadius: 6).fill(Skin.selectedFill)
+                            RoundedRectangle(cornerRadius: 2).fill(Skin.selectedFill)
                                 .shadow(color: Color(hex: 0x7896ff).opacity(0.45), radius: 10)
                         } else {
-                            RoundedRectangle(cornerRadius: 6).fill(Skin.panel)
+                            RoundedRectangle(cornerRadius: 2).fill(Skin.panel)
                         }
                     }
                 )
-                .overlay(RoundedRectangle(cornerRadius: 6)
+                .overlay(RoundedRectangle(cornerRadius: 2)
                     .stroke(selected ? Color(hex: 0xe6ecff) : Skin.border, lineWidth: 1))
                 .foregroundColor(selected ? Skin.deepInk : Skin.blueText)
                 .opacity(disabled ? 0.5 : 1)
         }
         .disabled(disabled)
+    }
+}
+
+/* ---------- the option column ----------
+   Ports style.css's .menuList / .opt (and ui/menu.js's reasoning): one
+   vertical list of rows that are all the same width and the same height,
+   each LABEL · VALUE between ◂ ▸ steppers. Cycling through the values beats
+   a button per value in a row — four difficulty pills abreast is exactly
+   what used to overflow a small phone, and a column grows downward, which
+   OverlayFrame can scale, instead of sideways, which it cannot. */
+let OPT_W: CGFloat = 380
+let OPT_H: CGFloat = 44
+
+/* step through a list of settings, wrapping at both ends — what ◂ ▸ do */
+func cycled<T: Equatable>(_ all: [T], _ cur: T, _ dir: Int) -> T {
+    guard !all.isEmpty else { return cur }
+    let i = all.firstIndex(of: cur) ?? 0
+    return all[((i + dir) % all.count + all.count) % all.count]
+}
+
+/* squared off and bevelled, the way an option box looked before rounded corners */
+struct OptBox: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .background(RoundedRectangle(cornerRadius: 2).fill(Skin.panel))
+            .overlay(RoundedRectangle(cornerRadius: 2).stroke(Skin.border, lineWidth: 1))
+    }
+}
+
+struct OptionRow: View {
+    let label: String
+    let value: String
+    /* the map row opens a full list instead of only stepping — the ▾ says so */
+    var opensList = false
+    var step: (Int) -> Void
+    var activate: (() -> Void)?
+
+    var body: some View {
+        HStack(spacing: 6) {
+            stepper("◂", -1)
+            Button { if let activate { activate() } else { step(1) } } label: {
+                HStack(spacing: 12) {
+                    Text(label)
+                        .font(.system(size: 12, weight: .bold)).kerning(2)
+                        .foregroundColor(Skin.dimText)
+                    Spacer(minLength: 8)
+                    Text(opensList ? "\(value) ▾" : value)
+                        .font(.system(size: 13, weight: .bold)).kerning(2)
+                        .foregroundColor(Skin.gold)
+                        .lineLimit(1)
+                }
+                .padding(.horizontal, 14)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .modifier(OptBox())
+            }
+            stepper("▸", 1)
+        }
+        .frame(width: OPT_W, height: OPT_H)
+    }
+
+    private func stepper(_ glyph: String, _ dir: Int) -> some View {
+        Button { step(dir) } label: {
+            Text(glyph)
+                .font(.system(size: 15, weight: .bold))
+                .foregroundColor(Skin.blueText)
+                .frame(width: 42, height: OPT_H)
+                .modifier(OptBox())
+        }
     }
 }
 
@@ -108,8 +178,8 @@ struct PanelBox: ViewModifier {
         content
             .padding(.horizontal, 18)
             .padding(.vertical, 14)
-            .background(RoundedRectangle(cornerRadius: 10).fill(Skin.panel))
-            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Skin.border, lineWidth: 1))
+            .background(RoundedRectangle(cornerRadius: 2).fill(Skin.panel))
+            .overlay(RoundedRectangle(cornerRadius: 2).stroke(Skin.border, lineWidth: 1))
     }
 }
 
@@ -118,8 +188,8 @@ struct ListRowBox: ViewModifier {
     var selected = false
     func body(content: Content) -> some View {
         content
-            .background(RoundedRectangle(cornerRadius: 8).fill(Skin.panelSoft))
-            .overlay(RoundedRectangle(cornerRadius: 8)
+            .background(RoundedRectangle(cornerRadius: 2).fill(Skin.panelSoft))
+            .overlay(RoundedRectangle(cornerRadius: 2)
                 .stroke(selected ? Skin.gold : Skin.border, lineWidth: 1))
             .shadow(color: selected ? Skin.gold.opacity(0.3) : .clear, radius: 8)
     }

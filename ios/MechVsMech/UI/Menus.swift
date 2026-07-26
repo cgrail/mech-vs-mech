@@ -37,11 +37,10 @@ struct ModeScreen: View {
                     .kerning(1)
                     .foregroundColor(Skin.dimText)
             }
-            .frame(width: 340)
+            .frame(width: OPT_W)
             .padding(.vertical, 16)
             .padding(.horizontal, 20)
-            .background(RoundedRectangle(cornerRadius: 8).fill(Skin.panel))
-            .overlay(RoundedRectangle(cornerRadius: 8).stroke(Skin.border, lineWidth: 1))
+            .modifier(OptBox())
         }
     }
 }
@@ -77,49 +76,28 @@ struct MenuScreen: View {
                 .panelBox()
 
                 if !over {
-                    // ◂ ▸ step straight to the neighbouring map; the middle
-                    // button opens the full list
-                    HStack(spacing: 8) {
-                        stepButton("◂") { model.stepLevel(-1) }
-                        Button {
-                            model.showLevelSelect()
-                        } label: {
-                            HStack(spacing: 12) {
-                                Text("SELECT LEVEL")
-                                    .font(.system(size: 11, weight: .bold)).kerning(2)
-                                    .foregroundColor(Skin.dimText)
-                                Text("\(model.levelIndex + 1) · \(model.levelInfo.title)")
-                                    .font(.system(size: 13, weight: .bold)).kerning(1)
-                                    .foregroundColor(Skin.gold)
-                                    .lineLimit(1)
-                                Text("▾").foregroundColor(Skin.dimText)
-                            }
-                            .frame(maxWidth: 300)
-                        }
-                        .buttonStyle(MenuButtonStyle())
-                        stepButton("▸") { model.stepLevel(1) }
-                    }
-
-                    HStack(spacing: 10) {
-                        PillToggle(label: "🕹️ JOYSTICK", selected: model.scheme == .joystick) { model.scheme = .joystick }
-                        PillToggle(label: "📱 GYRO", selected: model.scheme == .gyro) { model.scheme = .gyro }
-                    }
-                    // base assault or capture the flag (Engine/CTF.swift)
-                    HStack(spacing: 10) {
-                        ForEach(GameMode.allCases, id: \.self) { m in
-                            PillToggle(label: m.label, selected: model.mode == m) { model.mode = m }
-                        }
-                    }
-                    HStack(spacing: 10) {
-                        ForEach(DifficultyKey.allCases, id: \.self) { key in
-                            PillToggle(label: DIFFICULTIES[key]!.label, selected: model.difficultyKey == key) {
-                                model.difficultyKey = key
-                            }
-                        }
+                    /* One column of same-sized rows, exactly the web menu
+                       (style.css .menuList / game/ui/menu.js): every setting
+                       cycles through ◂ ▸ rather than showing a button per
+                       value, so nothing ever needs a fourth control in a row
+                       and the menu grows down the screen, not across it. */
+                    VStack(spacing: 6) {
+                        // the steppers go to the neighbouring map, the row opens the full list
+                        OptionRow(label: "MAP",
+                                  value: "\(model.levelIndex + 1) · \(model.levelInfo.title)",
+                                  opensList: true,
+                                  step: { model.stepLevel($0) },
+                                  activate: { model.showLevelSelect() })
+                        OptionRow(label: "CONTROLS", value: model.scheme.label,
+                                  step: { model.scheme = cycled(ControlScheme.allCases, model.scheme, $0) })
+                        // base assault or capture the flag (Engine/CTF.swift)
+                        OptionRow(label: "MODE", value: model.mode.label,
+                                  step: { model.mode = cycled(GameMode.allCases, model.mode, $0) })
+                        OptionRow(label: "DIFFICULTY", value: DIFFICULTIES[model.difficultyKey]!.label,
+                                  step: { model.difficultyKey = cycled(DifficultyKey.allCases, model.difficultyKey, $0) })
                         // sensors only: enemies vanish out of sight
-                        PillToggle(label: "🌫️ FOG OF WAR", selected: model.fogOfWar) {
-                            model.fogOfWar.toggle()
-                        }
+                        OptionRow(label: "🌫️ FOG OF WAR", value: model.fogOfWar ? "ON" : "OFF",
+                                  step: { _ in model.fogOfWar.toggle() })
                     }
                 }
 
@@ -162,13 +140,6 @@ struct MenuScreen: View {
             }
             .padding(8)
         }
-    }
-
-    private func stepButton(_ glyph: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(glyph).font(.system(size: 15, weight: .bold))
-        }
-        .buttonStyle(MenuButtonStyle())
     }
 
     private var endButtonLabel: String {

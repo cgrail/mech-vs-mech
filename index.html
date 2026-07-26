@@ -193,31 +193,12 @@
       <kbd>Q</kbd> / <kbd>RMB</kbd> quick rocket &nbsp; — machine guns are free, rockets &amp; turrets cost salvage<br>
       <kbd>Esc</kbd> release mouse — click canvas to re-engage
     </div>
-    <div id="levelRow">
-      <button id="levelPrev" aria-label="Previous map">◂</button>
-      <button id="levelBtn"><span class="lbl">SELECT LEVEL</span><span id="levelCur">…</span><span class="chev">▾</span></button>
-      <button id="levelNext" aria-label="Next map">▸</button>
-    </div>
-    <div id="ctrlRow">
-      <button data-ctrl="joystick">🕹️ JOYSTICK</button>
-      <button data-ctrl="gyro">📱 GYRO</button>
-    </div>
-    <div id="modeRow">
-      <button data-mode="assault" title="Waves march on your base — destroy theirs">⚔ BASE ASSAULT</button>
-      <button data-mode="ctf" title="Carry the enemy flag home three times">🚩 CAPTURE THE FLAG</button>
-    </div>
-    <div id="diffRow">
-      <button data-diff="easy">EASY</button>
-      <button data-diff="medium" class="selected">MEDIUM</button>
-      <button data-diff="hard">HARD</button>
-    </div>
-    <div id="optRow">
-      <button id="fogBtn" title="Sensors only: enemies vanish out of sight">🌫️ FOG OF WAR</button>
-    </div>
+    <!-- one column of same-sized option rows, built in core/flow.js (ui/menu.js) -->
+    <div class="menuList" id="menuOpts"></div>
     <button id="nextMapBtn" class="mpHidden">▸ NEXT MAP</button>
     <button id="startBtn">DEPLOY</button>
     <div class="sub">Salvage is earned from kills · destroyed enemy turrets pay extra</div>
-    <button id="menuBack">◂ BACK</button>
+    <button id="menuBack" class="ghost">◂ BACK</button>
   </div>
   <div class="screen hidden loading" id="levelScreen">
     <div class="screenTitle">SELECT LEVEL</div>

@@ -89,8 +89,9 @@ enum GameMode: String, CaseIterable {
     var label: String { self == .ctf ? "🚩 CAPTURE THE FLAG" : "⚔ BASE ASSAULT" }
 }
 
-enum ControlScheme: String {
+enum ControlScheme: String, CaseIterable {
     case joystick, gyro
+    var label: String { self == .gyro ? "📱 GYRO" : "🕹️ JOYSTICK" }
 }
 
 /* ============================================================

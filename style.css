@@ -30,17 +30,19 @@ canvas { display: block; touch-action: none; }
 }
 #overlay h2 { margin: 0; font-size: 15px; color: #9fb4ff; letter-spacing: 2px; font-weight: 600; }
 #overlay .panel {
-  background: rgba(20, 24, 40, .85); border: 1px solid #3a4468; border-radius: 10px;
-  padding: 18px 26px; max-width: 560px; line-height: 1.9; font-size: 14px; text-align: left;
+  background: rgba(20, 24, 40, .85); border: 1px solid #3a4468; border-radius: 2px;
+  padding: 18px 26px; max-width: min(560px, 92vw); line-height: 1.9; font-size: 14px; text-align: left;
 }
 #overlay kbd {
   background: #2a2a36; border: 1px solid #555; border-bottom-width: 2px;
   border-radius: 4px; padding: 1px 7px; font-size: 12px; margin: 0 2px;
 }
+/* every menu button is squared off, the way a 90s console option box was —
+   the rounded corners went with the pill rows this replaced */
 #overlay button {
   font: inherit; font-weight: 800; letter-spacing: 3px; font-size: 18px;
   color: #111; background: linear-gradient(#ffe27a, #f5a623);
-  border: 2px solid #fff2c0; border-radius: 8px; padding: 12px 44px; cursor: pointer;
+  border: 2px solid #fff2c0; border-radius: 2px; padding: 12px 44px; cursor: pointer;
   box-shadow: 0 0 22px rgba(245, 166, 35, .5);
 }
 #overlay button:hover { filter: brightness(1.1); }
@@ -232,13 +234,15 @@ body.touch #touchControls { display: flex; }
 #overlay .screen.hidden { display: none; }
 #overlay .screenTitle { font-size: 15px; font-weight: 700; letter-spacing: 3px; color: #9fb4ff; }
 
-/* mode select — the first screen: single player or multiplayer */
+/* mode select — the first screen: single player or multiplayer.
+   Same width and the same squared skin as the option column behind it. */
 #overlay #modeScreen button {
   display: flex; flex-direction: column; align-items: center; gap: 6px;
-  width: min(340px, 86vw); padding: 16px 20px;
+  width: min(430px, 92vw); padding: 16px 20px;
   font-size: 17px; letter-spacing: 3px;
   color: #dfe6ff; background: rgba(20, 24, 40, .85);
-  border: 1px solid #3a4468; border-radius: 8px; box-shadow: none;
+  border: 1px solid #3a4468; border-top-color: #56659c; border-left-color: #4a5788;
+  border-radius: 2px; box-shadow: inset 0 0 0 1px rgba(8, 10, 20, .5);
 }
 #overlay #modeScreen button:hover {
   border-color: #6f83c9; background: rgba(30, 36, 60, .9); filter: none;
@@ -250,45 +254,76 @@ body.touch #touchControls { display: flex; }
 #overlay.level { background: rgba(6, 6, 12, 0.1); }
 #levelScreen.loading { visibility: hidden; } /* nothing until the list is complete */
 
-/* ---------- difficulty picker, control scheme, level-select entry ---------- */
-#diffRow, #optRow, #modeRow { display: flex; gap: 10px; }
-#ctrlRow { display: none; gap: 10px; } /* touch devices only */
-body.touch #ctrlRow { display: flex; }
-#overlay #ctrlRow button, #overlay #diffRow button, #overlay #optRow button,
-#overlay #modeRow button,
-#overlay #levelBtn, #overlay #levelBack,
-#overlay #levelPrev, #overlay #levelNext,
-#overlay #menuBack, #overlay #mpBack, #overlay button.ghost {
+/* ---------- the option column ----------
+   One vertical list of rows that are all the same width and the same height
+   (ui/menu.js explains why). Every setting is LABEL · VALUE between ◂ ▸
+   steppers, so nothing ever needs a fourth control in a row and the menu
+   grows downward — into #overlay's scroll — instead of sideways. */
+.menuList {
+  --optH: 42px;
+  display: flex; flex-direction: column; gap: 6px;
+  width: min(430px, 92vw);
+}
+.opt { display: flex; gap: 6px; height: var(--optH); }
+#overlay .opt button {
+  font: inherit; font-size: 13px; font-weight: 700; letter-spacing: 2px;
+  color: #9fb4ff; background: rgba(20, 24, 40, .85);
+  /* squared off and bevelled, the way an option box looked before rounded
+     corners: a lit top-left edge over a sunken bottom-right one */
+  border: 1px solid #3a4468; border-top-color: #56659c; border-left-color: #4a5788;
+  border-radius: 2px; box-shadow: inset 0 0 0 1px rgba(8, 10, 20, .5);
+  padding: 0 14px; height: 100%;
+}
+#overlay .opt .step { flex: none; width: 40px; padding: 0; font-size: 15px; line-height: 1; }
+#overlay .opt .main {
+  flex: 1; min-width: 0;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.opt .main .k { flex: none; color: #8a92ad; font-size: 12px; }
+.opt .main .v {
+  color: #ffd23c; text-align: right;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+/* the map row opens a full list rather than only stepping — say so */
+.opt .main.open .v::after { content: " ▾"; color: #8a92ad; }
+#overlay .opt button:hover { border-color: #6f83c9; color: #cdd8ff; filter: none; }
+
+/* The highlight IS focus, so the keyboard, the mouse and touch can never
+   disagree about which row is live. `:focus`, not `:focus-visible` — opening a
+   screen moves the cursor programmatically, which :focus-visible would not
+   always show, and a menu cursor that sometimes isn't drawn is worse than one
+   that lingers after a click. */
+#overlay .screen button:focus, #overlay .screen select:focus {
+  outline: 2px solid #ffe9a8; outline-offset: 2px;
+}
+#overlay .opt .main:focus, #overlay .opt .step:focus {
+  outline: none;
+  color: #101427; background: linear-gradient(#ffe9a8, #f3c04a);
+  border-color: #fff2c0; box-shadow: 0 0 14px rgba(245, 200, 90, .5);
+}
+#overlay .opt .main:focus .k { color: #4a3c10; }
+#overlay .opt .main:focus .v { color: #17120a; }
+#overlay .opt .main:focus .k::before { content: "▸ "; color: #17120a; } /* the console caret */
+
+/* the other menu buttons: same squared skin, full column width */
+#overlay #levelBack, #overlay #menuBack, #overlay #mpBack, #overlay button.ghost {
   font-size: 13px; font-weight: 700; letter-spacing: 2px;
   color: #9fb4ff; background: rgba(20, 24, 40, .85);
-  border: 1px solid #3a4468; border-radius: 6px; padding: 8px 22px;
+  border: 1px solid #3a4468; border-radius: 2px; padding: 8px 22px;
   box-shadow: none;
 }
-#overlay #ctrlRow button:hover, #overlay #diffRow button:hover, #overlay #optRow button:hover,
-#overlay #modeRow button:hover,
-#overlay #levelBtn:hover, #overlay #levelBack:hover,
-#overlay #levelPrev:hover, #overlay #levelNext:hover,
-#overlay #menuBack:hover, #overlay #mpBack:hover, #overlay button.ghost:hover {
+#overlay #levelBack:hover, #overlay #menuBack:hover,
+#overlay #mpBack:hover, #overlay button.ghost:hover {
   border-color: #6f83c9; color: #cdd8ff; filter: none;
 }
-#overlay #ctrlRow button.selected, #overlay #diffRow button.selected, #overlay #optRow button.selected,
-#overlay #modeRow button.selected {
-  color: #101427; background: linear-gradient(#cdd8ff, #7d97e8);
-  border-color: #e6ecff; box-shadow: 0 0 14px rgba(120, 150, 255, .45);
+/* the action buttons under the column line up with it */
+#overlay #startBtn, #overlay #nextMapBtn, #overlay #menuBack, #overlay #mpStartBtn, #overlay #readyBtn {
+  width: min(430px, 92vw); padding-left: 0; padding-right: 0;
 }
-/* map row: ◂ ▸ step straight to the neighbouring map, the middle button
-   opens the full list */
-#levelRow { display: flex; align-items: stretch; gap: 8px; max-width: 92vw; }
-#overlay #levelPrev, #overlay #levelNext { padding: 8px 14px; font-size: 15px; line-height: 1; }
-#overlay #levelBtn { display: flex; align-items: center; gap: 12px; padding: 8px 16px; min-width: 0; }
-#levelBtn #levelCur { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#levelBtn .lbl { font-size: 11px; color: #8a92ad; }
-#levelBtn #levelCur { color: #ffd23c; }
-#levelBtn .chev { color: #8a92ad; }
 
 /* ---------- level list ---------- */
 #levelList {
-  display: flex; flex-direction: column; gap: 10px; width: min(440px, 86vw);
+  display: flex; flex-direction: column; gap: 6px; width: min(430px, 92vw);
   max-height: 58vh; overflow-y: auto; padding-right: 6px;
   touch-action: pan-y; -webkit-overflow-scrolling: touch;
   scrollbar-width: thin; scrollbar-color: #3a4468 transparent;
@@ -297,7 +332,7 @@ body.touch #ctrlRow { display: flex; }
 #overlay #levelList button {
   display: flex; align-items: center; gap: 14px; text-align: left;
   font-size: 14px; font-weight: 700; letter-spacing: 2px; color: #cdd8ff;
-  background: rgba(20, 24, 40, .5); border: 1px solid #3a4468; border-radius: 8px;
+  background: rgba(20, 24, 40, .5); border: 1px solid #3a4468; border-radius: 2px;
   padding: 12px 16px; box-shadow: none;
 }
 #overlay #levelBack { background: rgba(20, 24, 40, .5); }
@@ -354,7 +389,7 @@ body.touch #ctrlRow { display: flex; }
 }
 #edMsg { font-size: 12px; letter-spacing: 1px; color: #8fd0ff; min-height: 1.2em; text-align: center; }
 #edMsg.bad { color: #ff8a7a; }
-#edBtns { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+#edBtns { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; width: min(560px, 92vw); }
 #overlay #edPlay { font-size: 15px; letter-spacing: 3px; padding: 10px 28px; }
 #overlay #edBtns button.ghost:disabled { filter: grayscale(1) brightness(.6); cursor: default; }
 
@@ -371,7 +406,7 @@ body.touch #ctrlRow { display: flex; }
 #mpNameInput:focus { border-color: #6f83c9; }
 #overlay #mpJoinBtn { font-size: 13px; letter-spacing: 2px; padding: 10px 18px; }
 #mpList {
-  display: flex; flex-direction: column; gap: 10px; width: min(440px, 86vw);
+  display: flex; flex-direction: column; gap: 8px; width: min(430px, 92vw);
   max-height: 46vh; overflow-y: auto; padding-right: 6px;
   touch-action: pan-y; -webkit-overflow-scrolling: touch;
   scrollbar-width: thin; scrollbar-color: #3a4468 transparent;
@@ -397,7 +432,7 @@ body.touch #ctrlRow { display: flex; }
 #matchInfo .sub { font-size: 12px; letter-spacing: 1px; color: #8a92ad; margin-top: 6px; }
 
 /* room browser: create button + one row per room */
-#mpRooms { display: flex; flex-direction: column; gap: 10px; width: min(440px, 86vw); }
+#mpRooms { display: flex; flex-direction: column; gap: 8px; width: min(430px, 92vw); }
 #overlay #mpCreateBtn { font-size: 13px; letter-spacing: 2px; padding: 10px 18px; align-self: center; }
 #mpRoomList {
   display: flex; flex-direction: column; gap: 10px;
@@ -405,25 +440,33 @@ body.touch #ctrlRow { display: flex; }
   touch-action: pan-y; -webkit-overflow-scrolling: touch;
   scrollbar-width: thin; scrollbar-color: #3a4468 transparent;
 }
+/* the room's settings read as the same option column as the mission menu:
+   one row per thing, never four widgets fighting for one line on a phone */
 #mpRoomBar {
-  display: flex; align-items: center; justify-content: space-between; gap: 14px;
-  flex-wrap: wrap; /* map + mode + leave don't fit one line on a phone */
-  width: min(560px, 86vw);
+  display: flex; flex-direction: column; align-items: stretch; gap: 6px;
+  width: min(430px, 92vw);
 }
-#mpRoomName { font-size: 14px; font-weight: 800; letter-spacing: 2px; color: #ffd23c; }
+#mpRoomName { font-size: 14px; font-weight: 800; letter-spacing: 2px; color: #ffd23c; text-align: center; }
 /* what the room plays: pickers for its owner, labels for everyone else */
-#mpMapRow, #mpModeRow { display: flex; align-items: center; gap: 8px; min-width: 0; }
+#mpMapRow, #mpModeRow {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  min-width: 0; height: 42px; padding: 0 12px;
+  background: rgba(20, 24, 40, .85);
+  border: 1px solid #3a4468; border-top-color: #56659c; border-left-color: #4a5788;
+  border-radius: 2px; box-shadow: inset 0 0 0 1px rgba(8, 10, 20, .5);
+}
+#mpMapSelect { flex: 1; min-width: 0; }
 #mpMapRow .lbl, #mpModeRow .lbl { font-size: 11px; letter-spacing: 2px; color: #8a92ad; }
 #mpMapName, #mpModeName { font-size: 12px; font-weight: 700; letter-spacing: 1px; color: #cdd8ff; }
 #mpMapSelect, #mpModeSelect {
-  max-width: min(240px, 40vw); font: inherit; font-size: 12px; letter-spacing: 1px;
+  max-width: min(240px, 52vw); font: inherit; font-size: 12px; letter-spacing: 1px;
   padding: 6px 8px; border-radius: 6px; cursor: pointer;
   background: rgba(20, 24, 40, .9); border: 1px solid #3a4468; color: #cdd8ff;
 }
 #mpMapSelect:focus, #mpModeSelect:focus { outline: 1px solid #6f83c9; }
 
 /* team pick: two rosters side by side */
-#mpTeams { display: flex; gap: 14px; width: min(560px, 86vw); }
+#mpTeams { display: flex; gap: 10px; width: min(430px, 92vw); }
 .mpTeam {
   flex: 1; display: flex; flex-direction: column; gap: 6px;
   background: rgba(20, 24, 40, .5); border: 1px solid #2f4a7a; border-radius: 10px;
@@ -465,6 +508,13 @@ body.touch #ctrlRow { display: flex; }
   #overlay .screen { gap: 10px; }
   #overlay #startBtn, #overlay #readyBtn { font-size: 16px; padding: 10px 34px; }
   #overlay #modeScreen button { padding: 12px 16px; font-size: 15px; }
+  /* the column gets shorter rows, never narrower ones — width is what runs out */
+  .menuList { --optH: 36px; gap: 5px; }
+  #overlay .opt button { font-size: 12px; letter-spacing: 1px; padding: 0 10px; }
+  #overlay .opt .step { width: 34px; }
+  .opt .main .k { font-size: 11px; }
+  #mpMapRow, #mpModeRow { height: 36px; }
+  #mpTeams { flex-direction: column; }
 }
 
 /* the guest fights as the red team — swap the base-bar colors to match */

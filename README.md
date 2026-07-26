@@ -110,6 +110,9 @@ Destroy the red base in the north before the enemy destroys your blue base in th
 | **B / T** | Toggle build mode |
 | **Left mouse / Space** (in build mode) | Place turret |
 | **Right mouse** (in build mode) | Cancel build mode |
+| **↑ / ↓** (in the menus) | Move the menu cursor |
+| **← / →** (in the menus) | Change the highlighted setting |
+| **Enter / Space** (in the menus) | Select |
 
 Your guns have an arcade-style aim assist: shots snap to the nearest enemy in a narrow cone in front of you, so focus on positioning, not precision.
 

@@ -4,8 +4,10 @@ import { player, fireRocket } from '../entities/player.js';
 import { placeTurretDirect } from './build.js';
 
 /* ============================================================
-   Mobile / touch controls — two schemes, picked on the menu
-   (#ctrlRow, persisted as mechControls in localStorage):
+   Mobile / touch controls — two schemes, picked on the menu's
+   CONTROLS row (core/flow.js owns the row and the briefing
+   legend that goes with it; persisted as mechControls in
+   localStorage, read here as touch.scheme):
 
    joystick — left half: floating joystick, up/down moves,
               left/right strafes; right half: drag to turn,
@@ -16,8 +18,7 @@ import { placeTurretDirect } from './build.js';
 
    On-screen buttons fire rockets / place turrets in both.
 ============================================================ */
-export const isTouchDevice = matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
-touch.active = isTouchDevice;
+export const isTouchDevice = touch.active; // decided in core/state.js — the menu is built from it
 
 const JOY_R = 48;         // knob travel radius in px
 const DEAD = 0.25;        // normalized joystick deadzone
@@ -29,41 +30,6 @@ const STRAFE_DEADZONE = 9; // degrees of side tilt before the mech strafes
 
 if (isTouchDevice) {
   document.body.classList.add('touch');
-
-  /* ---------- scheme picker on the main menu ---------- */
-  const ctrlBtns = [...document.querySelectorAll('#ctrlRow button')];
-  function reflectScheme() {
-    for (const b of ctrlBtns) b.classList.toggle('selected', b.dataset.ctrl === touch.scheme);
-  }
-  for (const b of ctrlBtns) {
-    b.addEventListener('click', () => {
-      touch.scheme = b.dataset.ctrl;
-      localStorage.setItem('mechControls', touch.scheme);
-      reflectScheme();
-      updateBriefing();
-      b.blur();
-    });
-  }
-
-  /* touch-friendly briefing, matching the chosen scheme */
-  const TURRET_ICO = `<svg class="turretIco" viewBox="0 0 32 32" aria-hidden="true"><rect x="7" y="25" width="18" height="4" rx="1.5" fill="#55617a"/><path d="M10 25l2-5h8l2 5z" fill="#7c8aa8"/><circle cx="16" cy="17" r="5.5" fill="#a7b4cc"/><rect x="14.2" y="2.5" width="3.8" height="14" rx="1.6" fill="#93a2bd" transform="rotate(35 16 17)"/><path d="M24.1 2.1l1.1 2.4 2.4 1.1-2.4 1.1-1.1 2.4-1.1-2.4-2.4-1.1 2.4-1.1z" fill="#ffd23c"/></svg>`;
-  function updateBriefing() {
-    const controls = touch.scheme === 'gyro'
-      ? `<kbd>🧭 Turn phone</kbd> rotate mech &nbsp; <kbd>📱 Lean</kbd> forward / back to move<br>
-         <kbd>📱 Tilt sideways</kbd> strafe left / right &nbsp; <kbd>👆 Touch screen</kbd> machine guns<br>`
-      : `<kbd>👈 Left thumb</kbd> joystick — move &amp; strafe<br>
-         <kbd>👉 Right thumb</kbd> drag to turn · hold to fire machine guns<br>`;
-    const jump = `<kbd>⬆️</kbd> jump jets — clear a ledge onto high ground<br>`;
-    document.getElementById('briefing').innerHTML =
-      `<b style="color:#ffd23c">MISSION:</b> Destroy the <b style="color:#ff8a7a">red enemy base</b> at the far end of the
-      district before enemy assault mechs destroy <b style="color:#8ab4ff">yours</b>.<br>
-      Enemy waves march on your base — build turrets to hold them off.<br><br>` +
-      controls + jump +
-      `<kbd>🚀</kbd> rockets (<span style="color:#ffd23c">🛢️ 20</span>) &nbsp;
-      <kbd>${TURRET_ICO}</kbd> build turret in front of you (<span style="color:#ffd23c">🛢️ 100 salvage</span>)`;
-  }
-  reflectScheme();
-  updateBriefing();
 
   /* ---------- gyro scheme: compass + lean ---------- */
   let baseAlpha = 0, baseBeta = 0, baseGamma = 0, baseYaw = 0;

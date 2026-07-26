@@ -66,9 +66,12 @@ export const game = {
   fogOfWar: localStorage.getItem('mechFog') === '1',
 };
 
-/* touch/mobile input, written by systems/mobile.js, read by the player update */
+/* Touch/mobile input, written by systems/mobile.js, read by the player update.
+   `active` is decided here rather than in mobile.js because the menu is built
+   from it at module scope (core/flow.js builds the CONTROLS row only on a
+   touch device) and flow.js evaluates first — mobile.js is imported last. */
 export const touch = {
-  active: false,  // true on touch devices
+  active: matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window,
   // control scheme, picked on the menu: 'joystick' or 'gyro'
   scheme: localStorage.getItem('mechControls') === 'gyro' ? 'gyro' : 'joystick',
   move: 0,        // forward/back, −1..1 (sign is what matters)

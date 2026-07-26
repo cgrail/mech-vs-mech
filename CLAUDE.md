@@ -64,6 +64,16 @@ The handoff is one `sessionStorage` key, `mechBoot`, holding `{ screen, level, m
 - `?level=` is still honoured on the *first* load as a deep link: the inline script folds it into the boot object and then **strips `level` and `mp` out of the address bar** with `replaceState`. `?server=` is deliberately left alone — it is deployment config, not game state, and it has to survive every reload.
 - Because there is no address bar to correct any more, a *remembered* map that has gone missing (a deleted editor map) must not brick the game — `world.js` falls back to the first district for that case only, and the fatal-error overlay's RESET & RELOAD clears `mechLevel`. A map handed over by a reload or a deep link still fails loudly, since that is a real mismatch.
 
+### Menus are one column, and every row is the same size
+
+The overlay screens are a 90s console option list, and the layout rule is not cosmetic — it is what makes them survive a small screen. **A menu grows down, never across.** `#overlay` scrolls vertically, so height is free; width is not, and a row that overflows has nowhere to go. Concretely:
+
+- One vertical column, `min(430px, 92vw)` wide — the same width for the option rows, the level list, the mode-select buttons, DEPLOY and the lobby's room rows, so the whole overlay reads as one stack.
+- **Never more than three controls in a row.** A setting is one row: `LABEL · VALUE` between `◂ ▸` steppers, cycling through its values ([game/ui/menu.js](game/ui/menu.js) `addOption`, `OptionRow` in `UI/Styles.swift`). One button per value is what used to overflow — four difficulty pills abreast, and a mode row that grew every time a mode was added. Adding a setting adds a row, which costs nothing.
+- Every row is the same height (`--optH` / `OPT_H`) and squared off (2px radius). The small-screen media query shrinks the **height** and the type, never the width.
+
+Keyboard navigation falls out of the same structure: **selection is DOM focus**, so the keyboard, the mouse and touch can never disagree about what is highlighted. `↑ ↓` walk the visible screen's controls (steppers are skipped — they are what `← →` drive), `← →` press the focused row's own steppers, `Enter`/`Space` is the browser's own button activation. A `MutationObserver` on `.screen` class changes focuses the first row of whatever screen just opened, so every path in (flow.js, lobby.js, editor.js) gets it without calling in. The highlight styles `:focus`, deliberately not `:focus-visible`: that focus is moved programmatically, and a menu cursor that is sometimes not drawn is worse than one that lingers after a click.
+
 ### Boot order — the level loads before everything else
 
 [game/world/world.js](game/world/world.js) has a **top-level await** that fetches and parses the level file. Every other module imports it (directly or via `core/helpers.js`), so by the time any module body runs, `ARENA`, `LEVEL` (spawn points, marker positions), and the terrain grid are populated. Entities are then created **at module scope**: `entities.js` builds the bases and red turrets from `LEVEL` markers on import, `player.js` builds the player. There is no reset logic — restart is a reload (`bootReload` in `flow.js`), which hands the map and the screen to open on to the next load.
