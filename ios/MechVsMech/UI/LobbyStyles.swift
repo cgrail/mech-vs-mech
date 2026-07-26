@@ -104,25 +104,32 @@ struct LobbyChrome<Content: View, Footer: View>: View {
             VStack(spacing: 0) {
                 if let title { LobbyNavBar(title: title, onBack: onBack) }
                 ScrollViewReader { proxy in
-                    ScrollView(.vertical, showsIndicators: false) {
-                        HStack(spacing: 0) {
-                            Spacer(minLength: 0)
-                            content.frame(maxWidth: 520)
-                            Spacer(minLength: 0)
+                    GeometryReader { geo in
+                        ScrollView(.vertical, showsIndicators: false) {
+                            HStack(spacing: 0) {
+                                Spacer(minLength: 0)
+                                content.frame(maxWidth: 520)
+                                Spacer(minLength: 0)
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.top, 12)
+                            .padding(.bottom, 16)
+                            /* a short column sits in the middle of the screen, a long
+                               one scrolls from the top — minHeight rather than a fixed
+                               frame, or the overflow would be unreachable at both ends
+                               (style.css does the same with collapsing flex spacers) */
+                            .frame(minHeight: geo.size.height, alignment: .center)
                         }
-                        .padding(.horizontal, 12)
-                        .padding(.top, 12)
-                        .padding(.bottom, 16)
-                    }
-                    // next runloop, not this one: the rows have to exist first
-                    .onChange(of: scrollTo) { _, id in
-                        guard let id else { return }
-                        DispatchQueue.main.async { proxy.scrollTo(id, anchor: .center) }
-                    }
-                    // …and the level select is already pointed at a row when it opens
-                    .onAppear {
-                        guard let id = scrollTo else { return }
-                        DispatchQueue.main.async { proxy.scrollTo(id, anchor: .center) }
+                        // next runloop, not this one: the rows have to exist first
+                        .onChange(of: scrollTo) { _, id in
+                            guard let id else { return }
+                            DispatchQueue.main.async { proxy.scrollTo(id, anchor: .center) }
+                        }
+                        // …and the level select is already pointed at a row when it opens
+                        .onAppear {
+                            guard let id = scrollTo else { return }
+                            DispatchQueue.main.async { proxy.scrollTo(id, anchor: .center) }
+                        }
                     }
                 }
                 HStack(spacing: 0) {
