@@ -36,7 +36,11 @@ final class Flag {
     let stand: Entity      // its home stand, targetable in its own right
     let ghost: SCNNode     // translucent flag shown on the stand while it is away
     var home = P3()
-    weak var carrier: Entity?
+    /* strong on purpose: killEntity drops a dead mech out of `entities`, and a
+       weak carrier would vanish with it before the flag could be dropped where
+       it fell — the web build keeps the reference the same way. Every path out
+       of `carried` (drop/return/capture) clears it. */
+    var carrier: Entity?
     var state: FlagState = .home
     var dropT = 0.0
     var lostT = 0.0
