@@ -272,7 +272,9 @@ struct LevelScreen: View {
                     // open on the district that is already on screen
                     scrollTo: String(model.levelIndex)) {
             SectionCard(icon: "map.fill", title: "DISTRICTS", note: "\(model.levels.count) MAPS") {
-                VStack(spacing: 6) {
+                // lazy: sixty districts, each with a picture to draw — only the
+                // handful on screen is built, so the list opens instantly
+                LazyVStack(spacing: 6) {
                     ForEach(model.levels) { info in levelRow(info) }
                 }
             }

@@ -22,7 +22,9 @@ final class AudioEngine {
     private var cache: [String: AVAudioPCMBuffer] = [:]
     private let lock = NSLock()
     private var started = false
-    private var music: AVAudioPlayer?
+    private var music: AVAudioPlayer?      // all three guarded by `lock`
+    private var musicLoading = false
+    private var musicDucked = false
 
     /* the audioCtx() analog: lazily bring the engine up; failures are
        silent — the game must keep working without sound */
@@ -146,20 +148,39 @@ final class AudioEngine {
 
     // MARK: - Music ("Rocky Musicloop" by johndekale, CC0)
 
+    /* Called off the DEPLOY / ENTER LOBBY button. Everything in here is slow
+       enough to be seen — activating the audio session, starting the engine,
+       decoding a 400 KB loop — and on the main thread it stalls the run loop,
+       which freezes the menu and the map orbiting behind it just as the player
+       commits. So it runs on its own queue; the game never waits for sound. */
     func startMusic() {
-        guard music == nil,
-              let url = Bundle.main.url(forResource: "rocky-musicloop", withExtension: "mp3"),
-              let mp = try? AVAudioPlayer(contentsOf: url) else { return }
-        _ = ensureStarted()
-        mp.numberOfLoops = -1
-        mp.volume = 0.3
-        mp.play()
-        music = mp
+        lock.lock()
+        let already = music != nil || musicLoading
+        musicLoading = true
+        lock.unlock()
+        if already { return }
+        DispatchQueue.global(qos: .userInitiated).async { [self] in
+            guard let url = Bundle.main.url(forResource: "rocky-musicloop", withExtension: "mp3"),
+                  let mp = try? AVAudioPlayer(contentsOf: url) else {
+                lock.lock(); musicLoading = false; lock.unlock()
+                return
+            }
+            _ = ensureStarted()
+            mp.numberOfLoops = -1
+            mp.volume = musicDucked ? 0.08 : 0.3
+            mp.play()
+            lock.lock(); music = mp; musicLoading = false; lock.unlock()
+        }
     }
 
-    /* fade the music down, e.g. on the end screen */
+    /* fade the music down, e.g. on the end screen. May land while the loop is
+       still loading — hence the flag, which the load then starts out at. */
     func duckMusic() {
-        music?.setVolume(0.08, fadeDuration: 1.5)
+        lock.lock()
+        musicDucked = true
+        let mp = music
+        lock.unlock()
+        mp?.setVolume(0.08, fadeDuration: 1.5)
     }
 }
 

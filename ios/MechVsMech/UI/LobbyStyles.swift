@@ -527,14 +527,32 @@ struct FlatActionButton: View {
    Levels.swift).
 */
 enum MapThumbs {
+    private static let lock = NSLock()
     private static var cache: [Int: CGImage] = [:]
+    /* one serial queue: sixty districts arriving at once are rendered one after
+       another off the main thread rather than sixty threads fighting for it */
+    private static let queue = DispatchQueue(label: "mech.mapthumbs", qos: .userInitiated)
 
-    static func image(for text: String) -> CGImage? {
+    /* already rendered? (main thread, no work) */
+    static func cached(_ text: String) -> CGImage? {
         let key = text.hashValue
-        if let hit = cache[key] { return hit }
-        guard let img = render(text) else { return nil }
-        cache[key] = img
-        return img
+        lock.lock(); defer { lock.unlock() }
+        return cache[key]
+    }
+
+    /* Render off the main thread and hand the picture back on it. A district is
+       a few thousand CoreGraphics fills, and a list of them used to be built in
+       one go while the run loop — and with it the orbiting map behind the
+       menu — stood still. The screen comes up first now; the pictures land. */
+    static func image(for text: String, then: @escaping (CGImage?) -> Void) {
+        if let hit = cached(text) { then(hit); return }
+        queue.async {
+            let img = render(text)
+            if let img {
+                lock.lock(); cache[text.hashValue] = img; lock.unlock()
+            }
+            DispatchQueue.main.async { then(img) }
+        }
     }
 
     /* terrain tiers run blue-grey light-to-dark, walls read as pale
@@ -575,21 +593,37 @@ enum MapThumbs {
 
 struct MapThumb: View {
     let text: String?
+    /* nil until the render comes back — an empty frame for a moment beats a
+       menu that cannot animate until every district has been drawn */
+    @State private var img: CGImage?
+
     var body: some View {
         ZStack {
             Rectangle().fill(Color(hex: 0x04060d))
-            if let text, let img = MapThumbs.image(for: text) {
+            if let img {
                 Image(decorative: img, scale: 1)
                     .interpolation(.none)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .padding(2)
             } else {
-                // a map neither the server nor our bundle could hand over
+                // still drawing, or a map neither the server nor our bundle had
                 Image(systemName: "map")
                     .font(.system(size: 14, weight: .bold))
                     .foregroundColor(LobbySkin.slotText)
             }
+        }
+        .onAppear { load() }
+        .onChange(of: text) { load() }
+    }
+
+    private func load() {
+        guard let text else { img = nil; return }
+        if let hit = MapThumbs.cached(text) { img = hit; return }   // no flicker
+        img = nil
+        MapThumbs.image(for: text) { picture in
+            // the row may have been recycled onto another map while we drew
+            if text == self.text { img = picture }
         }
     }
 }

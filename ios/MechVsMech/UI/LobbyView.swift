@@ -304,7 +304,8 @@ struct LobbyView: View {
 
     private var mapListCard: some View {
         SectionCard(icon: "map.fill", title: "PICK A MAP", note: "\(lobby.maps.count) MAPS") {
-            VStack(spacing: 6) {
+            // lazy for the same reason as the level select: a picture per map
+            LazyVStack(spacing: 6) {
                 ForEach(Array(lobby.maps.enumerated()), id: \.element.id) { i, m in
                     mapListRow(index: i, map: m)
                 }
