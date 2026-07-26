@@ -376,6 +376,13 @@
             <div id="mpMapList" class="mapList mpHidden"></div>
           </div>
         </div>
+        <!-- the one setting in a room that is still the pilot's own: fog of war
+             hides things from whoever switched it on and from nobody else, so
+             it is not the room's to decide (ui/lobby.js plants the row) -->
+        <div class="card">
+          <div class="cardHead"><span class="ico">🌫</span>YOUR VIEW<span class="note">YOURS ALONE, NOT THE ROOM'S</span></div>
+          <div class="cardBody menuList" id="mpViewOpts"></div>
+        </div>
       </div>
       <div id="mpList" class="mpHidden"></div>
     </div>

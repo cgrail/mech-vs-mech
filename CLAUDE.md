@@ -207,7 +207,7 @@ One flat `entities` array (everything with hp); `kind` is `player | mech | turre
 
 `main.js` `animate()`: player → waves → per-entity AI → separation → projectiles → particles → HUD/minimap. AI is stateless-ish per frame with per-entity timers (`cool`, `retarget`, `detourT`…) stored on the entity object itself.
 
-`systems/vision.js` (`Engine/Vision.swift`) is the optional fog of war: with `game.fogOfWar` on it tightens the render fog and dims out enemy mechs/turrets the sensors don't have, marking each with `e.seen` (the minimap reads it). It is a **local view setting** — never sent over the wire, never affecting simulation — which is why it is allowed in PvP where difficulty scaling is not.
+`systems/vision.js` (`Engine/Vision.swift`) is the optional fog of war: with `game.fogOfWar` on it tightens the render fog and dims out enemy mechs/turrets the sensors don't have, marking each with `e.seen` (the minimap reads it). It is a **local view setting** — never sent over the wire, never affecting simulation — which is why it is allowed in PvP where difficulty scaling is not, and why it is not the room's to decide: the lobby room plants the mission menu's own row in a YOUR VIEW card (`addFogOption` in `flow.js`, called by `lobby.js` / `viewCard` in `LobbyView.swift`), and `mechFog` carries the answer across the reload that boots the match.
 
 Two rules stop it reading as a glitch rather than as fog, and both have to hold on either side of a new feature:
 

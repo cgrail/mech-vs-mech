@@ -234,6 +234,20 @@ struct LobbyView: View {
                 teamsCard(members)
                 modeCard
                 mapCard
+                viewCard
+            }
+        }
+    }
+
+    /* The room decides the map and the mode; fog of war is the pilot's own
+       call — it is a view restriction (Engine/Vision.swift), never sent over
+       the wire, so two players in one match can disagree about it without the
+       match disagreeing with itself. Same row as the mission menu's setup
+       card, and the same stored setting, so a match plays what is set here. */
+    private var viewCard: some View {
+        SectionCard(icon: "cloud.fog.fill", title: "YOUR VIEW", note: "YOURS ALONE, NOT THE ROOM'S") {
+            CardOptionRow(label: "🌫️ FOG OF WAR", value: model.fogOfWar ? "ON" : "OFF") { _ in
+                model.fogOfWar.toggle()
             }
         }
     }

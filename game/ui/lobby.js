@@ -3,7 +3,7 @@ import { game, MODES } from '../core/state.js';
 import { levelName, levels, levelMeta, levelParam } from '../world/world.js';
 import { switchMap } from '../core/mapswitch.js';
 import { BOOT, bootReload } from '../core/boot.js';
-import { startGame, backToLobby } from '../core/flow.js';
+import { startGame, backToLobby, addFogOption } from '../core/flow.js';
 import { audioCtx } from '../systems/audio.js';
 import { addMapRow, addPickCards, MODE_UI, modeUi } from './menu.js';
 import { mapThumb, thumbBox } from './thumb.js';
@@ -143,6 +143,13 @@ function showMapList(on) {
   const hit = mapBtns.find(({ param }) => param === shownMap);
   if (hit) { hit.b.focus(); hit.b.scrollIntoView({ block: 'center' }); }
 }
+
+/* The room decides the map and the mode; fog of war is the pilot's own call —
+   it is a view restriction, never sent over the wire, so two players in one
+   match can disagree about it without the match disagreeing with itself. The
+   row is the mission menu's, planted here (core/flow.js), and it writes the
+   same `mechFog` the match boot reload reads back. */
+addFogOption(document.getElementById('mpViewOpts'));
 
 /* the room's mode, on the same cards the mission menu uses. The server rejects
    setMode from anyone but the room's owner, so for everyone else the cards go
