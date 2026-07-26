@@ -64,6 +64,9 @@ canvas { display: block; touch-action: none; }
   background: linear-gradient(#28304a, #1a2033); color: #6b7590;
   border-color: #2b3757; box-shadow: none; filter: none;
 }
+/* the same green at row scale, for a go that lives inside a card rather than
+   in the footer (the empty room browser's CREATE THE FIRST ONE) */
+#overlay .goBtn.slim { font-size: 11px; letter-spacing: 2px; padding: 7px 14px; box-shadow: none; }
 #overlay .sub { color: #8a92ad; font-size: 11px; letter-spacing: 1px; }
 
 /* ---------- HUD ---------- */

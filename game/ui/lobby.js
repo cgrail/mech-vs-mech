@@ -437,14 +437,17 @@ function renderList(state) {
       roomListEl.appendChild(b);
     }
     if (!rooms.length) {
+      /* An empty browser has nothing to walk into, so the way out of it sits
+         right here as well as in the footer — same green, same action. */
       const row = document.createElement('div');
       row.className = 'mpRow';
       const n = document.createElement('span');
       n.className = 'name';
       n.textContent = 'NO ROOMS YET';
-      const st = document.createElement('span');
-      st.className = 'st';
+      const st = document.createElement('button');
+      st.className = 'goBtn slim';
       st.textContent = 'CREATE THE FIRST ONE';
+      st.addEventListener('click', () => createBtn.click());
       row.append(n, st);
       roomListEl.appendChild(row);
     }
