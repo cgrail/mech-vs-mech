@@ -2,23 +2,30 @@ import { renderer, lockPointer } from '../world/scene.js';
 import { game, touch } from '../core/state.js';
 import { placeTurretDirect } from './build.js';
 import { player, fireRocket, selectWeapon } from '../entities/player.js';
+import { keys, actionOf } from './bindings.js';
 
 /* ============================================================
    Input
+
+   The listeners live here, what a key *means* lives in
+   systems/bindings.js — every code below comes out of the
+   bindings table, so the settings screen can move any of them.
+   Held controls (move, fire, jump) are read by whoever needs
+   them through `held`; the one-shots are dispatched here.
 ============================================================ */
-export const keys = {};
 
 document.addEventListener('keydown', (e) => {
   if (e.target.tagName === 'INPUT') return; // typing in the lobby name field
   keys[e.code] = true;
-  if (e.code === 'Space' || e.code.startsWith('Arrow')) e.preventDefault();
+  const act = actionOf(e.code);
   if (game.state !== 'playing') return;
-  if (e.code === 'KeyQ') fireRocket();
-  else if (e.code === 'Digit1' || e.code === 'Numpad1') selectWeapon(1);
-  else if (e.code === 'Digit2' || e.code === 'Numpad2') selectWeapon(2);
-  else if (e.code === 'Digit3' || e.code === 'Numpad3' || e.code === 'KeyT' || e.code === 'KeyB') {
-    if (placeTurretDirect()) selectWeapon(1);
-  }
+  // a bound key belongs to the mech while the mech is being driven: no page
+  // scrolling on Space, no tabbing out of the game
+  if (act || e.code === 'Space' || e.code.startsWith('Arrow')) e.preventDefault();
+  if (act === 'rocket') fireRocket();
+  else if (act === 'weapon1') selectWeapon(1);
+  else if (act === 'weapon2') selectWeapon(2);
+  else if (act === 'turret') { if (placeTurretDirect()) selectWeapon(1); }
 });
 document.addEventListener('keyup', (e) => { keys[e.code] = false; });
 document.addEventListener('contextmenu', (e) => e.preventDefault());

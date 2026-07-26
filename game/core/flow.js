@@ -7,7 +7,9 @@ import { entities, redBase } from '../entities/entities.js';
 import { audioCtx, boomSfx, startMusic, duckMusic } from '../systems/audio.js';
 import { updateHud, showMessage } from '../ui/hud.js';
 import { applyFog } from '../systems/vision.js';
-import { addOption, addHero, addMapRow, addPickCards, MODE_UI, modeUi } from '../ui/menu.js';
+import { addOption, addAction, addHero, addMapRow, addPickCards, MODE_UI, modeUi } from '../ui/menu.js';
+import { showSettings } from '../ui/settings.js';
+import { keyName } from '../systems/bindings.js';
 import { mapThumb, thumbBox } from '../ui/thumb.js';
 import { MP, connected } from '../net/net.js';
 
@@ -35,10 +37,13 @@ const briefingEl = document.getElementById('briefing');
 const TURRET_ICO = `<svg class="turretIco" viewBox="0 0 32 32" aria-hidden="true"><rect x="7" y="25" width="18" height="4" rx="1.5" fill="#55617a"/><path d="M10 25l2-5h8l2 5z" fill="#7c8aa8"/><circle cx="16" cy="17" r="5.5" fill="#a7b4cc"/><rect x="14.2" y="2.5" width="3.8" height="14" rx="1.6" fill="#93a2bd" transform="rotate(35 16 17)"/><path d="M24.1 2.1l1.1 2.4 2.4 1.1-2.4 1.1-1.1 2.4-1.1-2.4-2.4-1.1 2.4-1.1z" fill="#ffd23c"/></svg>`;
 function controlLegend() {
   if (!touch.active) {
+    // the keys the pilot actually has: the legend is drawn from the bindings
+    // table, so it follows whatever the settings screen made of them
+    const k = (id) => `<kbd>${keyName(id)}</kbd>`;
     return `
-      <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move &nbsp; <kbd>Mouse</kbd> aim &nbsp; <kbd>Shift</kbd> boost &nbsp; <kbd>Ctrl</kbd> jump jets<br>
-      <kbd>LMB</kbd> / <kbd>Space</kbd> fire &nbsp; <kbd>1</kbd> machine guns &nbsp; <kbd>2</kbd> rockets (<span style="color:#ffd23c">🛢️ 20</span>) &nbsp; <kbd>3</kbd> / <kbd>T</kbd> build turret (<span style="color:#ffd23c">🛢️ 100</span>)<br>
-      <kbd>Q</kbd> / <kbd>RMB</kbd> quick rocket &nbsp; — machine guns are free, rockets &amp; turrets cost salvage<br>
+      ${k('forward')}${k('strafeL')}${k('back')}${k('strafeR')} move &nbsp; <kbd>Mouse</kbd> aim &nbsp; ${k('boost')} boost &nbsp; ${k('jump')} jump jets<br>
+      <kbd>LMB</kbd> / ${k('fire')} fire &nbsp; ${k('weapon1')} machine guns &nbsp; ${k('weapon2')} rockets (<span style="color:#ffd23c">🛢️ 20</span>) &nbsp; ${k('turret')} build turret (<span style="color:#ffd23c">🛢️ 100</span>)<br>
+      ${k('rocket')} / <kbd>RMB</kbd> quick rocket &nbsp; — machine guns are free, rockets &amp; turrets cost salvage<br>
       <kbd>↑</kbd><kbd>↓</kbd> menu &nbsp; <kbd>←</kbd><kbd>→</kbd> change &nbsp; <kbd>Enter</kbd> select &nbsp; <kbd>Esc</kbd> release mouse`;
   }
   const scheme = touch.scheme === 'gyro'
@@ -222,7 +227,20 @@ addOption(optList, {
   title: 'Sensors only: enemies vanish out of sight',
 });
 
+/* KEY BINDINGS: a row that opens a screen rather than holding a value, so the
+   controls can be changed from the mission menu as well as from the entry
+   screen. Keyboard only — a phone has nothing to rebind (ui/settings.js). */
+if (!touch.active) {
+  addAction(optList, {
+    label: '⌨ KEY BINDINGS',
+    value: 'CUSTOMISE ▸',
+    onClick: () => showSettings(true, menuScreen),
+  });
+}
+
 updateBriefing();
+// the legend names the bound keys, so it is redrawn when they move
+window.addEventListener('mech:keyschanged', updateBriefing);
 
 /* the level list is rebuilt, not just marked, because the map editor can add,
    rename and delete maps while the menu is up (ui/editor.js fires

@@ -3,6 +3,7 @@ import { entities, blueBase, redBase } from '../entities/entities.js';
 import { game, stats, COSTS, CAPTURES_TO_WIN } from '../core/state.js';
 import { player } from '../entities/player.js';
 import { flags, ctfOn } from '../systems/ctf.js';
+import { keyName } from '../systems/bindings.js';
 import { MP } from '../net/net.js';
 
 /* the "YOUR BASE" bar tracks whichever base is ours (guests play red) */
@@ -27,6 +28,16 @@ const ctfFoeScore = document.getElementById('ctfFoeScore');
 const ctfMyState = document.getElementById('ctfMyState');
 const ctfFoeState = document.getElementById('ctfFoeState');
 let msgTimer = null;
+
+/* the key badge on a weapon slot names the key that selects it, so it follows
+   whatever the settings screen made of the bindings (systems/bindings.js) */
+function reflectKeyHints() {
+  for (const [slot, id] of [[slotGun, 'weapon1'], [slotRocket, 'weapon2'], [slotTurret, 'turret']]) {
+    slot.querySelector('.key').textContent = keyName(id);
+  }
+}
+reflectKeyHints();
+window.addEventListener('mech:keyschanged', reflectKeyHints);
 
 /* capture the flag: my side left, theirs right, each with its flag's state */
 function flagState(el, f) {

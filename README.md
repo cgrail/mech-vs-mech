@@ -109,12 +109,13 @@ Destroy the red base in the north before the enemy destroys your blue base in th
 | **Right mouse / Q** | Fire rocket (slow, heavy damage) |
 | **Shift** | Sprint boost |
 | **Ctrl** | Jump jets — clears a ledge onto high ground |
-| **B / T** | Toggle build mode |
-| **Left mouse / Space** (in build mode) | Place turret |
-| **Right mouse** (in build mode) | Cancel build mode |
+| **1 / 2** | Machine guns · rockets |
+| **3 / T / B** | Build a turret in front of you |
 | **↑ / ↓** (in the menus) | Move the menu cursor |
 | **← / →** (in the menus) | Change the highlighted setting |
 | **Enter / Space** (in the menus) | Select |
+
+Every one of those keys is a default, not a fixture: **SETTINGS** on the entry screen (or **⌨ KEY BINDINGS** in the mission menu's setup card) lists each control on its own row — press the row, press the key you want, and it is yours from then on, remembered in the browser. Taking a key off another control unbinds it there rather than firing both, and RESET TO DEFAULTS puts the whole layout back. The briefing's control legend and the weapon badges on the HUD name your keys, not the factory ones. The mouse and **Esc** are not in the list — nothing else does their job. (Touch devices have no keyboard to rebind, so the screen isn't offered there; the joystick/gyro choice stays in the setup card.)
 
 Your guns have an arcade-style aim assist: shots snap to the nearest enemy in a narrow cone in front of you, so focus on positioning, not precision.
 

@@ -1,6 +1,6 @@
 # Todo
 
-[ ] add settings menu - allow changing keybindings like movement, jumping, shooting, building turrects etc
+[x] add settings menu - allow changing keybindings like movement, jumping, shooting, building turrects etc
 [ ] fog of war doesn't feel good. even with fading in, enemies show up and hide to unpredictable. maybe use light instead, so something like a flashlight mode
 [ ] if fog of war is enabled for single player mode, it is also enabled for multi player mode which is not configurable. make it also an option in multi player
 [ ] in capture the flag you should not win by destroying the enemy base. you can do it, but you won't win

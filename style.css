@@ -347,6 +347,7 @@ body.touch #touchControls { display: flex; }
 .pick .ico.red   { color: #ff6a55; background: rgba(255, 106, 85, .14); border-color: rgba(255, 106, 85, .5); }
 .pick .ico.gold  { color: #ffd23c; background: rgba(255, 210, 60, .14); border-color: rgba(255, 210, 60, .5); }
 .pick .ico.green { color: #7ce065; background: rgba(124, 224, 101, .14); border-color: rgba(124, 224, 101, .5); }
+.pick .ico.steel { color: #9fb4ff; background: rgba(159, 180, 255, .12); border-color: rgba(159, 180, 255, .45); }
 .pick .info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .pick .t { font-size: 13px; font-weight: 800; letter-spacing: 2px; color: #9fb4ff; }
 .pick.on .t { color: #cdd8ff; }

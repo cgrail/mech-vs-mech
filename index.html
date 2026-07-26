@@ -190,6 +190,8 @@
       <button id="spBtn" class="pick"><span class="ico blue">🎯</span><span class="info"><span class="t">SINGLE PLAYER</span><span class="d">HOLD THE DISTRICT AGAINST THE MACHINES</span></span><span class="go">›</span></button>
       <button id="mpBtn" class="pick"><span class="ico gold">👥</span><span class="info"><span class="t">MULTIPLAYER</span><span class="d">CHALLENGE OTHER PILOTS — UP TO 5 v 5</span></span><span class="go">›</span></button>
       <button id="edBtn" class="pick"><span class="ico green">🛠</span><span class="info"><span class="t">MAP EDITOR</span><span class="d">PAINT YOUR OWN DISTRICT</span></span><span class="go">›</span></button>
+      <!-- keyboard only: ui/settings.js removes this card on a touch device -->
+      <button id="setBtn" class="pick"><span class="ico steel">⌨</span><span class="info"><span class="t">SETTINGS</span><span class="d">REBIND THE KEYBOARD CONTROLS</span></span><span class="go">›</span></button>
     </div>
   </div>
   <!-- One column of titled cards: one decision per card, the same layout the
@@ -275,6 +277,36 @@
         <button id="edCopy" class="ghost">📋 COPY TEXT</button>
         <button id="edDelete" class="ghost">🗑 DELETE</button>
       </div>
+    </div>
+  </div>
+  <!-- Key bindings: one LABEL · VALUE row per keyboard control, filled in by
+       ui/settings.js from the bindings table (game/systems/bindings.js). The
+       mouse and Esc are not in the list because nothing else can do their job. -->
+  <div class="screen hidden" id="settingsScreen">
+    <div class="navBar">
+      <button id="setBack" class="navBack" aria-label="Back" title="Back">◂</button>
+      <span class="navTitle">SETTINGS</span>
+    </div>
+    <div class="screenScroll">
+      <div class="card">
+        <div class="cardHead"><span class="ico">⌨</span>KEY BINDINGS</div>
+        <div class="cardBody">
+          <div class="menuList" id="keyBinds"></div>
+          <div class="cardNote" id="keysNote">PRESS A ROW, THEN PRESS THE KEY YOU WANT</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="cardHead"><span class="ico">🖱</span>FIXED CONTROLS</div>
+        <div class="cardBody"><div class="panel">
+          <kbd>Mouse</kbd> aim &nbsp; <kbd>LMB</kbd> fire &nbsp; <kbd>RMB</kbd> quick rocket<br>
+          <kbd>Esc</kbd> release the mouse — click the district to re-engage<br>
+          <kbd>↑</kbd><kbd>↓</kbd> menu &nbsp; <kbd>←</kbd><kbd>→</kbd> change &nbsp; <kbd>Enter</kbd> select
+        </div></div>
+      </div>
+    </div>
+    <div class="screenFoot">
+      <button id="setReset" class="ghost">↺ RESET TO DEFAULTS</button>
+      <button id="setDone" class="goBtn">DONE</button>
     </div>
   </div>
   <!-- The lobby is the same card column: callsign, rooms, then the room's own

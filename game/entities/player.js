@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { scene } from '../world/scene.js';
 import { BLUE, RED, entities, makeBar, makeMech, registerEntity } from './entities.js';
 import { game, stats, touch, COSTS } from '../core/state.js';
-import { keys } from '../systems/input.js';
+import { held } from '../systems/bindings.js';
 import { groundHeightAt, FALL_DEATH_Y } from '../world/world.js';
 import { forwardOf, localToWorld, losBlocked, collideCircle, updateVertical, aimYOf, spawnPointFor, teamIndexOf, animateWalk, JUMP_V } from '../core/helpers.js';
 import { spawnProjectile, killEntity } from './projectiles.js';
@@ -117,7 +117,7 @@ export function fireRocket() {
    ledge simply stops blocking once the jump is above it. */
 function jump(dt) {
   player.jumpCool -= dt;
-  const wants = touch.jump || keys['ControlLeft'] || keys['ControlRight'];
+  const wants = touch.jump || held('jump');
   touch.jump = false; // consumed: a press while airborne is dropped, not queued
   if (!wants || !player.onGround || player.jumpCool > 0) return;
   player.vy = JUMP_V;
@@ -131,10 +131,10 @@ export function updatePlayer(dt) {
     if (game.elapsed >= player.respawnAt) respawnPlayer();
     return;
   }
-  const boost = keys['ShiftLeft'] || keys['ShiftRight'] ? 1.65 : 1;
+  const boost = held('boost') ? 1.65 : 1;
   const speed = 16 * boost;
-  if (keys['ArrowLeft']) player.yaw += 2.4 * dt;
-  if (keys['ArrowRight']) player.yaw -= 2.4 * dt;
+  if (held('turnL')) player.yaw += 2.4 * dt;
+  if (held('turnR')) player.yaw -= 2.4 * dt;
   if (touch.yaw !== null) {
     // ease toward the compass heading along the shortest arc
     const d = Math.atan2(Math.sin(touch.yaw - player.yaw), Math.cos(touch.yaw - player.yaw));
@@ -143,10 +143,10 @@ export function updatePlayer(dt) {
   const fwd = forwardOf(player.yaw).clone();
   const right = new THREE.Vector3(-fwd.z, 0, fwd.x);
   const move = new THREE.Vector3();
-  if (keys['KeyW'] || keys['ArrowUp'] || touch.move > 0) move.add(fwd);
-  if (keys['KeyS'] || keys['ArrowDown'] || touch.move < 0) move.sub(fwd);
-  if (keys['KeyA'] || touch.strafe < 0) move.sub(right);
-  if (keys['KeyD'] || touch.strafe > 0) move.add(right);
+  if (held('forward') || touch.move > 0) move.add(fwd);
+  if (held('back') || touch.move < 0) move.sub(fwd);
+  if (held('strafeL') || touch.strafe < 0) move.sub(right);
+  if (held('strafeR') || touch.strafe > 0) move.add(right);
 
   if (move.lengthSq() > 0) {
     move.normalize();
@@ -176,7 +176,7 @@ export function updatePlayer(dt) {
 
   player.gunCool -= dt;
   player.rocketCool -= dt;
-  if (game.mouseDown || keys['Space']) {
+  if (game.mouseDown || held('fire')) {
     if (game.weapon === 2) fireRocket(); else firePlayerGun();
   }
 

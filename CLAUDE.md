@@ -82,6 +82,14 @@ Keyboard navigation falls out of the same structure: **selection is DOM focus**,
 
 Two things follow for new cards. The map hero is an option row underneath (`.opt.tall` — `◂ main ▸`), purely so `← →` step the map like any other setting; if you build another card that holds a value, give it the same shape. And a card that is only there to be *read* — a mode the room's creator picked — is `disabled`, which is also what keeps `↑ ↓` from stopping on it.
 
+### Keys are data, not literals
+
+[game/systems/bindings.js](game/systems/bindings.js) is the one place a `KeyboardEvent.code` may be named. `ACTIONS` lists every keyboard control with its default keys; everything else asks for an *action* — `held(id)` for the ones you hold (move, strafe, turn, boost, jump, fire), `actionOf(code)` in [systems/input.js](game/systems/input.js) for the one-shots (weapons, quick rocket, turret) — so a new weapon key goes in that table, never in a comparison. The raw down-key map (`keys`) lives there too, because "which keys are down" and "what a key means" are the same question; input.js owns the listeners that write it, and is still the only module with them.
+
+The bindings screen ([game/ui/settings.js](game/ui/settings.js), SETTINGS on the entry screen and a row in the mission menu's setup card) edits that table into `localStorage.mechKeys`, saved merged over the defaults so an action added later still arrives bound. A key given to one action is taken off any other — two actions on one key is a control that fires twice. Listening for the new key is a **capture-phase** `keydown` that stops propagation, which is what keeps binding `←` from walking the menu cursor instead. Anything that *prints* a key reads the table and redraws on the `mech:keyschanged` event (the briefing legend in `flow.js`, the HUD's weapon badges in `hud.js`) — never a hard-coded `<kbd>W</kbd>`.
+
+Keyboard only, so **web only**: iOS is driven by `TouchControls.swift`, which has nothing to rebind, and the entry points are removed on a touch device (`touch.active`) rather than shown dead.
+
 ### Boot order — the level loads before everything else
 
 [game/world/world.js](game/world/world.js) has a **top-level await** that fetches and parses the level file. Every other module imports it (directly or via `core/helpers.js`), so by the time any module body runs, `ARENA`, `LEVEL` (spawn points, marker positions), and the terrain grid are populated. Entities are then created **at module scope**: `entities.js` builds the bases and red turrets from `LEVEL` markers on import, `player.js` builds the player. There is no reset logic — restart is a reload (`bootReload` in `flow.js`), which hands the map and the screen to open on to the next load.
