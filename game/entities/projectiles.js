@@ -8,7 +8,7 @@ import { spawnExplosion, spawnSpark, spawnFlash } from './particles.js';
 import { boomSfx } from '../systems/audio.js';
 import { player } from './player.js';
 import { covertShot, inSight } from '../systems/vision.js';
-import { updateHud } from '../ui/hud.js';
+import { updateHud, showMessage } from '../ui/hud.js';
 import { endGame } from '../core/flow.js';
 import { MP, sendGame } from '../net/net.js';
 
@@ -131,8 +131,19 @@ export function killEntity(e) {
   }
 
   if (e.kind === 'base') {
-    endGame(e.team === MP.enemyTeam);
     scene.remove(e.group);
+    /* Capture the flag is decided by flags, full stop. The base is still
+       there to be levelled and levelling it still costs the enemy something
+       — no more waves come out of a dead base (ai.js) — but it is not a way
+       to win a flag match, so the match runs on (systems/ctf.js). */
+    if (game.mode === 'ctf') {
+      const mine = e.team !== MP.enemyTeam;
+      showMessage(mine ? 'YOUR BASE IS RUBBLE — CAPTURES STILL DECIDE THIS'
+        : 'ENEMY BASE LEVELLED — NOW TAKE THEIR FLAG', mine ? '#ff5040' : '#7CFF6B');
+      updateHud();
+      return;
+    }
+    endGame(e.team === MP.enemyTeam);
     return;
   }
 

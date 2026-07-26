@@ -11,5 +11,5 @@
     rig AND the tone mapping retuned together on both builds (see CLAUDE.md,
     "The look is tone-mapped, not lit brighter") — worth it?
 [x] if fog of war is enabled for single player mode, it is also enabled for multi player mode which is not configurable. make it also an option in multi player
-[ ] in capture the flag you should not win by destroying the enemy base. you can do it, but you won't win
+[x] in capture the flag you should not win by destroying the enemy base. you can do it, but you won't win
 [ ] on mobile you can't run. if you pull the joystick hard forward, then the bot should run.

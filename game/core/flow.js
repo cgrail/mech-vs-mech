@@ -62,7 +62,7 @@ const MISSIONS = {
   ctf: `<b style="color:#ffd23c">MISSION:</b> Take the <b style="color:#ff8a7a">red flag</b> from the enemy courtyard and run it back to
       <b style="color:#8ab4ff">your own stand</b> — <b>${CAPTURES_TO_WIN} captures</b> win the district.<br>
       The enemy is after yours: a dropped flag goes home by itself after 25s, or instantly if you touch it.
-      Destroying the enemy base still wins outright.`,
+      Only captures win here — you can still level their base, and it stops their waves, but it won't take the district.`,
 };
 export function updateBriefing() {
   briefingEl.innerHTML = `${MISSIONS[game.mode]}<br><br>${controlLegend()}`;

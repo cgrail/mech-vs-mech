@@ -16,8 +16,10 @@ import { MP, sendGame, netRegistry } from '../net/net.js';
    fort exactly like shooting their base does. Touch the enemy
    flag to shoulder it, carry it to your own stand to score; drop
    it by dying, and touching your own dropped flag sends it home.
-   First team to CAPTURES_TO_WIN captures takes the district
-   (destroying a base still ends it too — the modes stack).
+   First team to CAPTURES_TO_WIN captures takes the district, and
+   that is the *only* way to take it: a base can still be levelled
+   (which in single player stops that side's waves — ai.js), but
+   flags decide a flag match (projectiles.js `killEntity`).
 
    Multiplayer: flags are shared and unowned, like the bases. Only
    the client that simulates a mech reports what that mech does

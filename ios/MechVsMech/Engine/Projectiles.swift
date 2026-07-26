@@ -167,8 +167,20 @@ extension GameEngine {
         }
 
         if e.kind == .base {
-            endGame(victory: e.team == enemyTeam)
             e.node.removeFromParentNode()
+            /* Capture the flag is decided by flags, full stop. The base is
+               still there to be levelled and levelling it still costs the
+               enemy something — no more waves come out of a dead base
+               (AI.swift) — but it is not a way to win a flag match, so the
+               match runs on (CTF.swift). */
+            if mode == .ctf {
+                let mine = e.team != enemyTeam
+                delegate?.engineMessage(mine ? "YOUR BASE IS RUBBLE — CAPTURES STILL DECIDE THIS"
+                                             : "ENEMY BASE LEVELLED — NOW TAKE THEIR FLAG",
+                                        colorHex: mine ? 0xff5040 : 0x7CFF6B)
+                return
+            }
+            endGame(victory: e.team == enemyTeam)
             return
         }
 

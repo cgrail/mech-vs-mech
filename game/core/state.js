@@ -36,8 +36,8 @@ export const DIFFICULTIES = {
    assault  the original: waves + destroy the enemy base
    ctf      capture the flag — both bases get a flag in their
             courtyard, carry the enemy's to your own stand.
-            Bases stay destructible, so a match can still be won
-            the old way (systems/ctf.js)
+            Bases stay destructible — levelling one stops that
+            side's waves — but only captures win (systems/ctf.js)
 ============================================================ */
 export const MODES = {
   assault: { label: '⚔ BASE ASSAULT' },

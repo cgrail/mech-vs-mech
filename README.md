@@ -148,7 +148,7 @@ Your choice is remembered between sessions.
 
 🚩 **CAPTURE THE FLAG** in the menu swaps the mission: both bases get a flag on a stand in their own courtyard. Walk onto the enemy flag to shoulder it, run it back to your own stand, and **three captures win the district**. Dying drops the flag where you fell — anyone on its team can touch it to send it home instantly, and it goes home by itself after 25 seconds if nobody does. The enemy plays the same game: half of every wave breaks off to raid your courtyard, and the rest hunt whoever is carrying their flag.
 
-Everything else stays: waves keep coming, turrets still cost salvage, and destroying the enemy base still wins outright — the flag is a second, faster way to take the district.
+Everything else stays: waves keep coming and turrets still cost salvage. What changes is what counts — **only captures win a flag match**. The bases are still there and still destructible, and levelling the enemy's is worth doing (nothing more spawns out of a dead base, so the waves stop), but it will not take the district for you. Flatten it and the match runs on until somebody has three flags.
 
 It works in multiplayer too: the pilot who created the room picks the mode, both teams get a flag in their courtyard, and a runner who makes it home scores for the whole team.
 

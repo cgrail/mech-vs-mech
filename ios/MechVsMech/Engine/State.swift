@@ -82,7 +82,8 @@ enum GamePhase {
    assault  the original: waves + destroy the enemy base
    ctf      capture the flag (Engine/CTF.swift) — both bases get a
             flag in their courtyard, carry the enemy's to your own
-            stand. Bases stay destructible, so the modes stack.
+            stand. Bases stay destructible — levelling one stops
+            that side's waves — but only captures win.
 ============================================================ */
 enum GameMode: String, CaseIterable {
     case assault, ctf
