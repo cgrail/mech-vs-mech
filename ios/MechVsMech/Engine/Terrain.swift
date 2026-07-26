@@ -110,6 +110,58 @@ private func makeGroundImage() -> UIImage {
     return UIGraphicsGetImageFromCurrentImageContext()!
 }
 
+/* Wall skin — the compounds and cover blocks are most of what a player looks
+   at from ground level, and a flat colour reads as untextured plastic.
+   Mirrors makeWallTexture() in game/world/world.js. */
+private let WALL_TEX_SCALE = 16.0
+
+private func makeWallImage() -> UIImage {
+    let size = 256
+    UIGraphicsBeginImageContextWithOptions(CGSize(width: size, height: size), true, 1)
+    defer { UIGraphicsEndImageContext() }
+    let g = UIGraphicsGetCurrentContext()!
+    g.setFillColor(UIColor(rgb: 0x47535f).cgColor)
+    g.fill(CGRect(x: 0, y: 0, width: size, height: size))
+    // stacked panels with a highlight on top and a shadow underneath
+    for y in stride(from: 0, to: size, by: 64) {
+        for x in stride(from: 0, to: size, by: 128) {
+            let l = 8 - Int(rand01() * 16)
+            g.setFillColor(UIColor(red: CGFloat(71 + l) / 255, green: CGFloat(83 + l) / 255,
+                                   blue: CGFloat(95 + l) / 255, alpha: 1).cgColor)
+            g.fill(CGRect(x: x + 2, y: y + 2, width: 124, height: 60))
+            g.setFillColor(UIColor(white: 1, alpha: 0.07).cgColor)
+            g.fill(CGRect(x: x + 2, y: y + 2, width: 124, height: 3))
+            g.setFillColor(UIColor(white: 0, alpha: 0.35).cgColor)
+            g.fill(CGRect(x: x + 2, y: y + 57, width: 124, height: 5))
+        }
+    }
+    g.setFillColor(UIColor(white: 0, alpha: 0.28).cgColor)   // seams
+    for y in stride(from: 0, to: size, by: 64) { g.fill(CGRect(x: 0, y: y, width: size, height: 2)) }
+    for x in stride(from: 0, to: size, by: 128) { g.fill(CGRect(x: x, y: 0, width: 2, height: size)) }
+    g.setFillColor(UIColor(red: 220 / 255, green: 232 / 255, blue: 245 / 255, alpha: 0.10).cgColor)
+    for y in stride(from: 12, to: size, by: 64) {           // rivets
+        for x in stride(from: 10, to: size, by: 24) {
+            g.fill(CGRect(x: x, y: y, width: 2, height: 2))
+        }
+    }
+    return UIGraphicsGetImageFromCurrentImageContext()!
+}
+
+/* the dusk gradient the district sits in; the fog takes its horizon colour
+   so distant terrain melts into it (scene.js does the same on the web) */
+func makeSkyImage() -> UIImage {
+    let w = 4, h = 256
+    UIGraphicsBeginImageContextWithOptions(CGSize(width: w, height: h), true, 1)
+    defer { UIGraphicsEndImageContext() }
+    let g = UIGraphicsGetCurrentContext()!
+    let colors = [UIColor(rgb: 0x070a14).cgColor, UIColor(rgb: 0x151d33).cgColor,
+                  UIColor(rgb: 0x2a3350).cgColor, UIColor(rgb: 0x3b3a4a).cgColor]
+    let grad = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(),
+                          colors: colors as CFArray, locations: [0, 0.55, 0.82, 1])!
+    g.drawLinearGradient(grad, start: .zero, end: CGPoint(x: 0, y: h), options: [])
+    return UIGraphicsGetImageFromCurrentImageContext()!
+}
+
 private func pbrMaterial(color: Int, roughness: Double, metalness: Double = 0) -> SCNMaterial {
     let m = SCNMaterial()
     m.lightingModel = .physicallyBased
@@ -206,7 +258,7 @@ func buildWorld(level: Level, parent: SCNNode) {
 
     let sideMat = pbrMaterial(color: 0x5b5648, roughness: 0.9)
     let rampMat = pbrMaterial(color: 0x6b6555, roughness: 0.9)
-    let wallMat = pbrMaterial(color: 0x4d5a66, roughness: 0.9)
+    let wallImage = makeWallImage()
 
     // Base plane at the lowest tier — one quad for the whole map plus a
     // framing margin. A map with void tiles can't have it: the holes have to
@@ -259,7 +311,19 @@ func buildWorld(level: Level, parent: SCNNode) {
         }
     }
     for rect in greedyRects(level: level, match: { if case .wall = $0 { return true } else { return false } }) {
-        addBox(rect, top: WALL_H, texturedTop: false, mat: wallMat)
+        // one material per wall rect: the panel texture is tiled in world
+        // units, so merged rects of any size read at the same scale
+        let w = Double(rect.w) * TILE, d = Double(rect.d) * TILE
+        let m = SCNMaterial()
+        m.lightingModel = .physicallyBased
+        m.diffuse.contents = wallImage
+        m.diffuse.wrapS = .repeat
+        m.diffuse.wrapT = .repeat
+        m.diffuse.contentsTransform = SCNMatrix4MakeScale(
+            Float(max(w, d) / WALL_TEX_SCALE), Float((WALL_H - (LOW - 2)) / WALL_TEX_SCALE), 1)
+        m.roughness.contents = 0.85
+        m.metalness.contents = 0.1
+        addBox(rect, top: WALL_H, texturedTop: false, mat: m)
     }
 
     // ramps: wedge boxes

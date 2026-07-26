@@ -154,6 +154,10 @@ Some districts are split by a **chasm** — tiles with no floor at all. Walk off
 
 🌫️ **FOG OF WAR** in the menu trades the god's-eye view for sensors: the district closes in around your mech, and enemy mechs and turrets only exist while they're within sensor range *and* in line of sight — break contact behind a wall and they vanish from the world and from your minimap. Bases and your own team are always visible. It's a view setting, not a rule: it only ever hides things from you, so it works in multiplayer too, and it's remembered between sessions.
 
+## Look
+
+The district is lit for a filmic pipeline, not a flat one: tone mapping (HDR and a light bloom on iOS) keeps the neon accents, muzzle flashes and base beacons glowing instead of clipping to white, the sky is a dusk gradient that the distance fog melts into, compound walls carry panel seams and rivets, rockets trail exhaust, and a soft vignette frames the middle of the screen. Everything is drawn in one pass — no post-processing stack — so it still runs on a phone.
+
 ## Project Structure
 
 ```

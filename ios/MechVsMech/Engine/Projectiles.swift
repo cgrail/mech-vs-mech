@@ -18,6 +18,7 @@ final class Projectile {
     let cosmetic: Bool       // replicated enemy shot: visuals only, no damage
     weak var src: Entity?
     var life: Double
+    var trail: Double        // rockets pulse an exhaust glow behind them (<0: not a rocket)
 
     init(node: SCNNode, pos: SIMD3<Double>, vel: SIMD3<Double>, team: Team,
          damage: Double, rocket: Bool, cosmetic: Bool, src: Entity?, life: Double) {
@@ -30,6 +31,7 @@ final class Projectile {
         self.cosmetic = cosmetic
         self.src = src
         self.life = life
+        self.trail = rocket ? 0 : -1
     }
 }
 
@@ -191,6 +193,13 @@ extension GameEngine {
             p.pos += p.vel * dt
             p.node.position = SCNVector3(p.pos.x, p.pos.y, p.pos.z)
             p.life -= dt
+            if p.trail >= 0 {
+                p.trail -= dt
+                if p.trail <= 0 {
+                    p.trail = 0.045
+                    spawnFlash(p.pos, scale: 1.8, color: 0xff8a3a)
+                }
+            }
             var dead = p.life <= 0
             var boom = false
 

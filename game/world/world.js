@@ -243,7 +243,44 @@ function makeGroundTexture() {
   return tex;
 }
 
+/* Wall skin: the compounds and cover blocks are most of what a player looks
+   at from ground level, and a flat colour reads as untextured plastic. Panel
+   seams, rivets and a lit top edge give them a scale to read against. */
+function makeWallTexture() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 256;
+  const g = c.getContext('2d');
+  g.fillStyle = '#47535f';
+  g.fillRect(0, 0, 256, 256);
+  // stacked panels with a highlight on top and a shadow underneath
+  for (let y = 0; y < 256; y += 64) {
+    for (let x = 0; x < 256; x += 128) {
+      const l = 8 - Math.floor(Math.random() * 16);
+      g.fillStyle = `rgb(${71 + l},${83 + l},${95 + l})`;
+      g.fillRect(x + 2, y + 2, 124, 60);
+      g.fillStyle = 'rgba(255,255,255,0.07)';
+      g.fillRect(x + 2, y + 2, 124, 3);
+      g.fillStyle = 'rgba(0,0,0,0.35)';
+      g.fillRect(x + 2, y + 57, 124, 5);
+    }
+  }
+  g.fillStyle = 'rgba(0,0,0,0.28)';   // seams
+  for (let y = 0; y < 256; y += 64) g.fillRect(0, y, 256, 2);
+  for (let x = 0; x < 256; x += 128) g.fillRect(x, 0, 2, 256);
+  for (let y = 12; y < 256; y += 64) {  // rivets
+    for (let x = 10; x < 256; x += 24) {
+      g.fillStyle = 'rgba(220,232,245,0.10)';
+      g.fillRect(x, y, 2, 2);
+    }
+  }
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
 const TEX_SCALE = 20; // world units per texture repeat
+const WALL_TEX_SCALE = 16;
 
 /* merge same-height tile runs into as few boxes as possible */
 function greedyRects(match) {
@@ -288,7 +325,8 @@ export function createWorld(parent) {
   const topMat = new THREE.MeshStandardMaterial({ map: groundTex, roughness: 0.95 });
   const sideMat = new THREE.MeshStandardMaterial({ color: 0x5b5648, roughness: 0.9 });
   const rampMat = new THREE.MeshStandardMaterial({ color: 0x6b6555, roughness: 0.9 });
-  const wallMat = new THREE.MeshStandardMaterial({ color: 0x4d5a66, roughness: 0.9 });
+  const wallTex = makeWallTexture();
+  const wallMat = new THREE.MeshStandardMaterial({ map: wallTex, roughness: 0.85, metalness: 0.1 });
 
   // Base plane at the lowest tier — one quad for the whole map, plus a margin
   // that frames it. A map with void tiles can't have it: the holes have to be
@@ -308,15 +346,28 @@ export function createWorld(parent) {
     group.add(ground);
   }
 
-  function addBox(rect, top, mat) {
+  /* BoxGeometry face order is +x, −x, +y, −y, +z, −z, four verts each — the
+     UV rewrites below index into that. `wallSkin` tiles the wall texture in
+     world units on every face, so merged rects of any size look the same. */
+  function addBox(rect, top, mat, wallSkin) {
     const w = rect.w * TILE, d = rect.d * TILE, bottom = LOW - 2;
     const mx = -ARENA.hw + rect.c * TILE + w / 2;
     const mz = -ARENA.hd + rect.r * TILE + d / 2;
     const geo = new THREE.BoxGeometry(w, top - bottom, d);
+    const pos = geo.attributes.position, uv = geo.attributes.uv;
     if (Array.isArray(mat)) {
       // world-aligned UVs on the +y face so the ground texture doesn't stretch
-      const pos = geo.attributes.position, uv = geo.attributes.uv;
       for (let i = 8; i < 12; i++) uv.setXY(i, (mx + pos.getX(i)) / TEX_SCALE, (mz + pos.getZ(i)) / TEX_SCALE);
+    } else if (wallSkin) {
+      const my = (top + bottom) / 2;
+      for (let i = 0; i < pos.count; i++) {
+        const face = Math.floor(i / 4);
+        const wx = mx + pos.getX(i), wy = my + pos.getY(i), wz = mz + pos.getZ(i);
+        // side faces run along the wall and up it; the top tiles like the ground
+        if (face === 0 || face === 1) uv.setXY(i, wz / WALL_TEX_SCALE, wy / WALL_TEX_SCALE);
+        else if (face === 4 || face === 5) uv.setXY(i, wx / WALL_TEX_SCALE, wy / WALL_TEX_SCALE);
+        else uv.setXY(i, wx / WALL_TEX_SCALE, wz / WALL_TEX_SCALE);
+      }
     }
     const m = new THREE.Mesh(geo, mat);
     m.position.set(mx, (top + bottom) / 2, mz);
@@ -332,7 +383,7 @@ export function createWorld(parent) {
   for (const h of heights) {
     for (const rect of greedyRects((c) => c.t === 'flat' && c.h === h)) addBox(rect, h, tierMats);
   }
-  for (const rect of greedyRects((c) => c.t === 'wall')) addBox(rect, WALL_H, wallMat);
+  for (const rect of greedyRects((c) => c.t === 'wall')) addBox(rect, WALL_H, wallMat, true);
 
   // ramps: boxes with the top face tilted into a wedge
   for (let r = 0; r < LEVEL.rows; r++) {

@@ -139,6 +139,12 @@ Walkers (player + mechs) carry `e.y`/`e.vy`; `helpers.updateVertical(e, dt)` glu
 
 **Jump jets** (player only — `jump()` in `player.js` / `Player.swift`, Ctrl or the ⬆ button) are the one thing that beats a ledge: `JUMP_V`/`GRAVITY` in `helpers.js` peak at 4.84 units, just over the 4-unit tier step and far under `WALL_H`. Nothing else was needed to make it work — `collideTerrain` already tests the *walker's* height, so a tier stops blocking once the jump is above it, and multiplayer already replicates `y`.
 
+### The look is tone-mapped, not lit brighter
+
+[world/scene.js](game/world/scene.js) ↔ `GameEngine.swift`'s camera setup are one decision made twice: the web renderer runs **ACES filmic tone mapping** at `toneMappingExposure` 1.25, SceneKit runs `wantsHDR` with a restrained bloom. Both roll the top end off, which is why the lights look over-bright on paper (hemisphere 1.15, sun 2.1) — **change the lights and the tone mapping together, or the district goes flat/blown out**. Anything that must stay hot despite tone mapping (tracers, sparks, muzzle flashes) sets `toneMapped: false`.
+
+Two more pieces of the look are shared: the sky is a vertical gradient drawn behind everything (a plain background texture, so it costs one quad and never moves when a map switch flies the scene), and `scene.fog` takes that gradient's **horizon colour** so distant terrain melts into it. Muzzle flashes come out of a fixed ring of 28 sprites/billboards (`spawnFlash`) — a dozen shooters at several shots a second must not allocate. The vignette is pure CSS (`#hud.active::before`) / a SwiftUI gradient, never a render pass.
+
 ### Vertical aiming is automatic
 
 Nothing manually elevates guns. All shooters (player aim assist in `player.js`, mechs and turrets in `ai.js`) aim at `helpers.aimYOf(target)` and check 3D LOS from their muzzle height. If you add a new weapon, use the same pair or it will shoot over/under targets on other levels.

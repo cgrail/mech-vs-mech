@@ -25,7 +25,10 @@
     → 🚩 CAPTURE THE FLAG in the mission menu and as a room mode in
       multiplayer; flag stands derive from the base markers, so every map
       works (game/systems/ctf.js ↔ ios Engine/CTF.swift)
-[ ] nicer graphics
+[x] nicer graphics
+    → filmic tone mapping (HDR + bloom on iOS), a gradient sky the fog melts
+      into, panelled wall texture, pooled muzzle flashes + rocket exhaust,
+      hotter tracers and a cockpit vignette
 [x] option to fall off cliff or off level.
     → "v" chasm tiles: no floor at all, so you fall out of the world (and off
       the map edge where a rift meets the border). level59 THE RIFT is built

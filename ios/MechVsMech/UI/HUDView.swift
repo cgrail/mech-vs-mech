@@ -20,6 +20,15 @@ struct HUDView: View {
 
     var body: some View {
         ZStack {
+            // cockpit vignette: darkens the edges so the mech and the HUD sit
+            // in the bright middle (the web build does this in style.css)
+            RadialGradient(
+                colors: [.clear, .clear, Color(hex: 0x04050a).opacity(0.42), Color(hex: 0x04050a).opacity(0.68)],
+                center: .center, startRadius: 60, endRadius: 460)
+                .scaleEffect(x: 1.5, y: 1.0)
+                .ignoresSafeArea()
+                .allowsHitTesting(false)
+
             // crosshair
             Circle()
                 .fill(Color.white.opacity(0.8))

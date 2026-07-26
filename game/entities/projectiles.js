@@ -4,7 +4,7 @@ import { groundHeightAt } from '../world/world.js';
 import { entities } from './entities.js';
 import { game, stats, difficulty } from '../core/state.js';
 import { distXZ } from '../core/helpers.js';
-import { spawnExplosion, spawnSpark } from './particles.js';
+import { spawnExplosion, spawnSpark, spawnFlash } from './particles.js';
 import { boomSfx } from '../systems/audio.js';
 import { player } from './player.js';
 import { updateHud } from '../ui/hud.js';
@@ -22,11 +22,12 @@ import { MP, sendGame } from '../net/net.js';
 ============================================================ */
 export const projectiles = [];
 
-const tracerGeoBlue = new THREE.BoxGeometry(0.18, 0.18, 1.6);
-const tracerMatBlue = new THREE.MeshBasicMaterial({ color: 0xffe27a });
-const tracerMatRed = new THREE.MeshBasicMaterial({ color: 0xff5a3a });
+// toneMapped: false so tone mapping (scene.js) can't dull a tracer into the terrain
+const tracerGeoBlue = new THREE.BoxGeometry(0.18, 0.18, 2.2);
+const tracerMatBlue = new THREE.MeshBasicMaterial({ color: 0xffe27a, toneMapped: false });
+const tracerMatRed = new THREE.MeshBasicMaterial({ color: 0xff5a3a, toneMapped: false });
 const rocketGeo = new THREE.CylinderGeometry(0.28, 0.28, 1.4, 6);
-const rocketMat = new THREE.MeshBasicMaterial({ color: 0xff8a2a });
+const rocketMat = new THREE.MeshBasicMaterial({ color: 0xff8a2a, toneMapped: false });
 const _look = new THREE.Vector3();
 
 export function spawnProjectile(opts) {
@@ -49,6 +50,7 @@ export function spawnProjectile(opts) {
     team: opts.team, damage: opts.damage, rocket: !!opts.rocket,
     src: opts.src || null, life: opts.life || 3,
     cosmetic: !!opts.cosmetic, // replicated enemy shot: visuals only
+    trail: opts.rocket ? 0 : -1, // rockets pulse an exhaust glow behind them
   });
   if (MP.active && !opts.cosmetic) {
     sendGame({
@@ -157,6 +159,10 @@ export function updateProjectiles(dt) {
     const p = projectiles[i];
     p.pos.addScaledVector(p.vel, dt);
     p.life -= dt;
+    if (p.trail >= 0) {
+      p.trail -= dt;
+      if (p.trail <= 0) { p.trail = 0.045; spawnFlash(p.pos, 1.8, 0xff8a3a); }
+    }
     let dead = p.life <= 0;
     let boom = false;
 

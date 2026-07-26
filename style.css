@@ -49,6 +49,13 @@ canvas { display: block; touch-action: none; }
 /* ---------- HUD ---------- */
 #hud { position: absolute; inset: 0; pointer-events: none; z-index: 10; display: none; }
 #hud.active { display: block; }
+/* cockpit vignette: darkens the corners so the mech and the HUD sit in the
+   bright middle. Free — it never touches the renderer. */
+#hud.active::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: -1;
+  background: radial-gradient(ellipse 78% 68% at 50% 52%,
+    rgba(0,0,0,0) 55%, rgba(4,5,10,0.42) 88%, rgba(4,5,10,0.68) 100%);
+}
 
 #crosshair {
   position: absolute; left: 50%; top: 46%; width: 26px; height: 26px;

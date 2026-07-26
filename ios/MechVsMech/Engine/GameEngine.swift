@@ -89,6 +89,10 @@ final class GameEngine {
     var entities: [Entity] = []
     var projectiles: [Projectile] = []
     var particles: [Particle] = []
+    /// pooled muzzle-flash billboards (Particles.swift) — fixed size, so
+    /// firing never allocates
+    var flashes: [MuzzleFlash] = []
+    var flashNext = 0
     var stats = Stats()
     let touch = TouchInput()
     let audio = AudioEngine()
@@ -128,8 +132,9 @@ final class GameEngine {
         self.net = net
 
         // renderer/scene/lights — ports world/scene.js
-        scene.background.contents = UIColor(rgb: 0x0b0d16)
-        scene.fogColor = UIColor(rgb: 0x0b0d16)
+        // dusk gradient behind the district; the fog takes its horizon colour
+        scene.background.contents = makeSkyImage()
+        scene.fogColor = UIColor(rgb: 0x2a3350)
         scene.fogDensityExponent = 1
         // menu shows the whole map — fog pulled back until DEPLOY (flow.js)
         scene.fogStartDistance = 300
@@ -162,6 +167,14 @@ final class GameEngine {
         camera.fieldOfView = 55
         camera.zNear = 0.1
         camera.zFar = 600
+        // HDR + a restrained bloom: the native stand-in for the web build's
+        // ACES tone mapping, and what makes muzzle flashes and the base
+        // beacons glow instead of clipping to white
+        camera.wantsHDR = true
+        camera.bloomIntensity = 0.55
+        camera.bloomThreshold = 0.85
+        camera.bloomBlurRadius = 6
+        camera.wantsExposureAdaptation = false
         cameraNode.camera = camera
         cameraNode.position = SCNVector3(0, 40, 140)
         scene.rootNode.addChildNode(cameraNode)
@@ -177,6 +190,7 @@ final class GameEngine {
                 makeTurretEntity(team: .red, x: t.x, z: t.z)
             }
         }
+        setupFlashes() // pooled muzzle-flash billboards
         setupFlags()   // capture the flag: a stand in each base's courtyard
         setupPlayer()
         if isMP { initMatch() }   // spawn replicas for every other player
@@ -299,6 +313,7 @@ final class GameEngine {
         remoteUpdate(dt: dt)   // MP: state send + replica easing (no-op in SP)
 
         updateParticles(dt: dt)
+        updateFlashes(dt: dt)
         if phase != .menu {
             updateCamera(dt: dt)
         } else {

@@ -6,6 +6,7 @@ import { keys } from '../systems/input.js';
 import { groundHeightAt, FALL_DEATH_Y } from '../world/world.js';
 import { forwardOf, localToWorld, losBlocked, collideCircle, updateVertical, aimYOf, spawnPointFor, teamIndexOf, JUMP_V } from '../core/helpers.js';
 import { spawnProjectile, killEntity } from './projectiles.js';
+import { spawnFlash } from './particles.js';
 import { beep, laserSfx } from '../systems/audio.js';
 import { updateHud, showMessage } from '../ui/hud.js';
 import { MP, sendGame } from '../net/net.js';
@@ -76,6 +77,7 @@ export function firePlayerGun() {
     dir.copy(forwardOf(player.yaw));
   }
   spawnProjectile({ pos: muzzle, dir, speed: 130, damage: 9, team: player.team, life: 1.2, src: player });
+  spawnFlash(muzzle, 2.6);
   laserSfx(0.06, 1800);
   updateHud();
 }
@@ -102,6 +104,7 @@ export function fireRocket() {
     dir.copy(forwardOf(player.yaw));
   }
   spawnProjectile({ pos: muzzle, dir, speed: 60, damage: 60, team: player.team, rocket: true, life: 3, src: player });
+  spawnFlash(muzzle, 5, 0xffb060);
   beep(160, 40, 0.35, 'sawtooth', 0.12);
   updateHud();
 }

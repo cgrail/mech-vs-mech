@@ -72,6 +72,7 @@ extension GameEngine {
         let muzzle = localToWorld(player, 2.2 * gunSide, 4.5, 2.7)
         let dir = aimDir(from: muzzle, yaw: player.yaw)
         spawnProjectile(pos: muzzle, dir: dir, speed: 130, damage: 9, team: player.team, life: 1.2, src: player)
+        spawnFlash(muzzle, scale: 2.6)
         audio.laser(vol: 0.06, startF: 1800)
     }
 
@@ -87,6 +88,7 @@ extension GameEngine {
         let muzzle = localToWorld(player, 0, 4.8, 2.2)
         let dir = aimDir(from: muzzle, yaw: player.yaw)
         spawnProjectile(pos: muzzle, dir: dir, speed: 60, damage: 60, team: player.team, rocket: true, life: 3, src: player)
+        spawnFlash(muzzle, scale: 5, color: 0xffb060)
         audio.beep(f: 160, f2: 40, dur: 0.35, type: .sawtooth, vol: 0.12)
     }
 
