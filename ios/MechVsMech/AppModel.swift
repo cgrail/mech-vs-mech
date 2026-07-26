@@ -292,6 +292,21 @@ final class AppModel: ObservableObject {
         return name
     }
 
+    /* the bundled text of a level param, for the lobby's map thumbnails —
+       resolved by name the way the server's /level route does, falling back
+       to the bundle position the offline resolver uses. Never used to build a
+       match: a thumbnail drawn off a stale bundle is only a wrong picture. */
+    func bundledLevelText(param: String) -> String? {
+        if let byName = levels.first(where: { $0.name == levelNameFor(param: param) }) {
+            return byName.text
+        }
+        if !param.isEmpty, param.allSatisfy(\.isNumber), let n = Int(param),
+           levels.indices.contains(n - 1) {
+            return levels[n - 1].text
+        }
+        return nil
+    }
+
     /* last resort only: the same param resolved against our bundled copy of
        levels.txt, which may not be the map the rest of the match is on */
     private func resolveLevel(_ param: String) -> LevelInfo {

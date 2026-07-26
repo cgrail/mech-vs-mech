@@ -359,6 +359,15 @@ final class LobbyModel: ObservableObject {
         maps.first { $0.param == param }?.title ?? param.uppercased()
     }
 
+    /* the terrain a map thumbnail is drawn from (UI/LobbyStyles.swift): the
+       server's own copy if the preview already fetched it, otherwise our
+       bundled snapshot. Cosmetic either way — a stale bundle draws a slightly
+       wrong picture, never a wrong match, since the match itself always
+       fetches its map from the server. */
+    func levelText(param: String) -> String? {
+        levelCache[param]?.text ?? app?.bundledLevelText(param: param)
+    }
+
     // MARK: - Match boot
 
     private var isDead: Bool { phase == .dead }

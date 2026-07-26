@@ -3,200 +3,43 @@ import SwiftUI
 /* ============================================================
    Multiplayer lobby + match-boot UI — ports the lobby/match
    screens of index.html, driven by LobbyModel (ports lobby.js).
-   Styling follows style.css (UI/Styles.swift); OverlayFrame
-   scales the screen down rather than clipping it on small phones.
+
+   Laid out as one column of titled cards over the orbiting map
+   preview — map, mode, team, one decision per card — with the
+   title bar and the one green action button pinned so they are
+   never scrolled away. The pieces live in UI/LobbyStyles.swift,
+   which also explains why this screen isn't the menus' option
+   column. Palette and type still come from style.css by way of
+   UI/Styles.swift, so it reads as the same game as the browser.
 ============================================================ */
 struct LobbyView: View {
     @EnvironmentObject var model: AppModel
     @ObservedObject var lobby: LobbyModel
-
-    var body: some View {
-        OverlayFrame {
-            LobbyBody(lobby: lobby)
-        }
-    }
-}
-
-private struct LobbyBody: View {
-    @EnvironmentObject var model: AppModel
-    @ObservedObject var lobby: LobbyModel
-    @Environment(\.overlaySize) private var size
-    /* the room owner's map list, shown in place of the team columns */
+    /* the room owner's full map list, opened from the map card */
     @State private var pickingMap = false
 
-    /* the lobby's columns stay legible down to an SE: they shrink with the
-       screen and OverlayFrame scales whatever is still too big */
-    private var colWidth: CGFloat { min(560, max(320, size.width - 40)) }
+    private var inMatch: Bool { lobby.phase == .matchBoot || lobby.phase == .dead }
+    /* a match boot has no way back but through — the lobby does */
+    private var back: (() -> Void)? {
+        if inMatch { return nil }
+        return { model.leaveLobby() }
+    }
 
     var body: some View {
-        VStack(spacing: 14) {
-            ScreenTitle(text: lobby.phase == .matchBoot || lobby.phase == .dead
-                        ? "MULTIPLAYER MATCH" : "MULTIPLAYER LOBBY")
-
-            if let banner = lobby.banner {
-                Text(banner)
-                    .font(.system(size: 13, weight: .semibold)).kerning(1)
-                    .foregroundColor(Color(hex: 0xffe8a0))
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 18).padding(.vertical, 12)
-                    .background(RoundedRectangle(cornerRadius: 8).fill(Color(hex: 0x282008).opacity(0.9)))
-                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(Skin.gold, lineWidth: 1))
-            }
-
-            switch lobby.phase {
-            case .connecting:
-                statusText
-            case .callsign:
-                callsign
-            case .rooms:
-                statusText
-                roomBrowser
-            case .inRoom:
-                room
-            case .matchBoot, .dead:
-                matchBoot
-            }
-
-            if lobby.phase != .matchBoot && lobby.phase != .dead {
-                GhostButton(label: "◂ BACK") { model.leaveLobby() }
-            }
-        }
-        .padding(8)
-        .frame(maxWidth: 620)
-    }
-
-    private var statusText: some View {
-        Text(lobby.status)
-            .font(.system(size: 12, weight: .semibold)).kerning(2)
-            .foregroundColor(lobby.statusIsError ? Color(hex: 0xff8a7a) : Skin.dimText)
-            .multilineTextAlignment(.center)
-    }
-
-    // MARK: - Callsign
-
-    private var callsign: some View {
-        VStack(spacing: 12) {
-            statusText
-            HStack(spacing: 10) {
-                TextField("YOUR CALLSIGN", text: $lobby.name)
-                    .textInputAutocapitalization(.characters)
-                    .autocorrectionDisabled()
-                    .font(.system(size: 14, weight: .bold))
-                    .kerning(2)
-                    .padding(.horizontal, 14).padding(.vertical, 10)
-                    .background(RoundedRectangle(cornerRadius: 6).fill(Skin.panel))
-                    .overlay(RoundedRectangle(cornerRadius: 6).stroke(Skin.border, lineWidth: 1))
-                    .foregroundColor(Skin.lightText)
-                    .frame(width: 200)
-                    .onSubmit { lobby.join() }
-                Button {
-                    lobby.join()
-                } label: {
-                    Text("ENTER LOBBY").font(.system(size: 13, weight: .heavy)).kerning(2)
+        LobbyChrome(title: inMatch ? "MULTIPLAYER MATCH" : "MULTIPLAYER LOBBY", onBack: back,
+                    scrollTo: pickingMap ? lobby.roomMapParam : nil) {
+            VStack(spacing: 12) {
+                if let banner = lobby.banner { bannerCard(banner) }
+                switch lobby.phase {
+                case .connecting: connectingCard
+                case .callsign: callsignCard
+                case .rooms: roomsCard
+                case .inRoom: roomCards
+                case .matchBoot, .dead: bootCard
                 }
-                .buttonStyle(MenuButtonStyle(prominent: true))
             }
-        }
-    }
-
-    // MARK: - Room browser
-
-    private var roomBrowser: some View {
-        VStack(spacing: 10) {
-            Button {
-                lobby.createRoom()
-            } label: {
-                Text("+ CREATE ROOM").font(.system(size: 13, weight: .heavy)).kerning(2)
-            }
-            .buttonStyle(MenuButtonStyle(prominent: true))
-
-            ScrollView {
-                VStack(spacing: 10) {
-                    if lobby.rooms.isEmpty {
-                        row(name: "NO ROOMS YET", detail: "CREATE THE FIRST ONE")
-                    } else {
-                        ForEach(lobby.rooms) { r in
-                            HStack(spacing: 14) {
-                                VStack(alignment: .leading, spacing: 3) {
-                                    Text(r.name)
-                                        .font(.system(size: 14, weight: .bold)).kerning(2)
-                                        .foregroundColor(Skin.lightText)
-                                    Text(lobby.mapTitle(r.level)
-                                        + (r.mode == .ctf ? " · 🚩 CTF" : ""))
-                                        .font(.system(size: 11)).kerning(1)
-                                        .foregroundColor(Skin.dimText)
-                                }
-                                Spacer(minLength: 4)
-                                Text("\(r.count) PILOT\(r.count == 1 ? "" : "S")")
-                                    .font(.system(size: 11)).kerning(1)
-                                    .foregroundColor(Skin.dimText)
-                                Button {
-                                    lobby.joinRoom(r.id)
-                                } label: {
-                                    Text("JOIN").font(.system(size: 12, weight: .bold)).kerning(2)
-                                }
-                                .buttonStyle(MenuButtonStyle())
-                            }
-                            .padding(.horizontal, 16).padding(.vertical, 10)
-                            .listRowBox()
-                        }
-                    }
-                }
-                .padding(.horizontal, 4)
-            }
-            .frame(maxWidth: 440, maxHeight: max(120, size.height * 0.42))
-        }
-    }
-
-    private func row(name: String, detail: String) -> some View {
-        HStack {
-            Text(name).font(.system(size: 14, weight: .bold)).kerning(2)
-                .foregroundColor(Skin.lightText)
-            Spacer()
-            Text(detail).font(.system(size: 11)).kerning(1).foregroundColor(Skin.dimText)
-        }
-        .padding(.horizontal, 16).padding(.vertical, 10)
-        .listRowBox()
-    }
-
-    // MARK: - Inside a room
-
-    private var room: some View {
-        let members = lobby.players.filter { $0.room == lobby.myRoom }
-        return VStack(spacing: 12) {
-            HStack {
-                Text(lobby.myRoomInfo?.name ?? "ROOM")
-                    .font(.system(size: 14, weight: .heavy)).kerning(2)
-                    .foregroundColor(Skin.gold)
-                Spacer()
-                GhostButton(label: "◂ LEAVE ROOM") { lobby.leaveRoom() }
-            }
-            .frame(width: colWidth)
-
-            mapRow
-            modeRow
-
-            if pickingMap {
-                mapList
-            } else {
-                HStack(alignment: .top, spacing: 14) {
-                    teamColumn(.blue, members: members)
-                    teamColumn(.red, members: members)
-                }
-                .frame(width: colWidth)
-
-                statusText
-
-                Button {
-                    lobby.startMatch()
-                } label: {
-                    Text("⚔ START MATCH").font(.system(size: 14, weight: .heavy)).kerning(3)
-                }
-                .buttonStyle(MenuButtonStyle(prominent: true))
-                .disabled(!lobby.canStart)
-                .opacity(lobby.canStart ? 1 : 0.5)
-                .grayscale(lobby.canStart ? 0 : 1)
-            }
+        } footer: {
+            footerBar
         }
         // a room I don't own has no picker to leave open — and neither does one
         // on a server that never answered /levels
@@ -204,217 +47,505 @@ private struct LobbyBody: View {
         .onChange(of: lobby.myRoom) { pickingMap = false }
     }
 
-    /* the map this room plays: its creator taps to change it, everyone else
-       reads it. The list itself comes from the server (see LobbyModel.maps),
-       so it can only ever offer maps the server can serve. */
-    private var mapRow: some View {
-        let canPick = lobby.iOwnRoom && !lobby.maps.isEmpty
-        return HStack(spacing: 8) {
-            Text("MAP")
-                .font(.system(size: 11, weight: .bold)).kerning(2)
-                .foregroundColor(Skin.dimText)
-            if canPick {
-                // ◂ ▸ step to the neighbouring map without opening the list
-                Button { lobby.stepMap(-1) } label: {
-                    Text("◂").font(.system(size: 13, weight: .bold))
-                }
-                .buttonStyle(MenuButtonStyle())
-                Button { pickingMap.toggle() } label: {
-                    HStack(spacing: 6) {
-                        Text(lobby.roomMapTitle)
-                            .font(.system(size: 12, weight: .bold)).kerning(1)
-                            .lineLimit(1)
-                        Text(pickingMap ? "▴" : "▾").font(.system(size: 11, weight: .black))
-                    }
-                }
-                .buttonStyle(MenuButtonStyle())
-                Button { lobby.stepMap(1) } label: {
-                    Text("▸").font(.system(size: 13, weight: .bold))
-                }
-                .buttonStyle(MenuButtonStyle())
+    // MARK: - The pinned action bar
+
+    @ViewBuilder private var footerBar: some View {
+        switch lobby.phase {
+        case .connecting:
+            EmptyView()
+
+        case .callsign:
+            statusLine
+            BigActionButton(title: "ENTER LOBBY",
+                            enabled: !lobby.name.trimmingCharacters(in: .whitespaces).isEmpty,
+                            icon: "arrow.right.to.line") { lobby.join() }
+
+        case .rooms:
+            statusLine
+            BigActionButton(title: "CREATE ROOM", icon: "plus") { lobby.createRoom() }
+
+        case .inRoom:
+            if pickingMap {
+                FlatActionButton(title: "DONE", icon: "checkmark") { pickingMap = false }
             } else {
-                Text(lobby.roomMapTitle)
-                    .font(.system(size: 12, weight: .bold)).kerning(1)
-                    .foregroundColor(Skin.lightText)
-                    .lineLimit(1)
+                /* the status line doubles as the button's own caption: it is
+                   always the reason the button is or isn't live */
+                BigActionButton(title: "START MATCH", subtitle: lobby.status,
+                                enabled: lobby.canStart, icon: "shield.lefthalf.filled") {
+                    lobby.startMatch()
+                }
             }
-            Spacer(minLength: 4)
-            if !lobby.iOwnRoom {
-                Text("PICKED BY THE ROOM'S CREATOR")
-                    .font(.system(size: 10)).kerning(1)
+
+        case .matchBoot, .dead:
+            Text(lobby.bootStatus)
+                .font(.system(size: 10, weight: .bold)).kerning(1.5)
+                .foregroundColor(lobby.phase == .dead ? Color(hex: 0xff8a7a) : Skin.dimText)
+                .multilineTextAlignment(.center)
+            if lobby.phase == .dead {
+                BigActionButton(title: "BACK TO LOBBY", icon: "chevron.left") { lobby.backToLobby() }
+            } else if lobby.readyShown {
+                BigActionButton(title: "DEPLOY", icon: "bolt.fill") { lobby.ready() }
+            }
+        }
+    }
+
+    private var statusLine: some View {
+        Text(lobby.status)
+            .font(.system(size: 10, weight: .bold)).kerning(1.5)
+            .foregroundColor(lobby.statusIsError ? Color(hex: 0xff8a7a) : Skin.dimText)
+            .multilineTextAlignment(.center)
+            .lineLimit(3)
+    }
+
+    private func bannerCard(_ text: String) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 12, weight: .bold))
+            Text(text)
+                .font(.system(size: 11, weight: .heavy)).kerning(1)
+                .multilineTextAlignment(.leading)
+            Spacer(minLength: 0)
+        }
+        .foregroundColor(Color(hex: 0xffe8a0))
+        .padding(.horizontal, 12).padding(.vertical, 10)
+        .background(Rectangle().fill(Color(hex: 0x282008).opacity(0.92)))
+        .overlay(Rectangle().stroke(Skin.gold, lineWidth: 1))
+    }
+
+    // MARK: - Connecting / callsign
+
+    private var connectingCard: some View {
+        SectionCard(icon: "antenna.radiowaves.left.and.right", title: "SERVER") {
+            HStack(spacing: 10) {
+                ProgressView().tint(Skin.blueText)
+                Text(lobby.status)
+                    .font(.system(size: 11, weight: .bold)).kerning(1)
+                    .foregroundColor(lobby.statusIsError ? Color(hex: 0xff8a7a) : Skin.lightText)
+                    .multilineTextAlignment(.leading)
+                Spacer(minLength: 0)
+            }
+        }
+    }
+
+    private var callsignCard: some View {
+        SectionCard(icon: "person.crop.square.fill", title: "PILOT CALLSIGN",
+                    note: "OTHER PILOTS SEE THIS") {
+            VStack(spacing: 8) {
+                TextField("YOUR CALLSIGN", text: $lobby.name)
+                    .textInputAutocapitalization(.characters)
+                    .autocorrectionDisabled()
+                    .submitLabel(.go)
+                    .font(.system(size: 16, weight: .heavy))
+                    .kerning(2)
+                    .foregroundColor(Skin.goldSoft)
+                    .padding(.horizontal, 12).padding(.vertical, 12)
+                    .frame(maxWidth: .infinity)
+                    .background(Rectangle().fill(LobbySkin.inset))
+                    .overlay(Rectangle().stroke(Skin.border, lineWidth: 1))
+                    .onSubmit { lobby.join() }
+                Text("UP TO \(LOBBY_TEAM_MAX) PILOTS PER SIDE · ROOMS STAGE THEIR OWN MATCH")
+                    .font(.system(size: 9, weight: .bold)).kerning(1)
                     .foregroundColor(Skin.dimText)
             }
         }
-        .frame(width: colWidth)
     }
 
-    /* the mode this room plays, on the same rule as the map: its creator
-       taps to switch it, everyone else reads it */
-    private var modeRow: some View {
-        HStack(spacing: 8) {
-            Text("MODE")
-                .font(.system(size: 11, weight: .bold)).kerning(2)
-                .foregroundColor(Skin.dimText)
-            if lobby.iOwnRoom {
-                ForEach(GameMode.allCases, id: \.self) { m in
-                    PillToggle(label: m.label, selected: lobby.roomMode == m) { lobby.setMode(m) }
-                }
-            } else {
-                Text(lobby.roomMode.label)
-                    .font(.system(size: 12, weight: .bold)).kerning(1)
-                    .foregroundColor(Skin.lightText)
-            }
-            Spacer(minLength: 4)
-        }
-        .frame(width: colWidth)
-    }
+    // MARK: - Room browser
 
-    private var mapList: some View {
-        VStack(spacing: 10) {
-            ScrollViewReader { proxy in
-                ScrollView {
-                    VStack(spacing: 8) {
-                        ForEach(Array(lobby.maps.enumerated()), id: \.element.id) { i, m in
-                            mapRowButton(index: i, map: m)
-                        }
+    private var roomsCard: some View {
+        SectionCard(icon: "rectangle.stack.fill", title: "ROOMS",
+                    note: lobby.rooms.isEmpty ? nil : "\(lobby.rooms.count) OPEN") {
+            VStack(spacing: 8) {
+                if lobby.rooms.isEmpty {
+                    VStack(spacing: 4) {
+                        Text("NO ROOMS YET")
+                            .font(.system(size: 13, weight: .heavy)).kerning(2)
+                            .foregroundColor(Skin.lightText)
+                        Text("CREATE THE FIRST ONE AND PICK THE MAP")
+                            .font(.system(size: 9, weight: .bold)).kerning(1)
+                            .foregroundColor(Skin.dimText)
                     }
-                    .padding(.horizontal, 6)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 18)
+                    .pickBox(selected: false)
+                } else {
+                    ForEach(lobby.rooms) { r in roomRow(r) }
                 }
-                .frame(maxWidth: 460, maxHeight: max(140, size.height * 0.5))
-                .onAppear { proxy.scrollTo(lobby.roomMapParam, anchor: .center) }
             }
-            GhostButton(label: "◂ DONE") { pickingMap = false }
         }
     }
 
-    private func mapRowButton(index: Int, map: ServerLevel) -> some View {
+    private func roomRow(_ r: RoomInfo) -> some View {
+        Button {
+            lobby.joinRoom(r.id)
+        } label: {
+            HStack(spacing: 10) {
+                MapThumb(text: lobby.levelText(param: r.level))
+                    .frame(width: 36, height: 44)
+                    .overlay(Rectangle().stroke(Skin.border, lineWidth: 1))
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(r.name)
+                        .font(.system(size: 13, weight: .heavy)).kerning(2)
+                        .foregroundColor(Skin.lightText)
+                        .lineLimit(1)
+                    HStack(spacing: 5) {
+                        Image(systemName: r.mode.uiIcon)
+                            .font(.system(size: 8, weight: .bold))
+                            .foregroundColor(r.mode.uiTint)
+                        Text(lobby.mapTitle(r.level))
+                            .font(.system(size: 9, weight: .bold)).kerning(1)
+                            .foregroundColor(Skin.dimText)
+                            .lineLimit(1)
+                    }
+                }
+                Spacer(minLength: 4)
+                Text("\(r.count)/\(LOBBY_ROOM_MAX)")
+                    .font(.system(size: 11, weight: .heavy)).kerning(1)
+                    .foregroundColor(r.count >= LOBBY_ROOM_MAX ? LobbySkin.slotText : Skin.goldSoft)
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 11, weight: .heavy))
+                    .foregroundColor(Skin.blueText)
+            }
+            .padding(8)
+            .pickBox(selected: false)
+        }
+        .buttonStyle(CardButtonStyle())
+    }
+
+    // MARK: - Inside a room
+
+    private var memberCount: Int {
+        lobby.players.filter { $0.room == lobby.myRoom }.count
+    }
+
+    private var roomCards: some View {
+        let members = lobby.players.filter { $0.room == lobby.myRoom }
+        return VStack(spacing: 12) {
+            roomHeader
+            if pickingMap {
+                mapListCard
+            } else {
+                mapCard
+                modeCard
+                teamsCard(members)
+            }
+        }
+    }
+
+    private var roomHeader: some View {
+        HStack(spacing: 10) {
+            VStack(alignment: .leading, spacing: 3) {
+                Text(lobby.myRoomInfo?.name ?? "ROOM")
+                    .font(.system(size: 15, weight: .heavy)).kerning(2)
+                    .foregroundColor(Skin.gold)
+                    .lineLimit(1)
+                Text("\(memberCount) IN THE ROOM · \(lobby.iOwnRoom ? "YOURS TO SET UP" : "THE CREATOR SETS IT UP")")
+                    .font(.system(size: 9, weight: .bold)).kerning(1)
+                    .foregroundColor(Skin.dimText)
+                    .lineLimit(1)
+            }
+            Spacer(minLength: 6)
+            FlatActionButton(title: "LEAVE", icon: "chevron.left") { lobby.leaveRoom() }
+        }
+        .padding(.horizontal, 12).padding(.vertical, 10)
+        .background(AngledRect().fill(LobbySkin.cardFill))
+        .overlay(AngledRect().stroke(LobbySkin.cardEdge, lineWidth: 1))
+    }
+
+    /* the map this room plays: its creator steps or browses to another, the
+       rest of the room reads it. The list comes from the server (see
+       LobbyModel.maps), so it only ever offers maps the server can serve. */
+    private var mapCard: some View {
+        let canPick = lobby.iOwnRoom && !lobby.maps.isEmpty
+        let at = lobby.maps.firstIndex { $0.param == lobby.roomMapParam }
+        return SectionCard(icon: "map.fill", title: "MAP SELECTION",
+                           note: lobby.iOwnRoom ? nil : "PICKED BY THE CREATOR") {
+            VStack(spacing: 8) {
+                HStack(spacing: 8) {
+                    if canPick { stepArrow("chevron.left") { lobby.stepMap(-1) } }
+                    mapHero(canPick: canPick)
+                    if canPick { stepArrow("chevron.right") { lobby.stepMap(1) } }
+                }
+                if canPick, let at {
+                    Text("MAP \(at + 1) OF \(lobby.maps.count) · TAP THE CARD FOR THE FULL LIST")
+                        .font(.system(size: 9, weight: .bold)).kerning(1)
+                        .foregroundColor(Skin.dimText)
+                }
+            }
+        }
+    }
+
+    /* the room's map, big: only the creator's card is a button (a disabled one
+       would read as "broken" rather than "not yours to change") */
+    @ViewBuilder private func mapHero(canPick: Bool) -> some View {
+        if canPick {
+            Button { pickingMap = true } label: { mapHeroFace }
+                .buttonStyle(CardButtonStyle())
+        } else {
+            mapHeroFace
+        }
+    }
+
+    private var mapHeroFace: some View {
+        let desc = lobby.maps.first { $0.param == lobby.roomMapParam }?.desc ?? ""
+        return VStack(spacing: 0) {
+            MapThumb(text: lobby.levelText(param: lobby.roomMapParam))
+                .frame(height: 130)
+            VStack(spacing: 4) {
+                Text(lobby.roomMapTitle)
+                    .font(.system(size: 15, weight: .heavy)).kerning(2)
+                    .foregroundColor(Skin.goldSoft)
+                    .lineLimit(1)
+                HStack(spacing: 6) {
+                    Image(systemName: "person.2.fill").font(.system(size: 9, weight: .bold))
+                    Text("\(LOBBY_TEAM_MAX) VS \(LOBBY_TEAM_MAX)")
+                    Text("·")
+                    Image(systemName: lobby.roomMode.uiIcon).font(.system(size: 9, weight: .bold))
+                    Text(lobby.roomMode.uiTitle)
+                }
+                .font(.system(size: 9, weight: .heavy)).kerning(1)
+                .foregroundColor(Skin.blueText)
+                if !desc.isEmpty {
+                    Text(desc)
+                        .font(.system(size: 10))
+                        .foregroundColor(Skin.dimText)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.center)
+                }
+            }
+            .padding(.horizontal, 10).padding(.vertical, 9)
+            .frame(maxWidth: .infinity)
+            .background(Color(hex: 0x0a0f1c).opacity(0.92))
+        }
+        .pickBox(selected: true, fill: LobbySkin.inset,
+                 edge: LobbySkin.pick, glow: LobbySkin.pickGlow)
+    }
+
+    private func stepArrow(_ icon: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: icon)
+                .font(.system(size: 16, weight: .heavy))
+                .foregroundColor(Skin.blueText)
+                .frame(width: 32, height: 96)
+                .background(Rectangle().fill(LobbySkin.inset))
+                .overlay(Rectangle().stroke(LobbySkin.cardEdge, lineWidth: 1))
+        }
+        .buttonStyle(CardButtonStyle())
+    }
+
+    private var mapListCard: some View {
+        SectionCard(icon: "map.fill", title: "PICK A MAP", note: "\(lobby.maps.count) MAPS") {
+            VStack(spacing: 6) {
+                ForEach(Array(lobby.maps.enumerated()), id: \.element.id) { i, m in
+                    mapListRow(index: i, map: m)
+                }
+            }
+        }
+    }
+
+    private func mapListRow(index: Int, map: ServerLevel) -> some View {
         let selected = map.param == lobby.roomMapParam
         return Button {
             lobby.setLevel(map.param)     // the lobby broadcast confirms it
             pickingMap = false
         } label: {
-            HStack(spacing: 14) {
-                Text("\(index + 1)")
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundColor(selected ? Skin.gold : Color(hex: 0x8a97b6))
-                    .padding(.horizontal, 7).padding(.vertical, 3)
-                    .overlay(RoundedRectangle(cornerRadius: 4)
-                        .stroke(selected ? Skin.gold : Skin.borderLit, lineWidth: 1))
+            HStack(spacing: 10) {
+                MapThumb(text: lobby.levelText(param: map.param))
+                    .frame(width: 32, height: 40)
+                    .overlay(Rectangle().stroke(Skin.border, lineWidth: 1))
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(map.title)
-                        .font(.system(size: 14, weight: .bold)).kerning(2)
+                    Text("\(index + 1) · \(map.title)")
+                        .font(.system(size: 13, weight: .heavy)).kerning(2)
                         .foregroundColor(selected ? Skin.gold : Skin.lightText)
+                        .lineLimit(1)
                     if !map.desc.isEmpty {
                         Text(map.desc)
-                            .font(.system(size: 12))
+                            .font(.system(size: 10))
                             .foregroundColor(Skin.dimText)
                             .lineLimit(2)
                             .multilineTextAlignment(.leading)
                     }
                 }
-                Spacer(minLength: 0)
+                Spacer(minLength: 4)
+                CheckBadge(on: selected, tint: Skin.gold)
             }
-            .padding(.horizontal, 16).padding(.vertical, 12)
-            .listRowBox(selected: selected)
+            .padding(8)
+            .pickBox(selected: selected, fill: LobbySkin.inset,
+                     edge: Skin.border, glow: Skin.gold)
         }
-        .id(map.param)
+        .buttonStyle(CardButtonStyle())
+        .id(map.param)      // what LobbyChrome's scrollTo brings into view
     }
 
-    private func teamColumn(_ team: Team, members: [LobbyPlayer]) -> some View {
-        let teamed = members.filter { $0.team == team }
-        let head = team == .blue ? Color(hex: 0x8fb7ff) : Color(hex: 0xff9a8a)
-        let slot = team == .blue ? Color(hex: 0x3d7bff).opacity(0.12) : Color(hex: 0xff4a3d).opacity(0.10)
-        let edge = team == .blue ? Color(hex: 0x2f4a7a) : Color(hex: 0x7a3a2f)
-        let full = lobby.myTeam != team && teamed.count >= LOBBY_TEAM_MAX
-        return VStack(spacing: 6) {
-            Text("\(team.wire.uppercased()) TEAM \(teamed.count)/\(LOBBY_TEAM_MAX)")
-                .font(.system(size: 12, weight: .heavy)).kerning(2)
-                .foregroundColor(head)
-            VStack(spacing: 4) {
-                ForEach(teamed) { p in
-                    Text(p.id == lobby.myId ? "\(p.name) (YOU)" : p.name)
-                        .font(.system(size: 12, weight: p.id == lobby.myId ? .bold : .regular)).kerning(1)
-                        .foregroundColor(p.id == lobby.myId ? Skin.gold : Skin.lightText)
-                        .lineLimit(1)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 8).padding(.vertical, 5)
-                        .background(RoundedRectangle(cornerRadius: 6).fill(slot))
-                }
-                ForEach(teamed.count..<LOBBY_TEAM_MAX, id: \.self) { _ in
-                    Text("OPEN SLOT")
-                        .font(.system(size: 12)).kerning(1)
-                        .foregroundColor(Color(hex: 0x55617a))
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 8).padding(.vertical, 5)
-                        .overlay(RoundedRectangle(cornerRadius: 6)
-                            .strokeBorder(Color(hex: 0x33405f), style: StrokeStyle(lineWidth: 1, dash: [3, 3])))
-                }
+    /* the mode this room plays, on the same rule as the map: its creator
+       switches it, everyone else reads it */
+    private var modeCard: some View {
+        SectionCard(icon: "scope", title: "MODE SELECTION",
+                    note: lobby.iOwnRoom ? nil : "PICKED BY THE CREATOR") {
+            VStack(spacing: 8) {
+                ForEach(GameMode.allCases, id: \.self) { m in modeRow(m) }
             }
-            Button {
-                lobby.pickTeam(team)
-            } label: {
-                Text(lobby.myTeam == team ? "LEAVE TEAM" : "JOIN \(team.wire.uppercased())")
-                    .font(.system(size: 12, weight: .heavy)).kerning(2)
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(MenuButtonStyle(prominent: lobby.myTeam != team))
-            .disabled(full)
-            .opacity(full ? 0.5 : 1)
-            .grayscale(full ? 1 : 0)
         }
-        .padding(10)
-        .frame(maxWidth: .infinity)
-        .background(RoundedRectangle(cornerRadius: 10).fill(Skin.panelSoft))
-        .overlay(RoundedRectangle(cornerRadius: 10).stroke(edge, lineWidth: 1))
+    }
+
+    @ViewBuilder private func modeRow(_ m: GameMode) -> some View {
+        if lobby.iOwnRoom {
+            Button { lobby.setMode(m) } label: { modeFace(m) }
+                .buttonStyle(CardButtonStyle())
+        } else {
+            modeFace(m)
+        }
+    }
+
+    private func modeFace(_ m: GameMode) -> some View {
+        let selected = lobby.roomMode == m
+        return HStack(spacing: 10) {
+            Image(systemName: m.uiIcon)
+                .font(.system(size: 16, weight: .bold))
+                .foregroundColor(m.uiTint)
+                .frame(width: 38, height: 38)
+                .background(Rectangle().fill(m.uiTint.opacity(0.14)))
+                .overlay(Rectangle().stroke(m.uiTint.opacity(0.5), lineWidth: 1))
+            VStack(alignment: .leading, spacing: 3) {
+                Text(m.uiTitle)
+                    .font(.system(size: 13, weight: .heavy)).kerning(2)
+                    .foregroundColor(selected ? Skin.lightText : Skin.blueText)
+                Text(m.uiBlurb)
+                    .font(.system(size: 10))
+                    .foregroundColor(Skin.dimText)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+            }
+            Spacer(minLength: 4)
+            CheckBadge(on: selected, tint: m.uiTint)
+        }
+        .padding(8)
+        .pickBox(selected: selected, fill: LobbySkin.inset,
+                 edge: Skin.border, glow: m.uiTint)
+        // the mode a joiner can't change still shows which one the room plays
+        .opacity(lobby.iOwnRoom || selected ? 1 : 0.45)
+    }
+
+    private func teamsCard(_ members: [LobbyPlayer]) -> some View {
+        SectionCard(icon: "person.3.fill", title: "TEAM SELECTION",
+                    note: lobby.myTeam == nil ? "PICK A SIDE" : nil) {
+            HStack(alignment: .top, spacing: 10) {
+                teamCard(.blue, members: members)
+                teamCard(.red, members: members)
+            }
+        }
+    }
+
+    private func teamCard(_ team: Team, members: [LobbyPlayer]) -> some View {
+        let teamed = members.filter { $0.team == team }
+        let mine = lobby.myTeam == team
+        let full = !mine && teamed.count >= LOBBY_TEAM_MAX
+        let head = team == .blue ? LobbySkin.blueHead : LobbySkin.redHead
+        let fill = team == .blue ? LobbySkin.blueFill : LobbySkin.redFill
+        let edge = team == .blue ? LobbySkin.blueEdge : LobbySkin.redEdge
+        let open = max(0, LOBBY_TEAM_MAX - teamed.count)
+        return Button {
+            lobby.pickTeam(team)
+        } label: {
+            VStack(spacing: 6) {
+                HStack(spacing: 5) {
+                    Image(systemName: "shield.fill")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundColor(head)
+                    Text("\(team.wire.uppercased()) TEAM")
+                        .font(.system(size: 11, weight: .heavy)).kerning(1.5)
+                        .foregroundColor(head)
+                        .lineLimit(1)
+                    Spacer(minLength: 2)
+                    CheckBadge(on: mine, tint: head)
+                }
+                Text("\(teamed.count) / \(LOBBY_TEAM_MAX) PILOTS")
+                    .font(.system(size: 9, weight: .heavy)).kerning(1)
+                    .foregroundColor(Skin.dimText)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                VStack(spacing: 3) {
+                    ForEach(teamed) { p in
+                        Text(p.id == lobby.myId ? "\(p.name) ◂ YOU" : p.name)
+                            .font(.system(size: 11, weight: p.id == lobby.myId ? .heavy : .semibold))
+                            .kerning(1)
+                            .foregroundColor(p.id == lobby.myId ? Skin.gold : Skin.lightText)
+                            .lineLimit(1)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 6).padding(.vertical, 4)
+                            .background(Rectangle().fill(fill.opacity(0.9)))
+                            .overlay(Rectangle().stroke(edge.opacity(0.8), lineWidth: 1))
+                    }
+                    ForEach(0..<open, id: \.self) { _ in
+                        Text("OPEN")
+                            .font(.system(size: 10, weight: .semibold)).kerning(1)
+                            .foregroundColor(LobbySkin.slotText)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 6).padding(.vertical, 4)
+                            .overlay(Rectangle().strokeBorder(Color(hex: 0x33405f),
+                                                              style: StrokeStyle(lineWidth: 1, dash: [3, 3])))
+                    }
+                }
+                Text(mine ? "LEAVE TEAM" : (full ? "TEAM FULL" : "JOIN \(team.wire.uppercased())"))
+                    .font(.system(size: 11, weight: .heavy)).kerning(1.5)
+                    .foregroundColor(mine ? Skin.deepInk : head)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
+                    .background(Rectangle().fill(mine ? head.opacity(0.92) : fill.opacity(0.9)))
+                    .overlay(Rectangle().stroke(mine ? head : edge, lineWidth: 1))
+            }
+            .padding(8)
+            .pickBox(selected: mine, fill: fill.opacity(0.5), edge: edge, glow: head)
+            .opacity(full ? 0.55 : 1)
+        }
+        .buttonStyle(CardButtonStyle())
+        .disabled(full)
     }
 
     // MARK: - Match boot (rejoin + ready handshake)
 
-    private var matchBoot: some View {
-        VStack(spacing: 12) {
-            VStack(spacing: 8) {
-                bootTeam(.blue)
-                bootTeam(.red)
-            }
-            .frame(maxWidth: 520)
-            .panelBox()
-
-            Text(lobby.bootStatus)
-                .font(.system(size: 12)).kerning(1)
-                .foregroundColor(Skin.dimText)
-                .multilineTextAlignment(.center)
-
-            if lobby.phase == .dead {
-                Button {
-                    lobby.backToLobby()
-                } label: {
-                    Text("◂ BACK TO LOBBY").font(.system(size: 14, weight: .heavy)).kerning(2)
-                }
-                .buttonStyle(MenuButtonStyle(prominent: true))
-            } else if lobby.readyShown {
-                Button {
-                    lobby.ready()
-                } label: {
-                    Text("⚔ DEPLOY").font(.system(size: 18, weight: .heavy)).kerning(3).frame(minWidth: 180)
-                }
-                .buttonStyle(MenuButtonStyle(prominent: true))
+    private var bootCard: some View {
+        SectionCard(icon: "shield.lefthalf.filled", title: "DEPLOYMENT",
+                    note: lobby.bootMyTeam.map { "YOU FLY \($0.wire.uppercased())" }) {
+            HStack(alignment: .top, spacing: 10) {
+                bootTeamColumn(.blue)
+                bootTeamColumn(.red)
             }
         }
     }
 
-    private func bootTeam(_ team: Team) -> some View {
-        let head = team == .blue ? Color(hex: 0x8fb7ff) : Color(hex: 0xff9a8a)
-        return HStack(alignment: .firstTextBaseline, spacing: 12) {
-            Text("\(team.wire.uppercased()) TEAM")
-                .font(.system(size: 12, weight: .heavy)).kerning(2)
-                .foregroundColor(head)
-            ForEach(Array(lobby.rosterNames(team: team).enumerated()), id: \.offset) { _, p in
-                Text(p.me ? "\(p.name) (YOU)" : p.name)
-                    .font(.system(size: 13, weight: .bold)).kerning(1)
-                    .foregroundColor(p.gone ? Color(hex: 0x55617a) : (p.me ? Skin.gold : Skin.lightText))
-                    .strikethrough(p.gone)
+    private func bootTeamColumn(_ team: Team) -> some View {
+        let head = team == .blue ? LobbySkin.blueHead : LobbySkin.redHead
+        let fill = team == .blue ? LobbySkin.blueFill : LobbySkin.redFill
+        let edge = team == .blue ? LobbySkin.blueEdge : LobbySkin.redEdge
+        let mine = lobby.bootMyTeam == team
+        return VStack(spacing: 6) {
+            HStack(spacing: 5) {
+                Image(systemName: "shield.fill")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundColor(head)
+                Text("\(team.wire.uppercased()) TEAM")
+                    .font(.system(size: 11, weight: .heavy)).kerning(1.5)
+                    .foregroundColor(head)
+                    .lineLimit(1)
+                Spacer(minLength: 0)
+            }
+            VStack(spacing: 3) {
+                ForEach(Array(lobby.rosterNames(team: team).enumerated()), id: \.offset) { _, p in
+                    Text(p.me ? "\(p.name) ◂ YOU" : p.name)
+                        .font(.system(size: 11, weight: .heavy)).kerning(1)
+                        .foregroundColor(p.gone ? LobbySkin.slotText : (p.me ? Skin.gold : Skin.lightText))
+                        .strikethrough(p.gone)
+                        .lineLimit(1)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 6).padding(.vertical, 4)
+                        .background(Rectangle().fill(fill.opacity(0.9)))
+                        .overlay(Rectangle().stroke(edge.opacity(0.8), lineWidth: 1))
+                }
             }
             Spacer(minLength: 0)
         }
+        .padding(8)
+        .frame(maxWidth: .infinity)
+        .pickBox(selected: mine, fill: fill.opacity(0.5), edge: edge, glow: head)
     }
 }

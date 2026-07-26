@@ -58,40 +58,6 @@ struct MenuButtonStyle: ButtonStyle {
     }
 }
 
-/* Two-value picker, still used where a row genuinely holds a pair (the
-   lobby's mode row). The mission menu uses OptionRow below instead: a row of
-   one button per value is what stopped fitting once there were four of them. */
-struct PillToggle: View {
-    let label: String
-    let selected: Bool
-    var disabled = false
-    let action: () -> Void
-    var body: some View {
-        Button(action: action) {
-            Text(label)
-                .font(.system(size: 13, weight: .bold))
-                .kerning(2)
-                .padding(.horizontal, 18)
-                .padding(.vertical, 8)
-                .background(
-                    Group {
-                        if selected {
-                            RoundedRectangle(cornerRadius: 2).fill(Skin.selectedFill)
-                                .shadow(color: Color(hex: 0x7896ff).opacity(0.45), radius: 10)
-                        } else {
-                            RoundedRectangle(cornerRadius: 2).fill(Skin.panel)
-                        }
-                    }
-                )
-                .overlay(RoundedRectangle(cornerRadius: 2)
-                    .stroke(selected ? Color(hex: 0xe6ecff) : Skin.border, lineWidth: 1))
-                .foregroundColor(selected ? Skin.deepInk : Skin.blueText)
-                .opacity(disabled ? 0.5 : 1)
-        }
-        .disabled(disabled)
-    }
-}
-
 /* ---------- the option column ----------
    Ports style.css's .menuList / .opt (and ui/menu.js's reasoning): one
    vertical list of rows that are all the same width and the same height,
