@@ -58,6 +58,11 @@ const readyBtn = document.getElementById('readyBtn');
 const TEAM_MAX = 5; // mirrors the server's cap; the server enforces it
 const ROOM_MAX = 12; // …and the room cap: a full 5v5 plus a few undecided
 const show = (el, on) => el.classList.toggle('mpHidden', !on);
+/* A card and the green action that finishes it are one decision shown in two
+   places: the card is in the scrolling column, its button is pinned in the
+   screen's footer (index.html), so they are shown and hidden together. */
+const showCallsign = (on) => { show(nameRow, on); show(joinBtn, on); };
+const showRooms = (on) => { show(roomsEl, on); show(createBtn, on); };
 
 /* A match starts by reloading into it: the credentials, the room's map and
    "open on the match screen" ride along in the boot handoff. Used both from
@@ -318,8 +323,8 @@ function resetLobbyUi() {
   myRoom = null;
   myTeam = null;
   switchMap(homeLevel); // leaving the lobby: fly back to my own map
-  show(nameRow, false);
-  show(roomsEl, false);
+  showCallsign(false);
+  showRooms(false);
   show(roomBar, false);
   show(teamsEl, false);
   show(listEl, false);
@@ -385,7 +390,7 @@ function renderList(state) {
     }
   }
 
-  show(roomsEl, myRoom == null);
+  showRooms(myRoom == null);
   show(roomBar, myRoom != null);
   show(teamsEl, myRoom != null);
   show(startBtn, myRoom != null);
@@ -396,7 +401,9 @@ function renderList(state) {
      first stop in the room's DOM order). Selection is focus (ui/menu.js). */
   if (myRoom != null && myRoom !== focusedRoom) {
     focusedRoom = myRoom;
-    document.getElementById('mpTeamBlue').focus({ preventScroll: true });
+    const blue = document.getElementById('mpTeamBlue');
+    blue.focus({ preventScroll: true });
+    blue.scrollIntoView({ block: 'nearest' }); // the room's cards can outrun the column
   } else if (myRoom == null) {
     focusedRoom = null;
   }
@@ -516,7 +523,7 @@ function renderList(state) {
 function onOpen() {
   if (MP.active) return;
   setStatus('CONNECTED — ENTER A CALLSIGN TO JOIN THE LOBBY');
-  show(nameRow, true);
+  showCallsign(true);
   if (autoJoin && nameInput.value.trim()) {
     autoJoin = false;
     doJoin();
@@ -590,7 +597,7 @@ if (!MP.active) {
     myName = m.name;
     joined = true;
     localStorage.setItem('mechMpName', m.name);
-    show(nameRow, false);
+    showCallsign(false);
     renderList(lastState); // paint from what we have…
     // …then arm the walk-in, so it judges the server's own room list (which
     // follows `joined` immediately) and not the empty placeholder above

@@ -355,7 +355,7 @@ document.getElementById('edPlay').addEventListener('click', () => {
 export function showEditor(open) {
   screen.classList.toggle('hidden', !open);
   modeScreen.classList.toggle('hidden', open);
-  overlay.classList.toggle('level', open); // lighter dimming, no game title
+  overlay.classList.toggle('level', open); // lighter dimming, the map shows through
   if (!open) return;
   if (!grid.length) {
     grid = blankMap(20, 24);

@@ -56,8 +56,9 @@ title bar and the single green action button pinned outside the scroll
 (`UI/LobbyStyles.swift` holds the chrome, `UI/LobbyView.swift` and `UI/Menus.swift`
 the screens). Map cards carry a thumbnail drawn from the level text itself — one
 pixel per 8×8 tile, no artwork to ship. The browser build is laid out the same
-way (style.css `.card`, `game/ui/menu.js`), and the lobby is a different layout
-of the same protocol: no message, roster rule or map param differs from it.
+way, chrome included — `.navBar` · `.screenScroll` · `.screenFoot` in
+[style.css](../style.css) is `LobbyChrome` in CSS — and the lobby is a different
+layout of the same protocol: no message, roster rule or map param differs from it.
 
 The room's creator picks its **map and its mode** (⚔ BASE ASSAULT or 🚩 CAPTURE
 THE FLAG, `setMode`); both travel with the match credentials, so a phone and a

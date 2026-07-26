@@ -1,12 +1,16 @@
 /* ============================================================
    Menu rows and keyboard navigation
 
-   Every menu screen is one vertical column of titled cards, one
-   decision per card (style.css `.card`; the iOS port is laid out
-   the same way — ios/MechVsMech/UI/LobbyStyles.swift). A card is
-   the column's width and never grows past it: a column grows
-   *down* on a small screen instead of spilling sideways
-   (#overlay scrolls, so taller is free and wider is not).
+   Every menu screen is the same three-piece frame as the iOS
+   port's LobbyChrome (ios/MechVsMech/UI/LobbyStyles.swift): a
+   pinned nav bar holding the way back, a scrolling column of
+   titled cards — one decision per card (style.css `.card`) — and
+   a pinned footer holding the one green action. A card is the
+   column's width and never grows past it: a column grows *down*
+   on a small screen instead of spilling sideways (the column
+   scrolls, so taller is free and wider is not), and because back
+   and go sit outside that scroll, no card can push them off the
+   screen however tall it gets.
 
    Two kinds of control live in those cards, and the difference
    is the point:
@@ -271,10 +275,26 @@ document.addEventListener('keydown', (e) => {
 
 /* Opening a screen puts the highlight on its first row, so the keyboard works
    without a click first. Inputs are skipped on purpose: focusing one pops the
-   on-screen keyboard on a phone. */
+   on-screen keyboard on a phone.
+
+   "First row" means the first one in the scrolling column, not the nav bar's
+   back button, which is first in the DOM: opening a screen should point at
+   what there is to decide, and ↑ from there still reaches the way back. A list
+   that is already pointed somewhere (the level select's current district, the
+   editor's current tool) opens on that row instead — and if that row is far
+   down the column, it comes to the middle of it rather than to its edge. */
 export function focusFirst(screen) {
   const list = stops(screen);
-  if (list.length) list[0].focus({ preventScroll: true });
+  if (!list.length) return;
+  const el = list.find((b) => b.classList.contains('selected'))
+    || list.find((b) => b.closest('.screenScroll'))
+    || list[0];
+  el.focus({ preventScroll: true });
+  const box = el.closest('.screenScroll');
+  const r = el.getBoundingClientRect();
+  const b = box && box.getBoundingClientRect();
+  // already on screen: leave the column exactly where it is
+  el.scrollIntoView({ block: b && (r.top < b.top || r.bottom > b.bottom) ? 'center' : 'nearest' });
 }
 
 /* every path that shows a screen goes through a class change, so one observer

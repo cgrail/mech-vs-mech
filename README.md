@@ -24,7 +24,7 @@ npx serve .
 
 Then open [http://localhost:8080](http://localhost:8080), pick a difficulty, and hit **DEPLOY**.
 
-The menus are one column of cards — one decision per card. The **MAP** card carries the district's own picture, drawn straight from its level file (one pixel per tile), so you can tell the maps apart before you fly one in; **MODE** is a card per mission type; and the settings that are values rather than choices — difficulty, fog of war, touch controls — stay `◂ VALUE ▸` rows in the setup card. The iPhone build ([ios/](ios/)) is laid out the same way.
+The menus are one column of cards — one decision per card — under a title bar that keeps the way back at the top and over an action bar that keeps **DEPLOY** at the bottom, neither of which scrolls away. The **MAP** card carries the district's own picture, drawn straight from its level file (one pixel per tile), so you can tell the maps apart before you fly one in; **MODE** is a card per mission type; and the settings that are values rather than choices — difficulty, fog of war, touch controls — stay `◂ VALUE ▸` rows in the setup card. The iPhone build ([ios/](ios/)) is laid out the same way.
 
 ## Multiplayer
 

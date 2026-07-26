@@ -8,20 +8,25 @@ html, body {
 #app { width: 100%; height: 100%; }
 canvas { display: block; touch-action: none; }
 
-/* ---------- start / end overlay ---------- */
+/* ---------- start / end overlay ----------
+   The overlay is the screen frame, not a scroller: each screen inside it is a
+   nav bar, a scrolling card column and a pinned action bar (see "the screen
+   frame" below). `--col` is the width of that column — every card, list and
+   action button in it is exactly this wide, which is what keeps a menu one
+   column that grows down instead of sideways (CLAUDE.md). */
 #overlay {
   position: absolute; inset: 0; z-index: 20;
-  display: flex; flex-direction: column; align-items: center;
-  gap: 16px; text-align: center;
-  padding: max(24px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right))
-           max(24px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
+  --col: min(430px, 92vw);
+  display: flex; flex-direction: column; text-align: center;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+           env(safe-area-inset-bottom) env(safe-area-inset-left);
   background: rgba(6, 6, 12, 0.35);
-  overflow-y: auto; -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin; scrollbar-color: #3a4468 transparent;
+  overflow: hidden;
 }
-/* flex spacers instead of justify-content: center — a centered flex container
-   clips overflow at BOTH ends unreachably; spacers collapse so it scrolls */
-#overlay::before, #overlay::after { content: ""; flex: 1 0 0; }
+/* the column is measured border-box, so a row that says `width: 100%` inside a
+   padded card stays inside it — the steppers used to hang over the edge. Scoped
+   to the overlay: the HUD's bars and touch buttons keep their content-box sizes */
+#overlay, #overlay *, #overlay *::before, #overlay *::after { box-sizing: border-box; }
 #overlay.hidden { display: none; }
 #overlay h1 {
   margin: 0; font-size: 42px; letter-spacing: 4px; font-weight: 800;
@@ -55,12 +60,6 @@ canvas { display: block; touch-action: none; }
   box-shadow: 0 0 18px rgba(54, 201, 74, .45);
 }
 #overlay .goBtn:hover { filter: brightness(1.08); border-color: #d8ffcc; color: #06210b; }
-/* A screen's own green action sticks to the bottom of the scroll rather than
-   ending up below the fold under a tall card — the same "the button you need is
-   always there" the iOS chrome gets by pinning it. Only a screen's direct child
-   is sticky, so exactly one button per screen can be (the quiet one beside it
-   scrolls), and two never fight over the same edge. */
-#overlay .screen > .goBtn { position: sticky; bottom: 0; z-index: 2; }
 #overlay .goBtn:disabled {
   background: linear-gradient(#28304a, #1a2033); color: #6b7590;
   border-color: #2b3757; box-shadow: none; filter: none;
@@ -248,19 +247,64 @@ body.touch #touchControls { display: flex; }
 
 .turretIco { width: 1em; height: 1em; display: inline-block; vertical-align: -0.1em; }
 
-/* ---------- menu screens ---------- */
-#overlay .screen { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+/* ---------- the screen frame ----------
+   nav bar · scrolling card column · pinned action bar, the same three pieces
+   the iOS port's LobbyChrome draws (ios/MechVsMech/UI/LobbyStyles.swift). The
+   column scrolls; the way back and the green action never do, so neither can
+   end up below the fold under a tall card. Rows are assigned explicitly, so a
+   screen that has no nav bar (the mode select) still gets a full-height
+   scroll rather than an auto-sized one. */
+#overlay .screen {
+  flex: 1; min-height: 0;
+  display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
+}
 #overlay .screen.hidden { display: none; }
-#overlay .screenTitle { font-size: 15px; font-weight: 700; letter-spacing: 3px; color: #9fb4ff; }
+
+.navBar {
+  grid-row: 1; position: relative;
+  display: flex; align-items: center; justify-content: center;
+  min-height: 44px; padding: 0 12px;
+  background: rgba(8, 12, 23, .9); border-bottom: 1px solid #2b3757;
+}
+.navTitle { font-size: 15px; font-weight: 800; letter-spacing: 3px; color: #cdd8ff; }
+/* the back button is laid over the bar rather than in it, so the title stays
+   centred on the screen whether or not there is a way back (the end screen) */
+#overlay .navBack {
+  position: absolute; left: 12px;
+  width: 38px; height: 32px; padding: 0; font-size: 15px; line-height: 1;
+}
+
+.screenScroll {
+  grid-row: 2; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin; scrollbar-color: #3a4468 transparent;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  padding: 12px;
+}
+/* flex spacers instead of justify-content: center — a centered flex container
+   clips overflow at BOTH ends unreachably; spacers collapse so it scrolls */
+.screenScroll::before, .screenScroll::after { content: ""; flex: 1 0 0; }
+
+.screenFoot {
+  grid-row: 3; display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 10px 12px 12px;
+  background: linear-gradient(rgba(5, 7, 15, 0), rgba(5, 7, 15, .92) 40%);
+}
+/* nothing to pin (the match screen before its DEPLOY arrives): no strip either */
+.screenFoot:not(:has(> :not(.mpHidden))) { display: none; }
+
+/* one column, one width — cards, lists, status lines and the green action all
+   line up (the map editor's canvas needs a wider one) */
+.screenScroll > *, .screenFoot > * { width: var(--col); }
+#editScreen { --col: min(1000px, 94vw); }
 
 /* ---------- the card column ----------
    One decision per card, one column of them, the same layout as the iOS port
    (ios/MechVsMech/UI/LobbyStyles.swift explains the reasoning). Cards are the
    column's width — a card never grows sideways past it, and a row inside one
    holds at most three controls; what doesn't fit goes down the screen, into
-   #overlay's scroll. */
+   the column's scroll. */
 .card {
-  width: min(430px, 92vw); display: flex; flex-direction: column; text-align: left;
+  display: flex; flex-direction: column; text-align: left;
   background: rgba(12, 17, 32, .88);
   border: 1px solid #2b3757; border-top-color: #56659c; border-left-color: #4a5788;
   border-radius: 2px; box-shadow: inset 0 0 0 1px rgba(8, 10, 20, .5);
@@ -316,7 +360,12 @@ body.touch #touchControls { display: flex; }
   background: rgba(0, 0, 0, .28); border: 1px solid #3a4468;
 }
 .pick.on .check, .mpTeam.on .check { color: #101427; background: #6f9bff; border-color: #6f9bff; }
-#modeScreen .pick { width: min(430px, 92vw); padding: 10px; }
+/* the entry screen's three cards ARE the column (a .pick inside a card fills
+   its body instead, hence the width here) */
+#modeScreen .pick { width: var(--col); padding: 10px; }
+
+/* the end screen's headline, the top card of the mission menu's column */
+#resultCard { align-items: center; gap: 4px; padding: 16px 14px; text-align: center; }
 
 /* ---------- the map hero card ----------
    The map itself is the card: a thumbnail drawn from the level text
@@ -332,9 +381,17 @@ body.touch #touchControls { display: flex; }
 #overlay button.hero:hover { border-color: #a8c4ff; }
 .heroThumb {
   height: 130px; display: flex; align-items: center; justify-content: center;
-  background: #04060d; overflow: hidden;
+  background: #04060d; overflow: hidden; padding: 2px;
 }
-.thumb { image-rendering: pixelated; max-width: 100%; max-height: 100%; }
+/* The picture is one pixel per 8×8 tile (ui/thumb.js), so a district's own
+   image is 20-odd pixels across: it has to be scaled UP to its box, not merely
+   kept inside it, or a map card shows a stamp in a black field. `contain`
+   keeps the map's proportions — a tall district letterboxes sideways, which is
+   exactly what the iOS port's MapThumb does. */
+.thumb {
+  image-rendering: pixelated;
+  width: 100%; height: 100%; object-fit: contain;
+}
 /* a map this page has no level text for (a room on a newer bundle) */
 .heroThumb.empty::after { content: "🗺"; font-size: 24px; opacity: .3; }
 .heroCap {
@@ -359,8 +416,7 @@ body.touch #touchControls { display: flex; }
 }
 .thumbBox.empty::after { content: "🗺"; font-size: 12px; opacity: .35; }
 
-/* level-select mode: no game title, lighter dimming so the map shows through */
-#overlay.level h1, #overlay.level h2 { display: none; }
+/* level-select mode: lighter dimming so the map behind shows through */
 #overlay.level { background: rgba(6, 6, 12, 0.1); }
 #levelScreen.loading { visibility: hidden; } /* nothing until the list is complete */
 
@@ -428,23 +484,15 @@ body.touch #touchControls { display: flex; }
 #overlay .opt .main:focus .v { color: #17120a; }
 #overlay .opt .main:focus .k::before { content: "▸ "; color: #17120a; } /* the console caret */
 
-/* the flat buttons under the cards: BACK, LEAVE ROOM, the editor's row */
+/* the flat buttons inside the cards: LEAVE ROOM, the editor's row */
 #overlay button.ghost { padding: 8px 18px; font-size: 12px; }
-/* the action buttons under the column line up with it */
-#overlay #startBtn, #overlay #nextMapBtn, #overlay #menuBack, #overlay #mpStartBtn,
-#overlay #readyBtn, #overlay #levelBack, #overlay #mpBack {
-  width: min(430px, 92vw); padding-left: 0; padding-right: 0;
-}
 
 /* ---------- level list ----------
    Same row as the lobby's map list: the map's own picture, its number and
-   title, and a checkbox on the one the menu is pointed at. */
-#levelList {
-  display: flex; flex-direction: column; gap: 6px; width: 100%;
-  max-height: 52vh; overflow-y: auto; padding-right: 4px;
-  touch-action: pan-y; -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin; scrollbar-color: #3a4468 transparent;
-}
+   title, and a checkbox on the one the menu is pointed at. The list is as long
+   as it is — the screen's own column is what scrolls (one scroller per screen,
+   as on iOS), so the card grows and the nav bar stays put above it. */
+#levelList { display: flex; flex-direction: column; gap: 6px; width: 100%; }
 #levelList button { flex: none; }
 #overlay #levelList button {
   display: flex; align-items: center; gap: 10px; text-align: left;
@@ -465,8 +513,11 @@ body.touch #touchControls { display: flex; }
   color: #8a92ad; line-height: 1.4;
 }
 
-/* ---------- map editor ---------- */
-#editScreen { gap: 10px; width: min(1000px, 94vw); }
+/* ---------- map editor ----------
+   The canvas needs more room than a menu card, so the editor widens its column
+   — but only the part that scrolls: its action bar stays the normal width. */
+#editScreen .screenScroll { gap: 10px; }
+#editScreen .screenFoot { --col: min(560px, 92vw); }
 #edPalette { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
 #overlay #edPalette button {
   display: flex; align-items: center; gap: 7px;
@@ -478,7 +529,7 @@ body.touch #touchControls { display: flex; }
 .edSwatch { width: 14px; height: 14px; border-radius: 3px; border: 1px solid rgba(0,0,0,.5); }
 #edCanvasWrap {
   display: flex; align-items: center; justify-content: center;
-  width: 100%; height: min(52vh, 520px);
+  height: min(52vh, 520px);
   background: rgba(10, 12, 20, .6); border: 1px solid #3a4468; border-radius: 8px;
 }
 #edCanvas { touch-action: none; cursor: crosshair; image-rendering: pixelated; }
@@ -502,7 +553,7 @@ body.touch #touchControls { display: flex; }
 }
 #edMsg { font-size: 12px; letter-spacing: 1px; color: #8fd0ff; min-height: 1.2em; text-align: center; }
 #edMsg.bad { color: #ff8a7a; }
-#edBtns { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; width: min(560px, 92vw); }
+#edBtns { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 #overlay #edPlay { font-size: 15px; letter-spacing: 3px; padding: 10px 28px; }
 #overlay #edBtns button.ghost:disabled { filter: grayscale(1) brightness(.6); cursor: default; }
 
@@ -512,18 +563,18 @@ body.touch #touchControls { display: flex; }
 .mpHidden { display: none !important; }
 #mpStatus {
   font-size: 10px; font-weight: 700; letter-spacing: 1.5px; color: #8a92ad;
-  max-width: min(430px, 92vw); text-align: center;
+  text-align: center;
 }
 #mpNameInput {
   font: inherit; font-size: 15px; font-weight: 800; letter-spacing: 2px;
   color: #ffe27a; background: rgba(8, 12, 23, .85);
   border: 1px solid #3a4468; border-radius: 2px; padding: 11px 12px;
-  outline: none; width: 100%; box-sizing: border-box;
+  outline: none; width: 100%;
   text-transform: uppercase; user-select: text;
 }
 #mpNameInput:focus { border-color: #6f83c9; }
 #mpList {
-  display: flex; flex-direction: column; gap: 8px; width: min(430px, 92vw);
+  display: flex; flex-direction: column; gap: 8px;
   max-height: 30vh; overflow-y: auto;
   touch-action: pan-y; -webkit-overflow-scrolling: touch;
   scrollbar-width: thin; scrollbar-color: #3a4468 transparent;
@@ -536,8 +587,7 @@ body.touch #touchControls { display: flex; }
 .mpRow .name { flex: 1; text-align: left; font-size: 12px; font-weight: 800; letter-spacing: 2px; color: #cdd8ff; }
 .mpRow .st { font-size: 10px; letter-spacing: 1px; color: #8a92ad; }
 #mpBanner {
-  display: flex; align-items: center; gap: 10px; width: min(430px, 92vw);
-  box-sizing: border-box;
+  display: flex; align-items: center; gap: 10px;
   background: rgba(40, 32, 8, .92); border: 1px solid #ffd23c; border-radius: 2px;
   padding: 10px 12px; font-size: 11px; font-weight: 800; letter-spacing: 1px; color: #ffe8a0;
 }
@@ -626,14 +676,14 @@ body.touch #touchControls { display: flex; }
 .mrName.gone { color: #55617a; text-decoration: line-through; }
 
 /* small screens (portrait or landscape phones): compact the menu so it fits
-   more often — and when it still doesn't, #overlay scrolls. Placed after the
+   more often — and when it still doesn't, the card column scrolls. Placed after the
    menu rules above so the equal-specificity overrides here win the cascade. */
 @media (max-width: 700px), (max-height: 700px) {
-  #overlay { gap: 10px; }
   #overlay h1 { font-size: 28px; letter-spacing: 3px; }
   #overlay h2 { font-size: 13px; }
   #overlay .panel { padding: 10px 12px; font-size: 11px; line-height: 1.7; }
-  #overlay .screen { gap: 10px; }
+  .screenScroll { gap: 10px; }
+  .navBar { min-height: 40px; }
   #overlay .goBtn { font-size: 15px; padding: 11px 20px; }
   /* the cards get shorter rows, never narrower ones — width is what runs out */
   .menuList { --optH: 36px; gap: 5px; }

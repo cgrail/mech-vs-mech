@@ -87,7 +87,7 @@ document.getElementById('menuBack').addEventListener('click', () => showModeScre
 function showLevelScreen(show) {
   levelScreen.classList.toggle('hidden', !show);
   menuScreen.classList.toggle('hidden', show);
-  overlay.classList.toggle('level', show); // hides the title, lighter dimming
+  overlay.classList.toggle('level', show); // lighter dimming, the map shows through
 }
 document.getElementById('levelBack').addEventListener('click', () => showLevelScreen(false));
 
@@ -267,13 +267,10 @@ function buildLevelList() {
 
 buildLevelList();
 window.addEventListener('mech:levelchanged', buildLevelList);
-{
-  // start the scrollable list centered on the current level
-  const sel = levelList.querySelector('button.selected');
-  if (sel) levelList.scrollTop = sel.offsetTop - (levelList.clientHeight - sel.offsetHeight) / 2;
-  // the screen stays invisible until every level entry is in place
-  setTimeout(() => levelScreen.classList.remove('loading'), 1200);
-}
+// the screen stays invisible until every level entry is in place. It opens
+// centered on the district that is already on screen — that is the menu cursor
+// landing on the marked row, nothing here (ui/menu.js `focusFirst`).
+setTimeout(() => levelScreen.classList.remove('loading'), 1200);
 
 /* pull the fog back while the menu's orbit camera circles the whole map */
 scene.fog.near = 300;
@@ -311,13 +308,18 @@ export function endGame(victory, reason) {
     nextLevel = victory && !MP.active ? findNextLevel() : null;
     showLevelScreen(false);
     overlay.classList.remove('hidden');
-    overlay.querySelector('h1').textContent = victory ? 'VICTORY'
+    // the end screen is the mission menu with a result card on top of its
+    // column and the briefing turned into the report (index.html)
+    const title = document.getElementById('resultTitle');
+    title.textContent = victory ? 'VICTORY'
       : MP.active || game.mode === 'ctf' ? 'DEFEAT' : 'BASE LOST';
-    overlay.querySelector('h1').style.color = victory ? '#7CFF6B' : '#ff5040';
-    overlay.querySelector('h2').textContent = reason || (victory
+    title.style.color = victory ? '#7CFF6B' : '#ff5040';
+    document.getElementById('resultSub').textContent = reason || (victory
       ? 'ENEMY BASE DESTROYED — DISTRICT SECURED'
       : 'YOUR BASE WAS DESTROYED');
-    // the end screen reuses the menu — going back to mode select doesn't apply here
+    document.getElementById('resultCard').classList.remove('mpHidden');
+    document.getElementById('menuTitle').textContent = MP.active ? 'MULTIPLAYER MATCH' : 'MISSION COMPLETE';
+    // going back to the mode select doesn't apply here
     document.getElementById('menuBack').classList.add('mpHidden');
     document.getElementById('briefHead').textContent = 'MISSION REPORT';
     if (MP.active) {
