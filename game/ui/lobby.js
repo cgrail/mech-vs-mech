@@ -164,21 +164,54 @@ if (MP.active) {
     matchScreen.classList.add('hidden');
     startGame();
   });
-  /* ---------- end screen: NEXT MAP ----------
+  /* ---------- end screen: NEXT MAP, and the countdown to it ----------
      The finished match's socket is still open, so the whole roster can roll
      on to the next map in one step: the server mints a follow-up match and
-     everyone still connected reloads into it (see 'matchStart' below). */
+     everyone still connected reloads into it (see 'matchStart' below).
+
+     It also happens on its own after AUTO_NEXT seconds, so a session keeps
+     its momentum without anyone having to press anything. Everyone's timer
+     runs out at roughly the same moment, which is harmless: the first
+     request the server sees mints the match, and the rest only re-send the
+     same matchStart to the same roster. The button is still there for
+     whoever wants it sooner, and BACK TO LOBBY for whoever wants out. */
   const nextMapBtn = document.getElementById('nextMapBtn');
   const subLine = document.querySelector('#menuScreen .sub');
-  nextMapBtn.addEventListener('click', () => {
+  const AUTO_NEXT = 10;   // seconds on the end screen before the next map starts itself
+  let autoLeft = 0;
+  let autoTimer = null;
+
+  function stopAuto() {
+    clearTimeout(autoTimer);
+    autoTimer = null;
+    nextMapBtn.textContent = '▸ NEXT MAP';
+  }
+
+  function askNextMap() {
+    stopAuto();
     if (!connected()) { subLine.textContent = 'NO CONNECTION TO THE SERVER'; return; }
     send({ type: 'nextMatch' });
     nextMapBtn.disabled = true;
     subLine.textContent = 'WAITING FOR THE NEXT MAP…';
+  }
+
+  function tickAuto() {
+    if (autoLeft <= 0) { askNextMap(); return; }
+    nextMapBtn.textContent = `▸ NEXT MAP IN ${autoLeft}s`;
+    autoLeft--;
+    autoTimer = setTimeout(tickAuto, 1000);
+  }
+
+  nextMapBtn.addEventListener('click', askNextMap);
+  window.addEventListener('mech:endscreen', () => {
+    if (!connected()) return; // flow.js only offers the button while the server is reachable
+    autoLeft = AUTO_NEXT;
+    tickAuto();
   });
 
   on('error', (m) => {
     if (game.state === 'over') {   // a NEXT MAP that the server turned down
+      stopAuto();                  // don't count down into the same refusal again
       nextMapBtn.disabled = false;
       subLine.textContent = m.message;
       return;
@@ -201,6 +234,7 @@ if (MP.active) {
   });
   on('close', () => {
     if (game.state === 'menu') matchFail('CONNECTION LOST — IS THE SERVER RUNNING?');
+    else stopAuto(); // no server to roll the match on: stop promising a next map
   });
 }
 

@@ -107,7 +107,8 @@ struct MenuScreen: View {
                     Button {
                         model.requestNextMap()
                     } label: {
-                        Text("▸ NEXT MAP")
+                        // it starts by itself when the countdown runs out
+                        Text(model.nextMapIn.map { "▸ NEXT MAP IN \($0)s" } ?? "▸ NEXT MAP")
                             .font(.system(size: 18, weight: .heavy))
                             .kerning(3)
                             .frame(minWidth: 200)

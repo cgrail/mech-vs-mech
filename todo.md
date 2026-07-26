@@ -11,5 +11,7 @@
     → one vertical column of same-sized rows on both builds (game/ui/menu.js,
       UI/Styles.swift OptionRow): every setting cycles through ◂ ▸ instead of
       a button per value, squared-off 90s skin, and ↑↓ ←→ Enter drive it
-[ ] on multiplayer, start next game when one games is finished after 10 seconds to keep the momentum going. continue with the next level
+[x] on multiplayer, start next game when one games is finished after 10 seconds to keep the momentum going. continue with the next level
+    → the end screen counts down from 10s and fires nextMatch itself; the
+      first request the server sees mints the match for the whole roster
 [ ] on multiplayer, when only one room is available and there is enough capacity, directly enter that room. make it smoother

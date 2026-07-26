@@ -53,6 +53,8 @@ final class AppModel: ObservableObject {
     @Published var endReason: String?
     /* the end screen's NEXT MAP status line ("waiting…", or why not) */
     @Published var nextMapNote: String?
+    /* seconds left before the next map starts by itself (nil: not counting) */
+    @Published var nextMapIn: Int?
     @Published private(set) var engine: GameEngine
     @Published var levelIndex: Int
 
@@ -88,6 +90,7 @@ final class AppModel: ObservableObject {
     var lobby: LobbyModel!
 
     private let gyro = GyroController()
+    private var nextMapTimer: Timer?   // end screen → next multiplayer match
     private var messageClearTask: DispatchWorkItem?
     private var hintClearTask: DispatchWorkItem?
 
@@ -134,6 +137,7 @@ final class AppModel: ObservableObject {
         buildHint = nil
         endReason = nil
         nextMapNote = nil
+        stopNextMapCountdown()
     }
 
     // MARK: - Screen flow (single player)
@@ -168,6 +172,7 @@ final class AppModel: ObservableObject {
     /* end screen: NEXT LEVEL advances through the bundle, REDEPLOY replays */
     func continueFromEndScreen() {
         gyro.stop()
+        stopNextMapCountdown()
         if isMPMatch {
             isMPMatch = false
             rebuildEngine()          // drop the match engine back to a menu engine
@@ -185,14 +190,42 @@ final class AppModel: ObservableObject {
        a matchStart, which drops us into the boot handshake (enterMatchBoot);
        an error comes back as a note under the button. */
     func requestNextMap() {
+        stopNextMapCountdown()
         nextMapNote = "WAITING FOR THE NEXT MAP…"
         lobby.nextMatch()
+    }
+
+    /* ---------- the countdown to it ----------
+       A finished match rolls on by itself after AUTO_NEXT seconds, so a
+       session keeps its momentum without anyone having to press anything.
+       Every client's timer runs out at roughly the same moment, which is
+       harmless: the first request the server sees mints the match and the
+       rest only re-send the same matchStart to the same roster. Ports the
+       same countdown in game/ui/lobby.js. */
+    static let AUTO_NEXT = 10
+
+    private func startNextMapCountdown() {
+        stopNextMapCountdown()
+        guard isMPMatch, lobby.isConnected else { return }
+        nextMapIn = Self.AUTO_NEXT
+        nextMapTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+            guard let self else { return }
+            let left = (self.nextMapIn ?? 0) - 1
+            if left <= 0 { self.requestNextMap() } else { self.nextMapIn = left }
+        }
+    }
+
+    func stopNextMapCountdown() {
+        nextMapTimer?.invalidate()
+        nextMapTimer = nil
+        nextMapIn = nil
     }
 
     /* a matchStart landing while a finished (or still-running) match is on
        screen: throw that engine away and show the boot handshake */
     func enterMatchBoot() {
         gyro.stop()
+        stopNextMapCountdown()
         isMPMatch = false
         nextMapNote = nil
         rebuildEngine()
@@ -327,6 +360,7 @@ extension AppModel: EngineDelegate {
                 self.endReason = reason
                 self.nextMapNote = nil
                 self.screen = .over
+                self.startNextMapCountdown()   // multiplayer rolls on by itself
             }
         }
     }

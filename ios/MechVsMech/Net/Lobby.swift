@@ -157,6 +157,7 @@ final class LobbyModel: ObservableObject {
     /* the end screen's NEXT MAP: the server mints a follow-up match for
        everyone still connected, on the next map in its bundle */
     func nextMatch() { net.send(["type": "nextMatch"]) }
+    var isConnected: Bool { net.isConnected }
     /* pick the room's map — the server rejects this from anyone but its owner */
     func setLevel(_ param: String) { net.send(["type": "setLevel", "level": param]) }
     /* …and its mode, same rule */

@@ -334,6 +334,8 @@ export function endGame(victory, reason) {
           : 'The district has fallen. Redeploy and try again.');
       document.getElementById('startBtn').textContent = nextLevel ? 'NEXT LEVEL' : 'REDEPLOY';
     }
+    // the multiplayer end screen counts itself down to the next map (lobby.js)
+    window.dispatchEvent(new Event('mech:endscreen'));
   }, 1400);
   showMessage(victory ? 'ENEMY BASE DESTROYED' : 'YOUR BASE HAS FALLEN', victory ? '#7CFF6B' : '#ff5040');
   boomSfx(0.5, 1.2);
