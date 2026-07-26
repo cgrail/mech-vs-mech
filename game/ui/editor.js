@@ -176,10 +176,11 @@ for (const t of TILES) {
   sw.className = 'edSwatch';
   sw.style.background = t.color;
   b.append(sw, document.createTextNode(t.label));
+  // no blur(): focus is the menu cursor now (ui/menu.js), so dropping it
+  // would send the next ↑ / ↓ back to the top of the screen
   b.addEventListener('click', () => {
     tool = t.ch;
     reflectTool();
-    b.blur();
   });
   paletteEl.appendChild(b);
 }
@@ -217,7 +218,6 @@ for (const b of document.querySelectorAll('#edSize button')) {
   b.addEventListener('click', () => {
     const [axis, sign] = [b.dataset.size[0], b.dataset.size[1] === '+' ? 1 : -1];
     resize(axis === 'w' ? sign : 0, axis === 'h' ? sign : 0);
-    b.blur();
   });
 }
 
