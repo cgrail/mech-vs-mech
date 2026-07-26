@@ -81,10 +81,10 @@ struct LobbyView: View {
                 .font(.system(size: 10, weight: .bold)).kerning(1.5)
                 .foregroundColor(lobby.phase == .dead ? Color(hex: 0xff8a7a) : Skin.dimText)
                 .multilineTextAlignment(.center)
+            // no DEPLOY button: the rejoin reports in by itself, so the only
+            // action a boot screen can offer is the way out of a dead one
             if lobby.phase == .dead {
                 BigActionButton(title: "BACK TO LOBBY", icon: "chevron.left") { lobby.backToLobby() }
-            } else if lobby.readyShown {
-                BigActionButton(title: "DEPLOY", icon: "bolt.fill") { lobby.ready() }
             }
         }
     }

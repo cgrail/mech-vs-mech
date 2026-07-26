@@ -191,16 +191,17 @@ if (MP.active) {
   }
 
   on('open', () => send({ type: 'rejoin', matchId: MP.matchId, token: MP.token }));
+  /* Report in the moment the rejoin lands, rather than off a DEPLOY button:
+     the pilot committed in the lobby, and a second press per client only held
+     the rest of the roster up. Nothing here is a user gesture any more — the
+     page reloaded since the one in the lobby — so the audio context comes up
+     suspended and audio.js resumes it on the first click or key in the match. */
   on('rejoined', () => {
     if (matchDead) return;
-    renderMatchInfo('');
-    readyBtn.onclick = () => {
-      audioCtx(); // unlock audio on the user gesture
-      send({ type: 'ready' });
-      show(readyBtn, false);
-      renderMatchInfo('WAITING FOR THE OTHER PILOTS TO DEPLOY…');
-    };
-    show(readyBtn, true);
+    audioCtx();
+    send({ type: 'ready' });
+    show(readyBtn, false);
+    renderMatchInfo('WAITING FOR THE OTHER PILOTS…');
   });
   on('ready', (m) => {
     if (game.state !== 'menu' || matchDead) return;

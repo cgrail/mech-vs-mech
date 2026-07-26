@@ -3,7 +3,19 @@
 ============================================================ */
 let AC = null;
 export function audioCtx() {
-  if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)();
+  if (!AC) {
+    AC = new (window.AudioContext || window.webkitAudioContext)();
+    // A context built outside a user gesture starts suspended and stays silent
+    // — which is what a multiplayer match is, since it deploys itself on a
+    // freshly reloaded page (ui/lobby.js). Wake it on the first input instead;
+    // in a match that is the click that locks the pointer, at the latest.
+    if (AC.state === 'suspended') {
+      const wake = () => AC.resume();
+      for (const ev of ['pointerdown', 'keydown', 'touchstart']) {
+        window.addEventListener(ev, wake, { once: true });
+      }
+    }
+  }
   return AC;
 }
 

@@ -63,7 +63,6 @@ final class LobbyModel: ObservableObject {
     // match boot
     @Published var bootRoster: [MPPlayer] = []
     @Published var bootStatus = ""
-    @Published var readyShown = false
 
     private var myName = ""
     private var pending: (config: MPConfig, levelParam: String)?
@@ -247,7 +246,7 @@ final class LobbyModel: ObservableObject {
         case "rejoined":
             guard phase == .matchBoot, !isDead else { return }
             renderBoot(sub: "")
-            readyShown = true
+            ready()   // START MATCH was the decision; nobody presses DEPLOY twice
 
         case "ready":
             guard phase == .matchBoot, !isDead else { return }
@@ -416,7 +415,6 @@ final class LobbyModel: ObservableObject {
         pending = (config, levelParam)
         bootRoster = roster
         goneIds.removeAll()
-        readyShown = false
         phase = .matchBoot
         bootStatus = "CONNECTING TO THE MATCH…"
         // the server already dropped our lobby-client record when it minted the
@@ -447,13 +445,14 @@ final class LobbyModel: ObservableObject {
         app?.startMatch(config: pending.config, levelParam: pending.levelParam, level: matchLevel)
     }
 
-    /* the DEPLOY button in the match-boot screen */
+    /* Reporting in for the match. Sent the moment the rejoin lands rather than
+       off a button: the pilot already committed in the lobby, and a second
+       DEPLOY press per client only held everyone else up. */
     func ready() {
         guard phase == .matchBoot, !isDead else { return }
-        app?.engine.audio.startMusic()   // unlock audio on the user gesture
+        app?.engine.audio.startMusic()
         net.send(["type": "ready"])
-        readyShown = false
-        bootStatus = "WAITING FOR THE OTHER PILOTS TO DEPLOY…"
+        bootStatus = "WAITING FOR THE OTHER PILOTS…"
     }
 
     private func renderBoot(sub: String?) {
@@ -464,7 +463,6 @@ final class LobbyModel: ObservableObject {
 
     private func failMatch(_ text: String) {
         phase = .dead
-        readyShown = false
         bootStatus = text
     }
 
