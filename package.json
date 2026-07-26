@@ -11,6 +11,7 @@
     "start": "node server/server.js",
     "dev": "vite",
     "build": "vite build",
+    "check-levels": "node tools/check-levels.mjs levels/levels.txt",
     "preview": "vite preview"
   },
   "dependencies": {

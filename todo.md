@@ -18,7 +18,9 @@
 [x] map editor which allows creating new maps.
     → MAP EDITOR on the mode screen (web): paint tiles, play it, COPY TEXT
       to paste into levels/levels.txt
-[ ] evan bigger maps
+[x] evan bigger maps
+    → level57 THE SPRAWL (47x61) and level58 THE EXPANSE (55x71), both well
+      past the old 41x51 maximum; `npm run check-levels` validates the bundle
 [ ] capture the flag mode
 [ ] nicer graphics
 [ ] option to fall off cliff or off level.
