@@ -114,7 +114,9 @@ final class AppModel: ObservableObject {
         levelIndex = 0
         difficultyKey = DifficultyKey(rawValue: UserDefaults.standard.string(forKey: "mechDifficulty") ?? "") ?? .medium
         scheme = ControlScheme(rawValue: UserDefaults.standard.string(forKey: "mechControls") ?? "") ?? .joystick
-        fogOfWar = UserDefaults.standard.bool(forKey: "mechFog")
+        // night is the default: only a pilot who has switched it off has a
+        // stored answer at all (game/core/state.js reads `mechFog` the same way)
+        fogOfWar = UserDefaults.standard.object(forKey: "mechFog") as? Bool ?? true
         let savedMode = GameMode(rawValue: UserDefaults.standard.string(forKey: "mechMode") ?? "") ?? .assault
         mode = savedMode
         engine = Self.makeEngine(info: loaded.first ?? Self.fallbackInfo,

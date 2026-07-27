@@ -65,7 +65,9 @@ export const game = {
   // remembered like the difficulty; in multiplayer the room's, dealt out with
   // the match credentials so everyone fights the same district in the same
   // weather. It restricts the view, never the simulation, either way.
-  fogOfWar: MP.active ? MP.fog : localStorage.getItem('mechFog') === '1',
+  // Night is the default — a pilot who has never touched the row gets the
+  // district after dark, so `mechFog` is only read for its "no".
+  fogOfWar: MP.active ? MP.fog : localStorage.getItem('mechFog') !== '0',
 };
 
 /* Touch/mobile input, written by systems/mobile.js, read by the player update.
