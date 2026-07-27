@@ -163,6 +163,8 @@ final class GameEngine {
     var visionHiding = false
     /// the mech's sensor lamp, built the first time fog of war is switched on
     var lampRig: SCNNode?
+    /// the fixed pool of lamps friendly turrets take turns holding (Vision.swift)
+    var turretLamps: [TurretLamp] = []
     var nextWaveAt = 5.0
     private var salvageTrickle = 0.0
     private var lastTime: TimeInterval?

@@ -1,7 +1,7 @@
 # Todo
 
 [x] double tapping on mobile zooms in. especially in menus it's not good. disable double tapping and zooming.
-[ ] you turrets should also have lights. they help illuminate the game.
+[x] you turrets should also have lights. they help illuminate the game.
 [ ] the light version should also be available in the multi player version and the person who selects the level should also enable or disable it for everybody.
 [ ] rename fog of war to night mode and the normal mode day mode
 [ ] the more you get hit, the darker and narrower becomes your light.

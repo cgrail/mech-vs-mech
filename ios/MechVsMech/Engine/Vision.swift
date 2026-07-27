@@ -76,6 +76,48 @@ private let HOLD = 0.4                           // sensor lock: contact is kept
    not to hold the same numbers. */
 private let LAMP_TILT = 0.227      // radians the beam is tipped down (~13°)
 
+/* ---------- friendly turret lamps ----------
+   A turret of yours is an outpost at night, not a silhouette: it holds a lamp
+   of its own, which is what makes the corner it covers readable before you
+   walk into it. Only your own team's — an enemy emplacement lighting itself up
+   would hand over exactly the intel the fog is there to withhold.
+
+   Lights are the one thing here that cannot simply be per entity: a player can
+   build turrets all match, and a renderer re-does its lighting setup whenever
+   the *number* of lights in the scene changes. So the lamps are a fixed pool,
+   lent to the nearest friendly turrets and dimmed to zero — never hidden,
+   never removed — when there is no post for one. A lamp is re-posted only once
+   it is dark, so a light never teleports across the district mid-glow.
+   Intensities are lumens, tuned to look like vision.js's candela rather than
+   to match its numbers. */
+private let TLAMP = (
+    color: 0xbcd8ff,
+    intensity: 1100.0,   // against the base beacons' 1500 over 45 units
+    falloff: 0.7,        // the sensor lamp's reasoning: physical is too dark to play
+    reach: 34.0,         // a pool around the emplacement, not a second sun
+    height: 4.6,         // just above the head, so the head is lit too
+    pool: 4,             // lamps to go round
+    ramp: 0.5            // seconds a lamp takes to come up or go dark
+)
+
+/// one lamp of that pool and the turret it is currently posted on
+final class TurretLamp {
+    let node = SCNNode()
+    weak var at: Entity?
+    var level = 0.0      // lumens right now, ramped toward its target
+
+    init() {
+        let omni = SCNLight()
+        omni.type = .omni
+        omni.color = UIColor(rgb: TLAMP.color)
+        omni.intensity = 0
+        omni.attenuationStartDistance = 0
+        omni.attenuationEndDistance = CGFloat(TLAMP.reach)
+        omni.attenuationFalloffExponent = CGFloat(TLAMP.falloff)
+        node.light = omni
+    }
+}
+
 extension GameEngine {
 
     private func makeLamp() -> SCNNode {
@@ -124,6 +166,40 @@ extension GameEngine {
         return rig
     }
 
+    /* hand the pool to the nearest friendly turrets. Runs on the sensor
+       sweep's budget — turrets do not move, so a lamp's position is set once,
+       when it is posted. */
+    private func postTurretLamps() {
+        if turretLamps.isEmpty { return }
+        let near = entities
+            .filter { $0.kind == .turret && $0.alive && $0.team == player.team }
+            .sorted { a, b in
+                let da = (a.x - player.x) * (a.x - player.x) + (a.z - player.z) * (a.z - player.z)
+                let db = (b.x - player.x) * (b.x - player.x) + (b.z - player.z) * (b.z - player.z)
+                return da < db
+            }
+        let want = Array(near.prefix(TLAMP.pool))
+        for l in turretLamps where !want.contains(where: { $0 === l.at }) { l.at = nil }
+        for t in want {
+            if turretLamps.contains(where: { $0.at === t }) { continue }
+            guard let free = turretLamps.first(where: { $0.at == nil && $0.level <= 0.01 }) else { break }
+            free.at = t
+            free.node.position = SCNVector3(t.x, t.y + TLAMP.height, t.z)
+        }
+    }
+
+    /* the lamps come up and go dark on their own clock, so a lamp being
+       re-posted (or its turret blowing up) reads as a light powering down
+       rather than as one blinking out */
+    private func rampTurretLamps(dt: Double) {
+        let step = TLAMP.intensity * dt / TLAMP.ramp
+        for l in turretLamps {
+            let want = (l.at?.alive ?? false) ? TLAMP.intensity : 0
+            l.level = want > l.level ? min(want, l.level + step) : max(want, l.level - step)
+            l.node.light?.intensity = CGFloat(l.level)
+        }
+    }
+
     /* the lamp rides the mech — while it is alive. A dead mech's lamp stays
        where it fell rather than following the wreck out of the scene.
        `always` is the moment it is switched on, which puts it on the mech
@@ -149,8 +225,17 @@ extension GameEngine {
             lampRig = rig
             if rig.parent == nil { scene.rootNode.addChildNode(rig) }
             rideMech(always: true)   // in place for the first frame, not at the map's centre
+            if turretLamps.isEmpty { turretLamps = (0..<TLAMP.pool).map { _ in TurretLamp() } }
+            for l in turretLamps where l.node.parent == nil { scene.rootNode.addChildNode(l.node) }
+            postTurretLamps()
         } else {
             lampRig?.removeFromParentNode()
+            for l in turretLamps {
+                l.node.removeFromParentNode()
+                l.at = nil
+                l.level = 0
+                l.node.light?.intensity = 0
+            }
         }
     }
 
@@ -231,11 +316,13 @@ extension GameEngine {
         visionHiding = true
 
         rideMech()
+        rampTurretLamps(dt: dt)
 
         /* the sweep: the expensive part, so it runs on its own budget */
         visionAcc -= dt
         if visionAcc <= 0 {
             visionAcc = TICK
+            postTurretLamps()
             for e in entities {
                 if e.team == player.team || e.kind == .base { e.contact = 1; continue }
                 e.contact = e.alive ? contactOf(e, player.x, player.y + 5, player.z) : 0

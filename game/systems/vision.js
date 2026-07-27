@@ -105,6 +105,65 @@ function lamp() {
   return rig;
 }
 
+/* ---------- friendly turret lamps ----------
+   A turret of yours is an outpost at night, not a silhouette: it holds a lamp
+   of its own, which is what makes the corner it covers readable before you
+   walk into it. Only your own team's — an enemy emplacement lighting itself up
+   would hand over exactly the intel the fog is there to withhold.
+
+   Lights are the one thing here that cannot simply be per entity: a player can
+   build turrets all match, and three.js recompiles every lit material whenever
+   the *number* of lights in the scene changes. So the lamps are a fixed pool,
+   lent to the nearest friendly turrets and dimmed to zero — never hidden, never
+   removed — when there is no post for one. The count stays put; only the
+   intensities move. A lamp is re-posted once it is dark, so a light never
+   teleports across the district mid-glow. */
+const TLAMP = {
+  color: 0xbcd8ff,
+  intensity: 15,       // candela, against the night look's exposure
+  decay: 0.7,          // the sensor lamp's reasoning: physical is too dark to play
+  reach: 34,           // a pool around the emplacement, not a second sun
+  height: 4.6,         // just above the head, so the head is lit too
+  pool: 4,             // lamps to go round
+  ramp: 0.5,           // seconds a lamp takes to come up or go dark
+};
+let tRigs = null;
+
+function turretLamps() {
+  if (!tRigs) {
+    tRigs = [];
+    for (let i = 0; i < TLAMP.pool; i++) {
+      const l = new THREE.PointLight(TLAMP.color, 0, TLAMP.reach, TLAMP.decay);
+      l.at = null;   // the turret this lamp is currently posted on
+      tRigs.push(l);
+    }
+  }
+  return tRigs;
+}
+
+/* hand the pool to the nearest friendly turrets. Runs on the sensor sweep's
+   budget — turrets do not move, so a lamp's position is set once, when it is
+   posted. */
+function postTurretLamps(px, pz) {
+  if (!tRigs) return;
+  const near = [];
+  for (const e of entities) {
+    if (e.kind !== 'turret' || !e.alive || e.team !== player.team) continue;
+    const q = e.group.position;
+    near.push({ d: (q.x - px) ** 2 + (q.z - pz) ** 2, e });
+  }
+  near.sort((a, b) => a.d - b.d);
+  const want = near.slice(0, TLAMP.pool).map((n) => n.e);
+  for (const l of tRigs) if (!want.includes(l.at)) l.at = null;
+  for (const t of want) {
+    if (tRigs.some((l) => l.at === t)) continue;
+    const free = tRigs.find((l) => !l.at && l.intensity <= 0.01); // dark ones only
+    if (!free) break;
+    free.at = t;
+    free.position.set(t.group.position.x, t.group.position.y + TLAMP.height, t.group.position.z);
+  }
+}
+
 /* the lamp rides the mech — while it is alive. A dead mech's lamp stays
    where it fell rather than following the wreck out of the scene. `always`
    is the moment it is switched on, which puts it on the mech whatever state
@@ -127,7 +186,12 @@ export function applyFog() {
   if (on) {
     scene.add(lamp());
     rideMech(true);   // in place for the first frame, not at the map's centre
-  } else if (rig) scene.remove(rig);
+    for (const l of turretLamps()) scene.add(l);
+    postTurretLamps(player.group.position.x, player.group.position.z);
+  } else {
+    if (rig) scene.remove(rig);
+    for (const l of tRigs || []) { scene.remove(l); l.at = null; l.intensity = 0; }
+  }
 }
 
 /* ---------- sensor contact with a bare world point ----------
@@ -218,10 +282,21 @@ export function updateVision(dt) {
   rideMech();
 
   /* the sweep: the expensive part, so it runs on its own budget */
+  /* the turret lamps come up and go dark on their own clock, so a lamp being
+     re-posted (or its turret blowing up) reads as a light powering down
+     rather than as one blinking out */
+  for (const l of tRigs || []) {
+    const want = l.at && l.at.alive ? TLAMP.intensity : 0;
+    const step = TLAMP.intensity * dt / TLAMP.ramp;
+    l.intensity = want > l.intensity ? Math.min(want, l.intensity + step)
+      : Math.max(want, l.intensity - step);
+  }
+
   acc -= dt;
   if (acc <= 0) {
     acc = TICK;
     const p = player.group.position;
+    postTurretLamps(p.x, p.z);
     for (const e of entities) {
       if (e.team === player.team || e.kind === 'base') { e.contact = 1; continue; }
       e.contact = e.alive ? contactOf(e, p.x, player.y + 5, p.z) : 0;
