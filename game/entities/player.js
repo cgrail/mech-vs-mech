@@ -35,6 +35,10 @@ player.group.position.set(SPAWN.x, player.y, SPAWN.z);
 /* ============================================================
    Player combat & movement
 ============================================================ */
+/* what is left of the mech's top speed at zero hp — damage is felt in the
+   legs as well as in the health bar (Player.swift holds the same number) */
+const HURT_SPEED = 0.65;
+
 function findAimTarget(muzzle, yaw) {
   // Future-Cop style aim assist: snap to best enemy in a narrow cone
   let best = null, bestAng = 0.16;
@@ -133,7 +137,12 @@ export function updatePlayer(dt) {
   }
   // run: Shift on a keyboard, the stick pushed to the rim on a phone
   const boost = held('boost') || touch.boost ? 1.65 : 1;
-  const speed = 16 * boost;
+  // …and a beaten-up mech is a slow one, all the way down to HURT_SPEED of
+  // full at zero hp, back up as the self-repair works. One rule for every
+  // pilot, nothing difficulty-scaled, so PvP stays symmetric — and it needs
+  // no wire traffic, since a replica is driven by the positions it is sent.
+  const hurt = HURT_SPEED + (1 - HURT_SPEED) * Math.max(0, Math.min(1, player.hp / player.maxHp));
+  const speed = 16 * boost * hurt;
   if (held('turnL')) player.yaw += 2.4 * dt;
   if (held('turnR')) player.yaw -= 2.4 * dt;
   if (touch.yaw !== null) {
@@ -167,7 +176,9 @@ export function updatePlayer(dt) {
 
   // walk animation + bob; also where velX/velZ (the lead enemy AI puts on its
   // shots) is measured, from ground covered rather than from the controls
-  const amp = animateWalk(player, dt, 9 * boost);
+  // the stride rate follows the speed the same way the boost does, or a
+  // limping mech would march on the spot at full tempo
+  const amp = animateWalk(player, dt, 9 * boost * hurt);
   player.group.position.y = player.y + (onGround ? Math.abs(Math.sin(player.walkPhase)) * 0.25 * amp : 0);
 
   // police light blink

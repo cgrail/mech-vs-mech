@@ -10,6 +10,9 @@ import simd
 ============================================================ */
 
 private let LOOK_SENS = 0.005   // radians per pt of horizontal look drag
+/* what is left of the mech's top speed at zero hp — damage is felt in the
+   legs as well as in the health bar (player.js holds the same number) */
+private let HURT_SPEED = 0.65
 
 extension GameEngine {
 
@@ -121,7 +124,12 @@ extension GameEngine {
         // run: the stick pushed to the rim, or a hard lean on the gyro
         // (TouchControls.swift) — the touch answer to the keyboard's Shift
         let boost = touch.boost ? 1.65 : 1.0
-        let speed = 16.0 * boost
+        // …and a beaten-up mech is a slow one, all the way down to HURT_SPEED
+        // of full at zero hp, back up as the self-repair works. One rule for
+        // every pilot, nothing difficulty-scaled, so PvP stays symmetric — and
+        // it needs no wire traffic, since a replica is driven by its positions.
+        let hurt = HURT_SPEED + (1 - HURT_SPEED) * min(1, max(0, player.hp / player.maxHp))
+        let speed = 16.0 * boost * hurt
         player.yaw -= lookDX * LOOK_SENS
         if let targetYaw = touch.yaw {
             // ease toward the compass heading along the shortest arc (1:1, no gain)
@@ -157,7 +165,9 @@ extension GameEngine {
         // walk animation + bob
         // …also where velX/velZ (the lead enemy AI puts on its shots) is
         // measured, from ground covered rather than from the controls
-        let amp = animateWalk(player, dt: dt, rate: 9 * boost)
+        // the stride rate follows the speed the same way the boost does, or a
+        // limping mech would march on the spot at full tempo
+        let amp = animateWalk(player, dt: dt, rate: 9 * boost * hurt)
         player.syncNode(bob: onGround ? abs(sin(player.walkPhase)) * 0.25 * amp : 0)
 
         // police light blink

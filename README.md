@@ -132,7 +132,7 @@ Salvage 🛢️ is your only resource:
 
 On touch devices the same jump sits on the ⬆️ button next to 🚀 and 🛰️. A jump peaks just under 5 units — enough to clear the 4-unit step between terrain tiers, so high ground is reachable anywhere and a pit is never a trap, but the 10-unit walls around the base compounds still are walls.
 
-Turrets are the backbone of your defense — place them to cover your base and choke points, then use the breathing room to assault the enemy base. Your mech slowly self-repairs after 5 seconds without taking damage, and if you're destroyed, you redeploy at your base after a short delay — but the enemy won't wait.
+Turrets are the backbone of your defense — place them to cover your base and choke points, then use the breathing room to assault the enemy base. Damage is felt in the legs, not just in the health bar: a battered mech walks and runs slower the closer it is to going down, so a fight you are losing is also a fight you can't stroll out of. Your mech slowly self-repairs after 5 seconds without taking damage — which is how the speed comes back — and if you're destroyed, you redeploy at your base after a short delay, but the enemy won't wait.
 
 ### Difficulty
 

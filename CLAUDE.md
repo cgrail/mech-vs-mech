@@ -203,7 +203,7 @@ Nothing manually elevates guns. All shooters (player aim assist in `player.js`, 
 
 ### Entity model
 
-One flat `entities` array (everything with hp); `kind` is `player | mech | turret | base`, `team` is `blue | red`. `registerEntity` adds to the array + scene and attaches the health-bar sprite. Death/damage flows through `projectiles.js` (`damageEntity`/`killEntity`), which also handles aggro retaliation, salvage rewards, and endgame. All red-side stats come from the difficulty tables in [core/state.js](game/core/state.js) — tune there, not with magic numbers in `ai.js`.
+One flat `entities` array (everything with hp); `kind` is `player | mech | turret | base`, `team` is `blue | red`. `registerEntity` adds to the array + scene and attaches the health-bar sprite. Death/damage flows through `projectiles.js` (`damageEntity`/`killEntity`), which also handles aggro retaliation, salvage rewards, and endgame. All red-side stats come from the difficulty tables in [core/state.js](game/core/state.js) — tune there, not with magic numbers in `ai.js`. The player's speed is the one stat that moves during a life: `HURT_SPEED` (`player.js` / `Player.swift`) walks a mech down to 65% of full at zero hp and back up with the self-repair, with the stride rate scaled the same way so it limps rather than marching on the spot. It is one rule for every pilot and **never difficulty-scaled**, which is what keeps it symmetric enough for PvP; it also needs no wire traffic, since a replica is driven by the positions it is sent.
 
 ### Frame loop
 
