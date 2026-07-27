@@ -139,8 +139,10 @@ private struct MissionMenu: View {
                 CardOptionRow(label: "CONTROLS", value: model.scheme.label) {
                     model.scheme = cycled(ControlScheme.allCases, model.scheme, $0)
                 }
-                // sensors only: enemies vanish out of sight (Engine/Vision.swift)
-                CardOptionRow(label: "🌫️ FOG OF WAR", value: model.fogOfWar ? "ON" : "OFF") { _ in
+                // night mode — the code's fog of war: after dark, the lamp and
+                // the sensors are the whole view (Engine/Vision.swift)
+                CardOptionRow(label: "🌙 LIGHTING",
+                              value: model.fogOfWar ? "NIGHT MODE" : "DAY MODE") { _ in
                     model.fogOfWar.toggle()
                 }
             }

@@ -244,16 +244,18 @@ struct LobbyView: View {
         }
     }
 
-    /* the weather this room fights in, on the same rule as the map and the
-       mode: its creator switches it, everyone else reads it. Fog of war only
-       ever hides things from the pilot who has it on (Engine/Vision.swift), so
-       it is safe in PvP — but a match where one side is at night and the other
-       in daylight is one district in two kinds of weather, so it is not the
-       pilot's own call here the way it is in the single-player menu. */
+    /* the weather this room fights in — day or night — on the same rule as the
+       map and the mode: its creator switches it, everyone else reads it. Night
+       mode (the code's fog of war) only ever hides things from the pilot who
+       has it on (Engine/Vision.swift), so it is safe in PvP — but a match where
+       one side is at night and the other in daylight is one district in two
+       kinds of weather, so it is not the pilot's own call here the way it is in
+       the single-player menu. */
     private var viewCard: some View {
-        SectionCard(icon: "cloud.fog.fill", title: "CONDITIONS",
+        SectionCard(icon: "moon.fill", title: "CONDITIONS",
                     note: lobby.iOwnRoom ? nil : "PICKED BY THE CREATOR") {
-            CardOptionRow(label: "🌫️ FOG OF WAR", value: lobby.roomFog ? "ON" : "OFF",
+            CardOptionRow(label: "🌙 LIGHTING",
+                          value: lobby.roomFog ? "NIGHT MODE" : "DAY MODE",
                           enabled: lobby.iOwnRoom) { _ in
                 lobby.setFog(!lobby.roomFog)
             }

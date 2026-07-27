@@ -145,22 +145,23 @@ function showMapList(on) {
   if (hit) { hit.b.focus(); hit.b.scrollIntoView({ block: 'center' }); }
 }
 
-/* the room's weather, on the same ◂ VALUE ▸ row the mission menu uses. Fog of
-   war only ever hides things from the pilot who has it on, so it is safe in
-   PvP — but a match where one side fights at night and the other in daylight
-   is one district in two kinds of weather, so it is the creator's call like
-   the map and the mode. The server holds the answer and refuses setFog from
-   anyone else; a joiner's row is there to be read. */
+/* the room's weather — day or night — on the same ◂ VALUE ▸ row the mission
+   menu uses. Night mode (the code's fog of war) only ever hides things from
+   the pilot who has it on, so it is safe in PvP — but a match where one side
+   fights at night and the other in daylight is one district in two kinds of
+   weather, so it is the creator's call like the map and the mode. The server
+   holds the answer and refuses setFog from anyone else; a joiner's row is
+   there to be read. */
 let roomFog = false;
 let canPickFog = false;
 const fogRow = addOption(document.getElementById('mpViewOpts'), {
-  label: '🌫️ FOG OF WAR',
-  values: [{ v: false, label: 'OFF' }, { v: true, label: 'ON' }],
+  label: '🌙 LIGHTING',
+  values: [{ v: false, label: 'DAY MODE' }, { v: true, label: 'NIGHT MODE' }],
   get: () => roomFog,
   // shown at once and confirmed by the broadcast, like the map stepper
   set: (v) => { roomFog = v; send({ type: 'setFog', fog: v }); },
   enabled: () => canPickFog,
-  title: 'Nightfall: your lamp and your sensors are all you get',
+  title: 'Night mode: your lamp and your sensors are all you get',
 });
 
 /* the room's mode, on the same cards the mission menu uses. The server rejects
