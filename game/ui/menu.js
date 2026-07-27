@@ -42,7 +42,7 @@ const overlay = document.getElementById('overlay');
    Two overrides, both used by the map row, whose values are the level bundle
    and so change under it: `step(dir)` replaces the cycle, and `activate`
    replaces what the middle button does — there, opening the full list. */
-export function addOption(list, { label, values, get, set, step, activate, title }) {
+export function addOption(list, { label, values, get, set, step, activate, title, enabled }) {
   const row = document.createElement('div');
   row.className = 'opt';
 
@@ -72,6 +72,10 @@ export function addOption(list, { label, values, get, set, step, activate, title
   function reflect() {
     const cur = get();
     v.textContent = values?.find((o) => o.v === cur)?.label ?? String(cur).toUpperCase();
+    // a value somebody else owns (a lobby room's, set by its creator): still
+    // there to be read, plainly not ours to change — and `disabled` is also
+    // what keeps the ↑ ↓ cursor from stopping on it
+    if (enabled) prev.disabled = next.disabled = main.disabled = !enabled();
   }
 
   function cycle(dir) {

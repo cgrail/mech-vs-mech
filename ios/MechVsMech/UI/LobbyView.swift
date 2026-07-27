@@ -200,6 +200,11 @@ struct LobbyView: View {
                             .font(.system(size: 9, weight: .bold)).kerning(1)
                             .foregroundColor(Skin.dimText)
                             .lineLimit(1)
+                        if r.fog {   // this room fights it at night
+                            Image(systemName: "moon.fill")
+                                .font(.system(size: 8, weight: .bold))
+                                .foregroundColor(Skin.blueText)
+                        }
                     }
                 }
                 Spacer(minLength: 4)
@@ -239,15 +244,18 @@ struct LobbyView: View {
         }
     }
 
-    /* The room decides the map and the mode; fog of war is the pilot's own
-       call — it is a view restriction (Engine/Vision.swift), never sent over
-       the wire, so two players in one match can disagree about it without the
-       match disagreeing with itself. Same row as the mission menu's setup
-       card, and the same stored setting, so a match plays what is set here. */
+    /* the weather this room fights in, on the same rule as the map and the
+       mode: its creator switches it, everyone else reads it. Fog of war only
+       ever hides things from the pilot who has it on (Engine/Vision.swift), so
+       it is safe in PvP — but a match where one side is at night and the other
+       in daylight is one district in two kinds of weather, so it is not the
+       pilot's own call here the way it is in the single-player menu. */
     private var viewCard: some View {
-        SectionCard(icon: "cloud.fog.fill", title: "YOUR VIEW", note: "YOURS ALONE, NOT THE ROOM'S") {
-            CardOptionRow(label: "🌫️ FOG OF WAR", value: model.fogOfWar ? "ON" : "OFF") { _ in
-                model.fogOfWar.toggle()
+        SectionCard(icon: "cloud.fog.fill", title: "CONDITIONS",
+                    note: lobby.iOwnRoom ? nil : "PICKED BY THE CREATOR") {
+            CardOptionRow(label: "🌫️ FOG OF WAR", value: lobby.roomFog ? "ON" : "OFF",
+                          enabled: lobby.iOwnRoom) { _ in
+                lobby.setFog(!lobby.roomFog)
             }
         }
     }

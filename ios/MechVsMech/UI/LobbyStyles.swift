@@ -410,29 +410,39 @@ struct ModeCard: View {
 struct CardOptionRow: View {
     let label: String
     let value: String
+    /* a value somebody else owns — a lobby room's, set by its creator: the row
+       still says what it is, but loses its steppers rather than offering a tap
+       the server would only refuse (game/ui/menu.js `addOption`'s `enabled`) */
+    var enabled = true
     let step: (Int) -> Void
 
     var body: some View {
         HStack(spacing: 6) {
-            stepper("chevron.left", -1)
-            Button { step(1) } label: {
-                HStack(spacing: 10) {
-                    Text(label)
-                        .font(.system(size: 11, weight: .heavy)).kerning(2)
-                        .foregroundColor(Skin.dimText)
-                    Spacer(minLength: 8)
-                    Text(value)
-                        .font(.system(size: 12, weight: .heavy)).kerning(1)
-                        .foregroundColor(Skin.gold)
-                        .lineLimit(1)
-                }
-                .padding(.horizontal, 12)
-                .frame(maxWidth: .infinity, minHeight: 38)
-                .pickBox(selected: false)
+            if enabled {
+                stepper("chevron.left", -1)
+                Button { step(1) } label: { face }
+                    .buttonStyle(CardButtonStyle())
+                stepper("chevron.right", 1)
+            } else {
+                face
             }
-            .buttonStyle(CardButtonStyle())
-            stepper("chevron.right", 1)
         }
+    }
+
+    private var face: some View {
+        HStack(spacing: 10) {
+            Text(label)
+                .font(.system(size: 11, weight: .heavy)).kerning(2)
+                .foregroundColor(Skin.dimText)
+            Spacer(minLength: 8)
+            Text(value)
+                .font(.system(size: 12, weight: .heavy)).kerning(1)
+                .foregroundColor(Skin.gold)
+                .lineLimit(1)
+        }
+        .padding(.horizontal, 12)
+        .frame(maxWidth: .infinity, minHeight: 38)
+        .pickBox(selected: false)
     }
 
     private func stepper(_ icon: String, _ dir: Int) -> some View {

@@ -7,8 +7,8 @@ import Combine
    Lobby: pick a callsign → join → create/join a room → pick a
    team (max 5/side) → START MATCH once both sides have a pilot.
    The room's creator also picks its map (`setLevel`, offered from
-   the server's own list — see LobbyModel.maps); everyone in the
-   room fights on that one. The server mints a match and everyone
+   the server's own list — see LobbyModel.maps), its mode and its
+   weather; everyone in the room fights that one setup. The server mints a match and everyone
    gets `matchStart`.
 
    Match boot: unlike the web (which reloads the page), iOS keeps
@@ -27,6 +27,7 @@ struct RoomInfo: Identifiable {
     let owner: Int       // the pilot who created it — only they pick the map
     let level: String    // the map everyone in this room will play
     let mode: GameMode   // …and the mode they will play it in
+    let fog: Bool        // …and whether they fight it at night
 }
 
 struct LobbyPlayer: Identifiable {
@@ -154,8 +155,10 @@ final class LobbyModel: ObservableObject {
     func join() {
         let n = name.trimmingCharacters(in: .whitespaces)
         guard !n.isEmpty else { return }
+        // my own map, mode and weather come along: a room I create starts on them
         net.send(["type": "join", "name": n, "level": app?.currentLevelParam() ?? "1",
-                  "mode": (app?.mode ?? .assault).rawValue])
+                  "mode": (app?.mode ?? .assault).rawValue,
+                  "fog": app?.fogOfWar ?? false])
     }
     func createRoom() { net.send(["type": "createRoom"]) }
     func joinRoom(_ id: Int) { net.send(["type": "joinRoom", "roomId": id]) }
@@ -176,6 +179,8 @@ final class LobbyModel: ObservableObject {
     func setLevel(_ param: String) { net.send(["type": "setLevel", "level": param]) }
     /* …and its mode, same rule */
     func setMode(_ mode: GameMode) { net.send(["type": "setMode", "mode": mode.rawValue]) }
+    /* …and the weather everyone fights in, same rule again */
+    func setFog(_ fog: Bool) { net.send(["type": "setFog", "fog": fog]) }
 
     func pickTeam(_ team: Team) {
         // tapping my own team steps back off the roster
@@ -290,7 +295,8 @@ final class LobbyModel: ObservableObject {
             guard let id = jInt(r, "id") else { continue }
             rs.append(RoomInfo(id: id, name: jStr(r, "name") ?? "ROOM", count: jInt(r, "count") ?? 0,
                                owner: jInt(r, "owner") ?? 0, level: jStr(r, "level") ?? "1",
-                               mode: GameMode(rawValue: jStr(r, "mode") ?? "") ?? .assault))
+                               mode: GameMode(rawValue: jStr(r, "mode") ?? "") ?? .assault,
+                               fog: jBool(r, "fog")))
         }
         var ps: [LobbyPlayer] = []
         for p in (obj["players"] as? [[String: Any]]) ?? [] {
@@ -367,6 +373,7 @@ final class LobbyModel: ObservableObject {
     var iOwnRoom: Bool { myId != nil && myRoomInfo?.owner == myId }
     var roomMapParam: String { myRoomInfo?.level ?? "1" }
     var roomMode: GameMode { myRoomInfo?.mode ?? .assault }
+    var roomFog: Bool { myRoomInfo?.fog ?? false }
     var roomMapTitle: String { mapTitle(roomMapParam) }
 
     /* ◂ / ▸ in the room: the neighbouring map in the server's list, wrapping
@@ -410,7 +417,8 @@ final class LobbyModel: ObservableObject {
         }
         let config = MPConfig(playerId: pid, myTeam: team, name: myName,
                               roster: roster, matchId: matchId, token: token,
-                              mode: GameMode(rawValue: jStr(obj, "mode") ?? "") ?? .assault)
+                              mode: GameMode(rawValue: jStr(obj, "mode") ?? "") ?? .assault,
+                              fog: jBool(obj, "fog"))
         let levelParam = jStr(obj, "level") ?? "1"
         pending = (config, levelParam)
         bootRoster = roster

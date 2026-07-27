@@ -25,13 +25,15 @@
      → leaveRoom                     ← lobby
      → setLevel {level}              ← lobby | error — room owner only
      → setMode {mode:assault|ctf}    ← lobby | error — room owner only
+     → setFog {fog:bool}             ← lobby | error — room owner only
      → team {team:blue|red|null}     ← lobby | error (team full)  — in a room
      → startMatch                    ← matchStart {matchId,token,playerId,team,
-                                         level,mode,roster:[{id,name,team}]}
+                                         level,mode,fog,roster:[{id,name,team}]}
                                        (to everyone on a team in the starter's
-                                        room; the room's map and mode are played)
+                                        room; the room's map, mode and weather
+                                        are played)
    Match protocol (players reload into ?mp=1, then):
-     → rejoin {matchId, token}       ← rejoined {playerId,team,level,mode,roster} | error
+     → rejoin {matchId, token}       ← rejoined {playerId,team,level,mode,fog,roster} | error
                                      ← peerJoined {id,name}  (to the others)
      → ready                         ← ready {count,total}
                                      ← go            (once every slot is ready)
@@ -238,8 +240,8 @@ const MAX_ROOMS = 50;      // caps room-spam from a hostile client
 let nextId = 1;
 let nextRoomId = 1;
 const lobby = new Map();   // id -> {id, ws, name, level, room, team}
-const rooms = new Map();   // id -> {id, name, owner, level, mode} — exists while it has members
-const matches = new Map(); // id -> {id, level, mode, created, started, slots:[{token, pid, team, name, ws, ready, connected, abandoned}]}
+const rooms = new Map();   // id -> {id, name, owner, level, mode, fog} — exists while it has members
+const matches = new Map(); // id -> {id, level, mode, fog, created, started, slots:[{token, pid, team, name, ws, ready, connected, abandoned}]}
 const ipConns = new Map(); // ip -> open connection count
 
 const send = (ws, obj) => {
@@ -273,7 +275,7 @@ function leaveRoom(c) {
 function roster() {
   const players = [...lobby.values()].map((c) => ({ id: c.id, name: c.name, room: c.room, team: c.team }));
   const rms = [...rooms.values()].map((r) => ({
-    id: r.id, name: r.name, owner: r.owner, level: r.level, mode: r.mode,
+    id: r.id, name: r.name, owner: r.owner, level: r.level, mode: r.mode, fog: !!r.fog,
     count: players.filter((p) => p.room === r.id).length,
   }));
   for (const c of lobby.values()) send(c.ws, { type: 'lobby', rooms: rms, players });
@@ -302,6 +304,9 @@ const cleanLevel = (l) => String(l ?? '1').replace(/[^\w\-]/g, '').slice(0, 32) 
 /* game mode: the room's, played by everyone in the match (see game/systems/ctf.js) */
 const MODES = ['assault', 'ctf'];
 const cleanMode = (m) => (MODES.includes(m) ? m : 'assault');
+/* fog of war: the room's too — one district, one weather, so the side that
+   fights at night isn't the side that happened to switch it on */
+const cleanFog = (f) => f === true;
 
 function dropFromLobby(c) {
   if (!lobby.has(c.id)) return;
@@ -389,6 +394,7 @@ wss.on('connection', (ws, req) => {
           id: nextId++, ws, name,
           level: cleanLevel(msg.level), // the level this player has loaded; used if they start the match
           mode: cleanMode(msg.mode),    // …and the mode they had picked, for a room they create
+          fog: cleanFog(msg.fog),       // …and whether they play at night
           room: null, team: null,
         };
         lobby.set(client.id, client);
@@ -408,7 +414,7 @@ wss.on('connection', (ws, req) => {
         // level they had loaded, as long as this server has it
         const room = {
           id: nextRoomId++, name: `${c.name.toUpperCase()}'S ROOM`,
-          owner: c.id, level: roomLevel(c.level), mode: cleanMode(c.mode),
+          owner: c.id, level: roomLevel(c.level), mode: cleanMode(c.mode), fog: cleanFog(c.fog),
         };
         rooms.set(room.id, room);
         c.room = room.id;
@@ -441,6 +447,20 @@ wss.on('connection', (ws, req) => {
         }
         if (!MODES.includes(msg.mode)) return;
         room.mode = msg.mode;
+        roster();
+        break;
+      }
+
+      case 'setFog': { // the room owner picks the weather: daylight or nightfall
+        if (!c || c.room == null) return;
+        const room = rooms.get(c.room);
+        if (!room) return;
+        if (room.owner !== c.id) {
+          send(ws, { type: 'error', message: 'ONLY THE PILOT WHO CREATED THE ROOM PICKS THE CONDITIONS' });
+          return;
+        }
+        if (typeof msg.fog !== 'boolean') return;
+        room.fog = msg.fog;
         roster();
         break;
       }
@@ -488,6 +508,7 @@ wss.on('connection', (ws, req) => {
           id: crypto.randomUUID(),
           level: rooms.get(roomId)?.level ?? c.level, // the room's map, picked by its owner
           mode: cleanMode(rooms.get(roomId)?.mode),   // …and its mode
+          fog: cleanFog(rooms.get(roomId)?.fog),      // …and its weather
           created: Date.now(),
           started: false,
           slots: fighters.map((o) => ({
@@ -504,7 +525,8 @@ wss.on('connection', (ws, req) => {
           const o = lobby.get(s.pid);
           send(o.ws, {
             type: 'matchStart', matchId: match.id, token: s.token,
-            playerId: s.pid, team: s.team, level: match.level, mode: match.mode, roster: players,
+            playerId: s.pid, team: s.team, level: match.level, mode: match.mode,
+            fog: match.fog, roster: players,
           });
           o.ws.client = null;
           lobby.delete(o.id);
@@ -528,7 +550,7 @@ wss.on('connection', (ws, req) => {
         ws.matchRef = { match, slot };
         send(ws, {
           type: 'rejoined', playerId: slot.pid, team: slot.team,
-          level: match.level, mode: cleanMode(match.mode),
+          level: match.level, mode: cleanMode(match.mode), fog: cleanFog(match.fog),
           roster: match.slots.filter((s) => !s.abandoned)
             .map((s) => ({ id: s.pid, name: s.name, team: s.team, connected: s.connected })),
         });
@@ -562,7 +584,8 @@ wss.on('connection', (ws, req) => {
           m.next = {
             id: crypto.randomUUID(),
             level: nextLevelParam(m.level),
-            mode: cleanMode(m.mode),   // a rematch keeps the mode it was fought in
+            mode: cleanMode(m.mode),   // a rematch keeps the mode it was fought in…
+            fog: cleanFog(m.fog),      // …and the weather
             created: Date.now(),
             started: false,
             slots: active.map((s) => ({
@@ -584,7 +607,8 @@ wss.on('connection', (ws, req) => {
           const old = m.slots.find((o) => o.pid === s.pid);
           send(old && old.ws, {
             type: 'matchStart', matchId: next.id, token: s.token,
-            playerId: s.pid, team: s.team, level: next.level, mode: next.mode, roster: players,
+            playerId: s.pid, team: s.team, level: next.level, mode: next.mode,
+            fog: next.fog, roster: players,
           });
         }
         break;

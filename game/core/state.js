@@ -61,9 +61,11 @@ export const game = {
   // in multiplayer the mode is the room's, dealt out with the match
   // credentials (net.js); in single player it's this menu choice
   mode: MP.active ? MP.mode : (MODES[savedMode] ? savedMode : 'assault'),
-  // fog of war: a local view restriction, remembered like the difficulty
-  // (systems/vision.js — never sent over the wire, so it is safe in PvP)
-  fogOfWar: localStorage.getItem('mechFog') === '1',
+  // fog of war (systems/vision.js): in single player the menu's own choice,
+  // remembered like the difficulty; in multiplayer the room's, dealt out with
+  // the match credentials so everyone fights the same district in the same
+  // weather. It restricts the view, never the simulation, either way.
+  fogOfWar: MP.active ? MP.fog : localStorage.getItem('mechFog') === '1',
 };
 
 /* Touch/mobile input, written by systems/mobile.js, read by the player update.

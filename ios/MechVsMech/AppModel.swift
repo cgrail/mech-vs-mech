@@ -83,8 +83,10 @@ final class AppModel: ObservableObject {
             if !isMPMatch && screen != .playing { rebuildEngine() }
         }
     }
-    /* fog of war (Engine/Vision.swift): remembered like the difficulty, and
-       applied to a running match right away */
+    /* fog of war (Engine/Vision.swift): the single-player choice, remembered
+       like the difficulty and applied to a running game right away. A
+       multiplayer match plays its room's instead (MPConfig.fog) — one district
+       cannot be at night for one side and in daylight for the other. */
     @Published var fogOfWar: Bool {
         didSet {
             UserDefaults.standard.set(fogOfWar, forKey: "mechFog")
@@ -362,7 +364,7 @@ final class AppModel: ObservableObject {
         let info = level ?? resolveLevel(levelParam)
         rebuildEngine(mp: config, net: lobby.net, info: info)
         isMPMatch = true
-        engine.requestMatchGo(fogOfWar: fogOfWar)
+        engine.requestMatchGo(fogOfWar: config.fog)   // the room's weather, not mine
         if scheme == .gyro { gyro.start(engine: engine) } else { gyro.stop() }
         screen = .playing
     }

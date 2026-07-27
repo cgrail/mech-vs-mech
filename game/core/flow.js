@@ -214,28 +214,26 @@ addOption(optList, {
   title: 'How hard the red side hits back',
 });
 
-/* Fog of war: a local view restriction (systems/vision.js), remembered like
-   the difficulty. Toggling it mid-game re-fogs the district right away.
+/* Fog of war: single player's own choice, remembered like the difficulty.
+   Toggling it mid-game re-fogs the district right away.
 
-   It is not part of a match's rules — it can only ever hide things from the
-   player who switched it on — so it is *not* the room's to decide either:
-   ui/lobby.js plants this same row in a lobby room, where it is the one
-   setting a pilot still owns, and `mechFog` carries the answer across the
-   reload that boots the match. */
-export function addFogOption(list) {
-  return addOption(list, {
-    label: '🌫️ FOG OF WAR',
-    values: [{ v: false, label: 'OFF' }, { v: true, label: 'ON' }],
-    get: () => game.fogOfWar,
-    set: (v) => {
-      game.fogOfWar = v;
-      localStorage.setItem('mechFog', v ? '1' : '0');
-      if (game.state === 'playing') applyFog();
-    },
-    title: 'Nightfall: your lamp and your sensors are all you get',
-  });
-}
-addFogOption(optList);
+   It restricts the view and never the simulation, so it is safe in PvP — but
+   it is still not a *pilot's* setting there: a match fought at night by one
+   side and in daylight by the other is one district in two kinds of weather.
+   In multiplayer the room's creator sets it for everybody (ui/lobby.js has
+   the row, the server holds the answer, net.js reads it back off the match
+   credentials), and this row belongs to the single-player menu alone. */
+addOption(optList, {
+  label: '🌫️ FOG OF WAR',
+  values: [{ v: false, label: 'OFF' }, { v: true, label: 'ON' }],
+  get: () => game.fogOfWar,
+  set: (v) => {
+    game.fogOfWar = v;
+    localStorage.setItem('mechFog', v ? '1' : '0');
+    if (game.state === 'playing') applyFog();
+  },
+  title: 'Nightfall: your lamp and your sensors are all you get',
+});
 
 /* KEY BINDINGS: a row that opens a screen rather than holding a value, so the
    controls can be changed from the mission menu as well as from the entry

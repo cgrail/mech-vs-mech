@@ -33,9 +33,12 @@ export const MP = session ? {
   token: session.token,
   // the room's game mode, dealt out with the match (state.js reads it)
   mode: session.mode === 'ctf' ? 'ctf' : 'assault',
+  // …and its weather: one district, one nightfall, so a match is not fought
+  // by one side in daylight and by the other in the dark
+  fog: session.fog === true,
 } : {
   active: false, playerId: 0, myTeam: 'blue', enemyTeam: 'red',
-  name: '', roster: [], matchId: null, token: null, mode: 'assault',
+  name: '', roster: [], matchId: null, token: null, mode: 'assault', fog: false,
 };
 
 /* netId -> entity, for hit/hp/death events. Filled by registerEntity

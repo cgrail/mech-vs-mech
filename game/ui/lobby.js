@@ -3,9 +3,9 @@ import { game, MODES } from '../core/state.js';
 import { levelName, levels, levelMeta, levelParam } from '../world/world.js';
 import { switchMap } from '../core/mapswitch.js';
 import { BOOT, bootReload } from '../core/boot.js';
-import { startGame, backToLobby, addFogOption } from '../core/flow.js';
+import { startGame, backToLobby } from '../core/flow.js';
 import { audioCtx } from '../systems/audio.js';
-import { addMapRow, addPickCards, MODE_UI, modeUi } from './menu.js';
+import { addMapRow, addOption, addPickCards, MODE_UI, modeUi } from './menu.js';
 import { mapThumb, thumbBox } from './thumb.js';
 
 /* ============================================================
@@ -16,12 +16,12 @@ import { mapThumb, thumbBox } from './thumb.js';
    5 per side) → once both teams have at least one pilot, anyone
    on a team can START MATCH. Rooms are independent: each stages
    its own match, so several groups can fight in parallel. The
-   room's creator owns it and picks the map and the mode (base
-   assault or capture the flag) everyone plays — the server holds
-   both choices, so joiners just see them. The server deals out
-   match credentials and every rostered player reloads with them —
-   the room's map, and the mode — in the boot handoff (core/boot.js,
-   read by net.js).
+   room's creator owns it and picks the map, the mode (base assault
+   or capture the flag) and the weather (fog of war) everyone plays
+   — the server holds all three, so joiners just see them. The
+   server deals out match credentials and every rostered player
+   reloads with them — the room's map, mode and fog — in the boot
+   handoff (core/boot.js, read by net.js).
 
    Match boot: reconnect, rejoin by token, then a READY handshake so
    the fight starts for everyone at once.
@@ -46,6 +46,7 @@ const mapHeroEl = document.getElementById('mpMapHero');
 const mapNoteEl = document.getElementById('mpMapNote');
 const modePickEl = document.getElementById('mpModePick');
 const modeNoteEl = document.getElementById('mpModeNote');
+const fogNoteEl = document.getElementById('mpFogNote');
 const teamNoteEl = document.getElementById('mpTeamNote');
 const roomCountEl = document.getElementById('mpRoomCount');
 const leaveBtn = document.getElementById('mpLeaveBtn');
@@ -73,7 +74,7 @@ function enterMatch(m, name) {
     level: m.level,
     match: {
       matchId: m.matchId, token: m.token, playerId: m.playerId,
-      team: m.team, name, roster: m.roster, mode: m.mode,
+      team: m.team, name, roster: m.roster, mode: m.mode, fog: m.fog === true,
     },
   });
 }
@@ -144,12 +145,23 @@ function showMapList(on) {
   if (hit) { hit.b.focus(); hit.b.scrollIntoView({ block: 'center' }); }
 }
 
-/* The room decides the map and the mode; fog of war is the pilot's own call —
-   it is a view restriction, never sent over the wire, so two players in one
-   match can disagree about it without the match disagreeing with itself. The
-   row is the mission menu's, planted here (core/flow.js), and it writes the
-   same `mechFog` the match boot reload reads back. */
-addFogOption(document.getElementById('mpViewOpts'));
+/* the room's weather, on the same ◂ VALUE ▸ row the mission menu uses. Fog of
+   war only ever hides things from the pilot who has it on, so it is safe in
+   PvP — but a match where one side fights at night and the other in daylight
+   is one district in two kinds of weather, so it is the creator's call like
+   the map and the mode. The server holds the answer and refuses setFog from
+   anyone else; a joiner's row is there to be read. */
+let roomFog = false;
+let canPickFog = false;
+const fogRow = addOption(document.getElementById('mpViewOpts'), {
+  label: '🌫️ FOG OF WAR',
+  values: [{ v: false, label: 'OFF' }, { v: true, label: 'ON' }],
+  get: () => roomFog,
+  // shown at once and confirmed by the broadcast, like the map stepper
+  set: (v) => { roomFog = v; send({ type: 'setFog', fog: v }); },
+  enabled: () => canPickFog,
+  title: 'Nightfall: your lamp and your sensors are all you get',
+});
 
 /* the room's mode, on the same cards the mission menu uses. The server rejects
    setMode from anyone but the room's owner, so for everyone else the cards go
@@ -429,7 +441,8 @@ function resetLobbyUi() {
 function doJoin() {
   const name = nameInput.value.trim();
   if (!name) { nameInput.focus(); return; }
-  send({ type: 'join', name, level: levelParam(levelName), mode: game.mode });
+  // my own map, mode and weather come along: they are what a room I create starts on
+  send({ type: 'join', name, level: levelParam(levelName), mode: game.mode, fog: game.fogOfWar });
 }
 
 function clearBanner() {
@@ -517,7 +530,7 @@ function renderList(state) {
       n.textContent = r.name;
       const meta = document.createElement('span');
       meta.className = 'meta';
-      meta.textContent = `${modeUi(r.mode).ico} ${mapTitle(r.level)}`;
+      meta.textContent = `${modeUi(r.mode).ico} ${mapTitle(r.level)}${r.fog ? ' · 🌙' : ''}`;
       info.append(n, meta);
       const count = document.createElement('span');
       count.className = 'count';
@@ -561,6 +574,12 @@ function renderList(state) {
   canPickMode = !!room && room.owner === myId;
   modeCards.reflect();
   modeNoteEl.textContent = canPickMode ? '' : 'PICKED BY THE CREATOR';
+
+  /* …and so does the weather */
+  roomFog = !!(room && room.fog);
+  canPickFog = canPickMode;
+  fogRow.reflect();
+  fogNoteEl.textContent = canPickFog ? '' : 'PICKED BY THE CREATOR';
 
   /* the map: the owner picks it, everyone else reads it. (A level this page
      doesn't know — a tab older than the deployed bundle — has no entry to draw

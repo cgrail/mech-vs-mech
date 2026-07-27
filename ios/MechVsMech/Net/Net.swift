@@ -28,6 +28,7 @@ struct MPConfig {
     let matchId: String
     let token: String
     let mode: GameMode         // the room's mode, played by everyone in the match
+    let fog: Bool              // …and its weather, so one match is one district
     var enemyTeam: Team { myTeam.enemy }
 }
 
