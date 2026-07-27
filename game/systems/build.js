@@ -10,12 +10,26 @@ import { updateHud } from '../ui/hud.js';
 import { MP, sendGame } from '../net/net.js';
 
 /* ============================================================
-   Turret building — placed directly in front of the player
+   Turret building — beside the player, never in the way
+
+   A turret used to land straight ahead, which put a solid
+   emplacement across the walking line at exactly the moment the
+   pilot wanted to push forward. It goes to one side instead —
+   left, then right if the left is against something — and behind
+   only if both flanks are blocked, so building one never costs
+   you the way on *or* the way back. (Local +x is the mech's left;
+   see localToWorld.)
 ============================================================ */
 const buildHintEl = document.getElementById('buildHint');
+const BUILD_SPOTS = [[9, 0], [-9, 0], [0, -9]];   // left · right · behind
 
+/* the first of those the ground will take, or null if none will */
 function buildPos() {
-  return localToWorld(player, 0, 0, 9);
+  for (const [ox, oz] of BUILD_SPOTS) {
+    const p = localToWorld(player, ox, 0, oz);
+    if (buildPosValid(p)) return p;
+  }
+  return null;
 }
 
 function buildPosValid(p) {
@@ -44,15 +58,15 @@ function flashHint(text) {
 
 export function placeTurretDirect() {
   if (!player.alive) return false;
-  const p = buildPos();
   if (stats.salvage < COSTS.turret) {
     beep(140, 90, 0.15, 'square', 0.1);
     flashHint(`NOT ENOUGH SALVAGE — NEED 🛢️ ${COSTS.turret}`);
     return false;
   }
-  if (!buildPosValid(p)) {
+  const p = buildPos();
+  if (!p) {
     beep(140, 90, 0.15, 'square', 0.1);
-    flashHint('INVALID POSITION — NEEDS FLAT OPEN GROUND');
+    flashHint('NO ROOM BESIDE YOU — NEEDS FLAT OPEN GROUND');
     return false;
   }
   stats.salvage -= COSTS.turret;

@@ -1,9 +1,19 @@
 import Foundation
 
 /* ============================================================
-   Turret building — placed directly in front of the player.
+   Turret building — beside the player, never in the way.
    Ports systems/build.js.
+
+   A turret used to land straight ahead, which put a solid
+   emplacement across the walking line at exactly the moment the
+   pilot wanted to push forward. It goes to one side instead —
+   left, then right if the left is against something — and behind
+   only if both flanks are blocked, so building one never costs
+   you the way on *or* the way back. (Local +x is the mech's left;
+   see localToWorld.)
 ============================================================ */
+private let BUILD_SPOTS = [(9.0, 0.0), (-9.0, 0.0), (0.0, -9.0)]   // left · right · behind
+
 extension GameEngine {
 
     private func buildPosValid(_ p: SIMD3<Double>) -> Bool {
@@ -21,18 +31,26 @@ extension GameEngine {
         return true
     }
 
+    /* the first of those spots the ground will take, or nil if none will */
+    private func buildPos() -> SIMD3<Double>? {
+        for (ox, oz) in BUILD_SPOTS {
+            let p = localToWorld(player, ox, 0, oz)
+            if buildPosValid(p) { return p }
+        }
+        return nil
+    }
+
     @discardableResult
     func placeTurretDirect() -> Bool {
         if !player.alive { return false }
-        let p = localToWorld(player, 0, 0, 9)
         if stats.salvage < Costs.turret {
             audio.beep(f: 140, f2: 90, dur: 0.15, type: .square, vol: 0.1)
             delegate?.engineBuildHint("NOT ENOUGH SALVAGE — NEED 🛢️ \(Int(Costs.turret))")
             return false
         }
-        if !buildPosValid(p) {
+        guard let p = buildPos() else {
             audio.beep(f: 140, f2: 90, dur: 0.15, type: .square, vol: 0.1)
-            delegate?.engineBuildHint("INVALID POSITION — NEEDS FLAT OPEN GROUND")
+            delegate?.engineBuildHint("NO ROOM BESIDE YOU — NEEDS FLAT OPEN GROUND")
             return false
         }
         stats.salvage -= Costs.turret

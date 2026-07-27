@@ -167,7 +167,7 @@ private struct MissionMenu: View {
         let mission = model.mode == .ctf
             ? "Take the red flag from the enemy courtyard and run it back to your own stand — \(CAPTURES_TO_WIN) captures win the district. The enemy is after yours: a dropped flag goes home by itself after 25s, or instantly if you touch it. Only captures win here — you can still level their base, and it stops their waves, but it won't take the district."
             : "Destroy the red enemy base at the far end of the district before enemy assault mechs destroy yours. Enemy waves march on your base — build turrets to hold them off."
-        return "\(mission)\n\n\(controls)\n⬆️ jump jets — clear a ledge onto high ground\n🚀 rockets (🛢️ 20) · 🛰️ build turret in front of you (🛢️ 100)"
+        return "\(mission)\n\n\(controls)\n⬆️ jump jets — clear a ledge onto high ground\n🚀 rockets (🛢️ 20) · 🛰️ build turret beside you (🛢️ 100)"
     }
 }
 

@@ -110,7 +110,7 @@ Destroy the red base in the north before the enemy destroys your blue base in th
 | **Shift** | Sprint boost |
 | **Ctrl** | Jump jets — clears a ledge onto high ground |
 | **1 / 2** | Machine guns · rockets |
-| **3 / T / B** | Build a turret in front of you |
+| **3 / T / B** | Build a turret beside you |
 | **↑ / ↓** (in the menus) | Move the menu cursor |
 | **← / →** (in the menus) | Change the highlighted setting |
 | **Enter / Space** (in the menus) | Select |

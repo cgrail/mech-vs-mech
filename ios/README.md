@@ -24,7 +24,7 @@ Adding a Swift file anywhere under `MechVsMech/` automatically joins the target
   design), lean the phone forward/back to move, tilt sideways to strafe, touch
   anywhere to fire. Calibrated to your pose at the moment you tap DEPLOY.
 - ⬆️ / 🚀 / 🛰️ buttons jump (free — the web build's Ctrl), fire rockets (🛢️ 20)
-  and build a turret in front of you (🛢️ 100).
+  and build a turret beside you (🛢️ 100).
 
 ## Project layout
 

@@ -54,7 +54,7 @@ function controlLegend() {
        <kbd>👉 Right thumb</kbd> drag to turn · hold to fire machine guns<br>`;
   return `${scheme}<kbd>⬆️</kbd> jump jets — clear a ledge onto high ground<br>
       <kbd>🚀</kbd> rockets (<span style="color:#ffd23c">🛢️ 20</span>) &nbsp;
-      <kbd>${TURRET_ICO}</kbd> build turret in front of you (<span style="color:#ffd23c">🛢️ 100</span>)`;
+      <kbd>${TURRET_ICO}</kbd> build turret beside you (<span style="color:#ffd23c">🛢️ 100</span>)`;
 }
 const MISSIONS = {
   assault: `<b style="color:#ffd23c">MISSION:</b> Destroy the <b style="color:#ff8a7a">red enemy base</b> at the far end of the
