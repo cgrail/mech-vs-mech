@@ -41,6 +41,16 @@ const LEAN_RUN_OFF = 15;
 if (isTouchDevice) {
   document.body.classList.add('touch');
 
+  /* No browser zoom, anywhere. `touch-action: pan-x pan-y` in style.css is
+     what refuses the double tap and the pinch on every engine that honours
+     it; iOS Safari zooms the page from its own `gesture*` events regardless,
+     so those are refused here as well. Deliberately not a touchend guard —
+     preventing a second tap would swallow the click with it, and tapping a
+     stepper twice in a row is how a setting gets cycled. */
+  for (const type of ['gesturestart', 'gesturechange', 'gestureend']) {
+    document.addEventListener(type, (e) => e.preventDefault(), { passive: false });
+  }
+
   /* how hard the mech is being pushed forward, latched: on past `on`, off
      below `off`. Shared by both schemes so a run engages the same way
      whether it comes from a stick or from a lean. */
