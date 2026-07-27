@@ -404,9 +404,14 @@ export function startGame() {
 document.getElementById('startBtn').addEventListener('click', (e) => {
   if (game.state === 'over') {
     if (MP.active) { backToLobby(); return; }
-    // continuing the single-player session: the reload is handed the map and
-    // "open on the mission menu", so it skips the mode select (core/boot.js)
-    bootReload({ screen: 'menu', level: levelParam(nextLevel || levelName) });
+    /* Continuing the single-player session. A won district hands the next one
+       over as a *fight* — nothing to pick, no DEPLOY, straight back in. Every
+       other end (a loss, or the last district in the bundle) reloads onto the
+       mission menu instead, which is where the map, the mode and the
+       difficulty are, and is what somebody who just lost came for. */
+    bootReload(nextLevel
+      ? { screen: 'play', level: levelParam(nextLevel) }
+      : { screen: 'menu', level: levelParam(levelName) });
     return;
   }
   e.currentTarget.blur();

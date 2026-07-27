@@ -416,17 +416,23 @@
 
 <script>
   // Open on the screen the boot handoff asks for, before first paint:
-  // 'menu' continues a single-player session (redeploy / next level), 'match'
+  // 'menu' continues a single-player session (a lost district, or one with no
+  // sequel), 'play' drops straight into the fight on the next one, 'match'
   // boots straight into a multiplayer match, 'lobby' comes back from one.
   // A plain refresh carries nothing and lands on the mode select — and a level
   // switch needs nothing here either, it swaps the map in place without a
   // reload (core/mapswitch.js).
   {
-    const id = { menu: 'menuScreen', match: 'matchScreen', lobby: 'mpScreen' }[window.__mechBoot.screen];
+    const boot = window.__mechBoot.screen;
+    // 'play' is 'menu' with the overlay itself taken down: main.js starts the
+    // fight as soon as the modules are up, and the end screen it eventually
+    // raises is this same menu screen waiting underneath
+    const id = { menu: 'menuScreen', play: 'menuScreen', match: 'matchScreen', lobby: 'mpScreen' }[boot];
     if (id) {
       document.getElementById('modeScreen').classList.add('hidden');
       document.getElementById(id).classList.remove('hidden');
     }
+    if (boot === 'play') document.getElementById('overlay').classList.add('hidden');
   }
 </script>
 

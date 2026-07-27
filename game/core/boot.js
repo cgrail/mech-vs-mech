@@ -19,7 +19,9 @@
 export const BOOT_KEY = 'mechBoot';
 
 /* what this page load was handed:
-     screen  'menu' | 'match' | 'lobby' — which overlay screen to open on
+     screen  'menu' | 'play' | 'match' | 'lobby' — which overlay screen to
+             open on; 'play' opens none of them and starts the fight instead
+             (a won district handing the next one over — main.js)
      level   the map to build (param or name), else the remembered one
      match   multiplayer credentials (see net.js) */
 export const BOOT = (typeof window !== 'undefined' && window.__mechBoot) || {};

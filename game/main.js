@@ -15,12 +15,20 @@ import { MP } from './net/net.js';
 import { remoteUpdate } from './systems/remote.js';
 import './systems/input.js';
 import './systems/mobile.js';
-import './core/flow.js';
+import { BOOT } from './core/boot.js';
+import { startGame } from './core/flow.js';   // …which also builds the menus
 import './ui/lobby.js';
 import './ui/editor.js';
 
 createWorld(scene);
 window.__mech = { player, game, entities, MP }; // console/testing hook
+
+/* a won district handed the next one over as a fight rather than as a menu
+   (core/boot.js): start it here, once the world it needs actually exists.
+   Like the multiplayer boot, this page load has had no user gesture — the
+   pointer lock is refused and the audio context comes up suspended, and both
+   are picked up by the first click or key in the district. */
+if (BOOT.screen === 'play') startGame();
 
 /* ============================================================
    Camera

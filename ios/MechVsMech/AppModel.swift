@@ -190,7 +190,18 @@ final class AppModel: ObservableObject {
             lobby.backToLobby()
             return
         }
-        if victory && hasNextLevel { levelIndex += 1 }
+        /* A won district hands the next one over as a *fight* — nothing to
+           pick, no DEPLOY, straight back in. Every other end (a loss, or the
+           last district in the bundle) goes to the mission menu instead, which
+           is where the map, the mode and the difficulty are, and is what
+           somebody who just lost came for. (game/core/flow.js does the same
+           over its boot handoff, since the web has to reload for it.) */
+        if victory && hasNextLevel {
+            levelIndex += 1
+            rebuildEngine()
+            deploy()
+            return
+        }
         rebuildEngine()
         screen = .menu
     }

@@ -7,5 +7,5 @@
 [x] the more you get hit, the darker and narrower becomes your light.
 [x] the more you get hit, the slower you can move
 [x] night mode should be the default mode, day mode is optional
-[ ] when one level is finished, directly start the next one without offering a level selection
+[x] when one level is finished, directly start the next one without offering a level selection
 [ ] turrets should be build behind you or next to you, so that you can go forward or backward when you place a turret. currently they are placed in front of you and hindering from goind forward.
