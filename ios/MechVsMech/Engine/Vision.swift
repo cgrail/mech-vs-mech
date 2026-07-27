@@ -75,6 +75,26 @@ private let HOLD = 0.4                           // sensor lock: contact is kept
    units), not the web's candela — the two builds are tuned to look alike,
    not to hold the same numbers. */
 private let LAMP_TILT = 0.227      // radians the beam is tipped down (~13°)
+private let LAMP_LUMENS = 3000.0   // the spot at full health…
+private let LAMP_FILL_LUMENS = 300.0  // …and the omni at the cockpit
+private let LAMP_INNER = 13.0      // degrees off the beam's axis, at full health
+private let LAMP_OUTER = 36.0
+
+/* ---------- a damaged mech is a damaged lamp ----------
+   Hits cost you light: the beam browns out and closes down toward these
+   fractions of full at zero hp, and comes back with the self-repair, so a
+   fight you are losing is one you can see less and less of. Purely a view
+   effect — the sensors' own reach (VISION_R and the sweep) is untouched, so
+   this changes what the district looks like and never what anyone knows,
+   which is what keeps it safe in PvP.
+
+   It eases rather than steps: a lamp that snapped a notch darker on every
+   bullet would read as a rendering fault, while a brown-out reads as damage. */
+private let HURT = (
+    dim: 0.34,      // intensity left at zero hp…
+    narrow: 0.55,   // …and how far the cone has closed down
+    ease: 0.7       // seconds to settle after a hit (or a repair)
+)
 
 /* ---------- friendly turret lamps ----------
    A turret of yours is an outpost at night, not a silhouette: it holds a lamp
@@ -133,15 +153,15 @@ extension GameEngine {
         let spot = SCNLight()
         spot.type = .spot
         spot.color = UIColor(rgb: 0xdbe8ff)
-        spot.intensity = 3000
+        spot.intensity = CGFloat(LAMP_LUMENS)
         spot.attenuationStartDistance = 8
         spot.attenuationEndDistance = CGFloat(VISION_R)
         spot.attenuationFalloffExponent = 0.6         // physical is 2 — too dark at the rim to play
         // degrees off the beam's axis, so this is the web's 0.62 rad cone;
         // the gap between the two is its soft rim (the web's `penumbra`) —
         // a hard cone edge on the ground reads as a texture bug
-        spot.spotInnerAngle = 13
-        spot.spotOuterAngle = 36
+        spot.spotInnerAngle = CGFloat(LAMP_INNER)
+        spot.spotOuterAngle = CGFloat(LAMP_OUTER)
         spot.castsShadow = true                       // the sun handed its shadow pass over
         spot.shadowMapSize = CGSize(width: 1024, height: 1024)
         spot.shadowSampleCount = 8
@@ -150,20 +170,37 @@ extension GameEngine {
         spot.zNear = 1.5
         spot.zFar = CGFloat(VISION_R)
         tilt.light = spot
+        lampSpot = spot
         mount.addChildNode(tilt)
         rig.addChildNode(mount)
 
         let fill = SCNLight()                         // so the mech is lit at all
         fill.type = .omni
         fill.color = UIColor(rgb: 0x9ab6ff)
-        fill.intensity = 300
+        fill.intensity = CGFloat(LAMP_FILL_LUMENS)
         fill.attenuationStartDistance = 0
         fill.attenuationEndDistance = 22              // short: for the machine, not the ground
+        lampFill = fill
         let fillNode = SCNNode()
         fillNode.light = fill
         fillNode.position = SCNVector3(0, 5, 0)
         rig.addChildNode(fillNode)
         return rig
+    }
+
+    /* the beam for the hp the mech has left, eased. Called every frame the fog
+       is on, including while the mech is dead — a wreck's lamp is a dying one. */
+    private func hurtLamp(dt: Double) {
+        guard let spot = lampSpot else { return }
+        let want = player.alive ? 1 - min(1, max(0, player.hp / player.maxHp)) : 1
+        let step = dt / HURT.ease
+        lampHurt = want > lampHurt ? min(want, lampHurt + step) : max(want, lampHurt - step)
+        let dim = 1 - lampHurt * (1 - HURT.dim)
+        let narrow = 1 - lampHurt * (1 - HURT.narrow)
+        spot.intensity = CGFloat(LAMP_LUMENS * dim)
+        spot.spotInnerAngle = CGFloat(LAMP_INNER * narrow)
+        spot.spotOuterAngle = CGFloat(LAMP_OUTER * narrow)
+        lampFill?.intensity = CGFloat(LAMP_FILL_LUMENS * dim)
     }
 
     /* hand the pool to the nearest friendly turrets. Runs on the sensor
@@ -225,6 +262,9 @@ extension GameEngine {
             lampRig = rig
             if rig.parent == nil { scene.rootNode.addChildNode(rig) }
             rideMech(always: true)   // in place for the first frame, not at the map's centre
+            // no ease from a stale value, and the right strength for frame one
+            lampHurt = player.alive ? 1 - min(1, max(0, player.hp / player.maxHp)) : 1
+            hurtLamp(dt: 0)
             if turretLamps.isEmpty { turretLamps = (0..<TLAMP.pool).map { _ in TurretLamp() } }
             for l in turretLamps where l.node.parent == nil { scene.rootNode.addChildNode(l.node) }
             postTurretLamps()
@@ -316,6 +356,7 @@ extension GameEngine {
         visionHiding = true
 
         rideMech()
+        hurtLamp(dt: dt)
         rampTurretLamps(dt: dt)
 
         /* the sweep: the expensive part, so it runs on its own budget */

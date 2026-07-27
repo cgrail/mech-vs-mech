@@ -86,12 +86,31 @@ const LAMP = {
   fillIntensity: 5,    // the omni at the cockpit, so the mech is lit at all
   fillReach: 22,       // kept short: this one is for the machine, not the ground
 };
+
+/* ---------- a damaged mech is a damaged lamp ----------
+   Hits cost you light: the beam browns out and closes down toward these
+   fractions of full at zero hp, and comes back with the self-repair, so a
+   fight you are losing is one you can see less and less of. Purely a view
+   effect — the sensors' own reach (VISION_R and the sweep) is untouched, so
+   this changes what the district looks like and never what anyone knows,
+   which is what keeps it safe in PvP.
+
+   It eases rather than steps: a lamp that snapped a notch darker on every
+   bullet would read as a rendering fault, while a brown-out reads as damage. */
+const HURT = {
+  dim: 0.34,     // intensity left at zero hp…
+  narrow: 0.55,  // …and how far the cone has closed down
+  ease: 0.7,     // seconds to settle after a hit (or a repair)
+};
 let rig = null;
+let lampSpot = null, lampFill = null;
+let hurt = 0;    // 0 = untouched, 1 = as dark and narrow as it gets
 
 function lamp() {
   if (rig) return rig;
   rig = new THREE.Group();
   const spot = new THREE.SpotLight(LAMP.color, LAMP.intensity, LAMP.reach, LAMP.angle, LAMP.penumbra, LAMP.decay);
+  lampSpot = spot;
   spot.position.set(0, 5.9, 0.6);          // the sensor block, above the cockpit
   spot.target.position.set(0, 0, 26);      // forward, tilted ~13° down
   spot.castShadow = true;                  // the sun handed its shadow pass over
@@ -101,8 +120,22 @@ function lamp() {
   spot.shadow.normalBias = 0.5;            // tiles are 8 units; acne needs the slope bias
   const fill = new THREE.PointLight(LAMP.fillColor, LAMP.fillIntensity, LAMP.fillReach, 1);
   fill.position.set(0, 5, 0);
+  lampFill = fill;
   rig.add(spot, spot.target, fill);
   return rig;
+}
+
+/* the beam for the hp the mech has left, eased. Called every frame the fog is
+   on, including while the mech is dead — a wreck's lamp is a dying one. */
+function hurtLamp(dt) {
+  if (!lampSpot) return;
+  const want = player.alive ? 1 - Math.max(0, Math.min(1, player.hp / player.maxHp)) : 1;
+  const step = dt / HURT.ease;
+  hurt = want > hurt ? Math.min(want, hurt + step) : Math.max(want, hurt - step);
+  const dim = 1 - hurt * (1 - HURT.dim);
+  lampSpot.intensity = LAMP.intensity * dim;
+  lampSpot.angle = LAMP.angle * (1 - hurt * (1 - HURT.narrow));
+  lampFill.intensity = LAMP.fillIntensity * dim;
 }
 
 /* ---------- friendly turret lamps ----------
@@ -186,6 +219,8 @@ export function applyFog() {
   if (on) {
     scene.add(lamp());
     rideMech(true);   // in place for the first frame, not at the map's centre
+    hurt = player.alive ? 1 - player.hp / player.maxHp : 1;  // no ease from a stale value
+    hurtLamp(0);      // …and at the right strength for the first frame too
     for (const l of turretLamps()) scene.add(l);
     postTurretLamps(player.group.position.x, player.group.position.z);
   } else {
@@ -280,8 +315,8 @@ export function updateVision(dt) {
   hiding = true;
 
   rideMech();
+  hurtLamp(dt);
 
-  /* the sweep: the expensive part, so it runs on its own budget */
   /* the turret lamps come up and go dark on their own clock, so a lamp being
      re-posted (or its turret blowing up) reads as a light powering down
      rather than as one blinking out */
@@ -292,6 +327,7 @@ export function updateVision(dt) {
       : Math.max(want, l.intensity - step);
   }
 
+  /* the sweep: the expensive part, so it runs on its own budget */
   acc -= dt;
   if (acc <= 0) {
     acc = TICK;
