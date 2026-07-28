@@ -34,6 +34,9 @@
                                         are played)
    Match protocol (players reload into ?mp=1, then):
      → rejoin {matchId, token}       ← rejoined {playerId,team,level,mode,fog,roster} | error
+                                       (a socket still holding a finished match
+                                        is let out of it here — the browser
+                                        reloads between matches, iOS does not)
                                      ← peerJoined {id,name}  (to the others)
      → ready                         ← ready {count,total}
                                      ← go            (once every slot is ready)
@@ -315,6 +318,31 @@ function dropFromLobby(c) {
   roster();
 }
 
+/* Let go of the match a socket is attached to. The browser does this by
+   closing the socket — it reloads the page for every match — but a client
+   that keeps one socket across matches (iOS) has to be let out of the
+   finished match explicitly, or its `rejoin` into the follow-up match is
+   turned away as "already in a match" and it never boots.
+
+   `announce` is whether the match's other pilots are told somebody dropped
+   out: true when the socket really went away, false when it is only moving
+   on to a match everyone else was invited to as well — there a peerLeft
+   would read as "the other team left" and talk them out of a match that
+   exists. */
+function detachFromMatch(ws, announce) {
+  const mr = ws.matchRef;
+  if (!mr || mr.slot.ws !== ws) return;
+  mr.slot.ws = null;
+  mr.slot.connected = false;
+  ws.matchRef = null;
+  if (announce) {
+    for (const s of mr.match.slots) send(s.ws, { type: 'peerLeft', id: mr.slot.pid, name: mr.slot.name });
+  }
+  // the follow-up match is in `matches` under its own id, so dropping the
+  // finished one never strands anybody still on its end screen
+  if (mr.match.slots.every((s) => !s.connected)) matches.delete(mr.match.id);
+}
+
 /* broadcast the ready tally; start once every active slot is ready.
    (Re-fires harmlessly after a mid-match rejoin — clients ignore a
    repeated "go".) */
@@ -538,12 +566,17 @@ wss.on('connection', (ws, req) => {
       }
 
       case 'rejoin': {
-        if (c || mr) return;
+        if (c) return;
         if (typeof msg.matchId !== 'string' || typeof msg.token !== 'string') return;
         const match = matches.get(msg.matchId);
         const slot = match && match.slots.find((s) => s.token === msg.token);
         if (!slot) { send(ws, { type: 'error', message: 'MATCH NO LONGER EXISTS' }); return; }
-        if (slot.ws) { try { slot.ws.close(); } catch { /* stale socket */ } }
+        // still holding a *different* match: the end screen's NEXT MAP rolling
+        // this socket on to the follow-up one (see detachFromMatch). Rejoining
+        // the match it is already in just re-answers, so that one keeps its
+        // slot rather than being detached and re-attached.
+        if (mr && mr.slot !== slot) detachFromMatch(ws, false);
+        if (slot.ws && slot.ws !== ws) { try { slot.ws.close(); } catch { /* stale socket */ } }
         slot.ws = ws;
         slot.connected = true;
         slot.abandoned = false;
@@ -631,13 +664,7 @@ wss.on('connection', (ws, req) => {
 
   ws.on('close', () => {
     if (ws.client) dropFromLobby(ws.client);
-    const mr = ws.matchRef;
-    if (mr && mr.slot.ws === ws) {
-      mr.slot.ws = null;
-      mr.slot.connected = false;
-      for (const s of mr.match.slots) send(s.ws, { type: 'peerLeft', id: mr.slot.pid, name: mr.slot.name });
-      if (mr.match.slots.every((s) => !s.connected)) matches.delete(mr.match.id);
-    }
+    detachFromMatch(ws, true);
   });
 });
 

@@ -406,6 +406,16 @@ final class LobbyModel: ObservableObject {
     private func startBoot(_ obj: [String: Any]) {
         guard let matchId = jStr(obj, "matchId"), let token = jStr(obj, "token"),
               let pid = jInt(obj, "playerId"), let team = Team(wire: jStr(obj, "team")) else { return }
+        /* Reporting in on this same socket — the server released our lobby
+           record when it minted the match, and takes us out of a *finished*
+           match (NEXT MAP) on this very message. It goes first, before the
+           engine is torn down and rebuilt for the new map, because until the
+           server has it the finished match's churn still lands here — a
+           peer's socket closing as *they* reload into this same match reads
+           as a pilot leaving the match we are booting into. Nothing can
+           answer before this call returns: Net callbacks arrive on the main
+           queue. */
+        net.send(["type": "rejoin", "matchId": matchId, "token": token])
         // a follow-up match (NEXT MAP) arrives while the finished one is still
         // on screen: throw it away and show the boot handshake instead
         if app?.screen != .lobby { app?.enterMatchBoot() }
@@ -425,9 +435,6 @@ final class LobbyModel: ObservableObject {
         goneIds.removeAll()
         phase = .matchBoot
         bootStatus = "CONNECTING TO THE MATCH…"
-        // the server already dropped our lobby-client record when it minted the
-        // match, so we can rejoin on this same socket
-        net.send(["type": "rejoin", "matchId": matchId, "token": token])
         fetchMatchLevel(param: levelParam, matchId: matchId)
     }
 

@@ -81,7 +81,12 @@ its own mech, turrets and shots; everyone else is a network replica. Bases are
 shared and converge through mirrored `bhit` damage. The one structural difference
 is match entry — the browser reloads the page into `?mp=1`, whereas iOS keeps the
 same socket and `rejoin`s (the server has already released the lobby-client record
-by then).
+by then). Rolling on to a *follow-up* match works the same way, which is why
+`rejoin` on the server lets a socket out of the match it is still holding
+(`detachFromMatch`): a reload sheds the finished match by closing the socket, and
+this build has no reload to shed it with. The rejoin is therefore the first thing
+`startBoot` sends — before the engine is rebuilt — so the finished match's churn
+stops arriving before it can be read as pilots leaving the new one.
 
 One `GameEngine` == one loaded level. Restart / level switch throws the engine
 away and builds a new one — the native analog of the web version's
