@@ -46,6 +46,15 @@ Why it can't be skipped: a match travels as a level *param*, and each client res
 
 Copy, don't merge: numeric levels travel as `?level=N`, which the **web resolves by name** (the level called `levelN`), the `/level/<param>` route likewise, while **iOS's offline fallback resolves by position** (the N-th entry of its bundle). Those agree only while the two files are identical and bundle order still matches the level numbering — so append new levels at the end, and never reorder, renumber, or hand-edit one copy alone.
 
+## Every change ends in the changelog
+
+**[CHANGELOG.md](CHANGELOG.md) is updated as part of the change, in the same commit — never afterwards and never in a batch.** A change is not finished until it is in there, the same way a level edit is not finished until it is copied to iOS.
+
+- Write it under the **top version section** (`## <version> — current`), in the group it belongs to (Movement, Multiplayer, Districts…), adding a group if none fits. The version is the iOS `MARKETING_VERSION`; when that is bumped, the top section is closed off and a new `— current` one opens above it.
+- One entry per change a **player or a pilot would notice** — gameplay rules, controls, levels, the look, what a menu offers, what the wire carries. Refactors that change nothing observable stay out; the git history already has them. Say what the game does now, not what the diff did.
+- Both builds, one entry: this file has no web and no iOS column, because a change that only reached one of them is a bug (see above).
+- [ios/WHATS-NEW.md](ios/WHATS-NEW.md) is the **player-facing cut** of the same list, written for the App Store when a version ships. Do not maintain it per commit — but if a change contradicts what a *shipped* note claims, say so rather than quietly rewriting released copy.
+
 ## Architecture
 
 ### The address bar holds no state
