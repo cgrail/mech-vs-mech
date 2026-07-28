@@ -115,10 +115,11 @@ export function fireRocket() {
 }
 
 /* Jump jets — Ctrl on the keyboard, the ⬆ button on touch. Only from the
-   ground, so it can't be chained mid-air; the impulse clears a 4-unit tier
-   step (see JUMP_V), which is how a mech gets onto high ground and out of a
-   pit it dropped into. Terrain collision uses the walker's height, so the
-   ledge simply stops blocking once the jump is above it. */
+   ground, so it can't be chained mid-air; the impulse clears a wall's 10-unit
+   top (see JUMP_V), which is how a pilot gets onto high ground, out of a pit
+   it dropped into, and up onto the district's cover blocks and compound walls.
+   Terrain collision uses the walker's height, so a wall simply stops blocking
+   once the jump is above it. */
 function jump(dt) {
   player.jumpCool -= dt;
   const wants = touch.jump || held('jump');
@@ -166,7 +167,8 @@ export function updatePlayer(dt) {
   jump(dt);
   const onGround = updateVertical(player, dt);
   player.onGround = onGround;
-  // walked into a chasm ("v" tiles have no floor): the fall is the kill
+  // walked into a chasm ("v" tiles have no floor) or off the map border,
+  // which is the same hole: the fall is the kill
   if (player.y < FALL_DEATH_Y) {
     showMessage('LOST IN THE CHASM', '#ff5040');
     killEntity(player);

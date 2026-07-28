@@ -99,10 +99,11 @@ extension GameEngine {
     }
 
     /* Jump jets — the ⬆ button (Ctrl on the web build). Only from the ground,
-       so it can't be chained mid-air; the impulse clears a 4-unit tier step
-       (see JUMP_V), which is how a mech gets onto high ground and out of a pit
-       it dropped into. Terrain collision tests the walker's height, so a ledge
-       simply stops blocking once the jump is above it. */
+       so it can't be chained mid-air; the impulse clears a wall's 10-unit top
+       (see JUMP_V), which is how a pilot gets onto high ground, out of a pit it
+       dropped into, and up onto the district's cover blocks and compound walls.
+       Terrain collision tests the walker's height, so a wall simply stops
+       blocking once the jump is above it. */
     private func jump(dt: Double) {
         player.jumpCool -= dt
         // consumed even when it can't be used: a press while airborne is
@@ -154,7 +155,8 @@ extension GameEngine {
         jump(dt: dt)
         let onGround = updateVertical(player, dt: dt)
         player.onGround = onGround
-        // walked into a chasm ("v" tiles have no floor): the fall is the kill
+        // walked into a chasm ("v" tiles have no floor) or off the map border,
+        // which is the same hole: the fall is the kill
         if player.y < FALL_DEATH_Y {
             delegate?.engineMessage("LOST IN THE CHASM", colorHex: 0xff5040)
             killEntity(player)

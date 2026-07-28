@@ -19,7 +19,13 @@ extension Level {
     /* walking-surface height at a world position (walls count as their top) */
     func groundHeightAt(_ x: Double, _ z: Double) -> Double {
         switch cellAt(x, z) {
-        case .none, .some(.wall):
+        case .none:
+            // past the last tile there is no floor either: the map border is an
+            // edge you can walk off, not an invisible fence (nothing clamps to
+            // the arena any more — see collideCircle), so a walker that leaves
+            // the district falls out of it
+            return VOID_H
+        case .some(.wall):
             return WALL_H
         case .some(.void):
             return VOID_H   // nothing to stand on, nothing to stop a shot
@@ -42,7 +48,8 @@ extension Level {
                 let cell: Cell? = (tr >= 0 && tr < rows && tc >= 0 && tc < cols) ? cells[tr][tc] : nil
                 let h: Double
                 switch cell {
-                case .none, .some(.wall): h = WALL_H
+                case .none: h = VOID_H              // off the grid is a hole too
+                case .some(.wall): h = WALL_H
                 case .some(.void): h = VOID_H       // a hole never pushes anything out
                 case .some(.ramp(_, let h0, let h1)): h = min(h0, h1)
                 case .some(.flat(let fh)): h = fh
@@ -261,20 +268,11 @@ func buildWorld(level: Level, parent: SCNNode) {
     let rampMat = pbrMaterial(color: 0x6b6555, roughness: 0.9)
     let wallImage = makeWallImage()
 
-    // Base plane at the lowest tier — one quad for the whole map plus a
-    // framing margin. A map with void tiles can't have it: the holes have to
-    // be holes, so its lowest tier is built from merged tile rects instead.
-    let hasVoid = level.cells.contains { row in row.contains { if case .void = $0 { return true } else { return false } } }
-    if !hasVoid {
-        let pw = Double(level.cols) * TILE + 40
-        let pd = Double(level.rows) * TILE + 40
-        let plane = SCNPlane(width: pw, height: pd)
-        plane.firstMaterial = groundMaterial(repeatX: pw / TEX_SCALE, repeatY: pd / TEX_SCALE)
-        let ground = SCNNode(geometry: plane)
-        ground.eulerAngles.x = -.pi / 2
-        ground.position.y = Float(LOW)
-        parent.addChildNode(ground)
-    }
+    /* There is no ground plane under the district and no margin framing it: the
+       lowest tier is merged tile boxes like every other tier, so the map ends
+       exactly where its last tile does. A plane spilling past the border would
+       be ground you fall through, now that walking off the edge is a fall
+       (groundHeightAt), and the holes on a "v" map have to stay holes. */
 
     func addBox(_ rect: TileRect, top: Double, texturedTop: Bool, mat: SCNMaterial,
                 faceMats: [SCNMaterial]? = nil) {
@@ -301,12 +299,11 @@ func buildWorld(level: Level, parent: SCNNode) {
         parent.addChildNode(node)
     }
 
-    // raised flat terrain, one merged box set per height tier
+    // flat terrain, one merged box set per height tier — the lowest one included
     var heights = Set<Double>()
     for row in level.cells {
         for cell in row {
-            // on a map with holes the lowest tier is drawn too: no plane under it
-            if case .flat(let h) = cell, hasVoid || h > LOW { heights.insert(h) }
+            if case .flat(let h) = cell { heights.insert(h) }
         }
     }
     for h in heights {

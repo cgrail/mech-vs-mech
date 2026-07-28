@@ -12,11 +12,16 @@ func distXZ(_ ax: Double, _ az: Double, _ bx: Double, _ bz: Double) -> Double {
 
 func distXZ(_ a: Entity, _ b: Entity) -> Double { distXZ(a.x, a.z, b.x, b.z) }
 
-/* jump-jet impulse: against GRAVITY it peaks 4.84 units up, just clearing the
-   4-unit step between terrain tiers — so a jump can climb any ledge but never
-   a 10-unit wall (mirrors core/helpers.js) */
+/* Jump-jet impulses, two of them, because a pilot and the AI are allowed onto
+   different things. The player's peaks 11.56 units up against GRAVITY, over the
+   10-unit top of a wall — cover blocks and compound walls are perches to be
+   taken, and the way into a fort is over it as well as through its gate. Mechs
+   keep the old 4.84-unit hop: a tier step, never a wall, which is what still
+   keeps the AI out of the compounds (see JUMP_REACH in AI.swift).
+   Mirrors core/helpers.js. */
 let GRAVITY = 50.0
-let JUMP_V = 22.0
+let JUMP_V = 34.0
+let MECH_JUMP_V = 22.0
 
 /* Walk animation, driven by where the walker is *getting to* — never by what
    the controls (or the last packet) asked for. A mech leaning into a wall, a
@@ -128,7 +133,9 @@ extension GameEngine {
         return best
     }
 
-    /* circle vs terrain tiles + solid entities + arena clamp; y = walker's height */
+    /* circle vs terrain tiles + solid entities; y = walker's height. Nothing
+       clamps to the arena: the border is walkable off, and what happens past it
+       is the terrain's business (groundHeightAt reports void, so it is a fall). */
     func collideCircle(x: inout Double, z: inout Double, r: Double, y: Double) {
         level.collideTerrain(x: &x, z: &z, r: r, y: y)
         // solid entities (bases, turrets) as circles
@@ -143,8 +150,6 @@ extension GameEngine {
                 z += dz / d * (rr - d)
             }
         }
-        x = max(-level.arenaHW + r, min(level.arenaHW - r, x))
-        z = max(-level.arenaHD + r, min(level.arenaHD - r, z))
     }
 
     /* keep e.y glued to the ground, or fall once it walks off an edge.

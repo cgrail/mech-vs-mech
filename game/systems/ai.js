@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { LEVEL, STEP, VOID_EDGE, FALL_DEATH_Y, groundHeightAt } from '../world/world.js';
 import { entities, blueBase, redBase, makeEnemyMech } from '../entities/entities.js';
 import { game, stats, difficulty } from '../core/state.js';
-import { distXZ, losBlocked, localToWorld, nearestEnemyOf, collideCircle, updateVertical, aimYOf, animateWalk, JUMP_V } from '../core/helpers.js';
+import { distXZ, losBlocked, localToWorld, nearestEnemyOf, collideCircle, updateVertical, aimYOf, animateWalk, MECH_JUMP_V } from '../core/helpers.js';
 import { spawnProjectile, killEntity } from '../entities/projectiles.js';
 import { spawnFlash } from '../entities/particles.js';
 import { hiddenShooter } from './vision.js';
@@ -27,7 +27,10 @@ function angDiff(a, b) { return Math.atan2(Math.sin(a - b), Math.cos(a - b)); }
    shoulder into a corner, which is how they used to grind to a halt. */
 const MECH_R = 2.2;      // collision radius the probes have to fit through
 const PROBE = 12;        // how far ahead a mech looks for a lane
-const JUMP_REACH = 4.5;  // tallest ledge jump jets clear (JUMP_V vs GRAVITY)
+/* tallest ledge a mech's jets clear (MECH_JUMP_V vs GRAVITY). Deliberately
+   short of a wall's 10 — the player's jets go over one, a mech's never do, so
+   the compounds stay sealed against everything the AI drives. */
+const JUMP_REACH = 4.5;
 
 /* how far e can walk along `yaw` before a wall or a too-tall ledge stops it.
    Walking down (dropping off an edge) is always allowed. */
@@ -181,7 +184,7 @@ export function updateEnemyMech(e, dt) {
   if (e.onGround) {
     const rise = shouldMove ? ledgeAhead(e, desired) : 0;
     if (rise > STEP && rise <= JUMP_REACH && e.jumpCool <= 0) {
-      e.vy = JUMP_V;
+      e.vy = MECH_JUMP_V;
       e.onGround = false;
       e.jumpCool = 1.4;
       e.detourSide = 0;

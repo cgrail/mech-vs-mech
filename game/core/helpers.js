@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { ARENA, LEVEL, groundHeightAt, collideTerrain } from '../world/world.js';
+import { LEVEL, groundHeightAt, collideTerrain } from '../world/world.js';
 import { entities } from '../entities/entities.js';
 
 /* ============================================================
@@ -91,7 +91,9 @@ export function nearestEnemyOf(team, pos, range, opts) {
   return best;
 }
 
-/* circle vs terrain tiles + solid entities + arena clamp; y = walker's height */
+/* circle vs terrain tiles + solid entities; y = walker's height. Nothing
+   clamps to ARENA: the border is walkable off, and what happens past it is
+   the terrain's business (groundHeightAt reports void, so it is a fall). */
 export function collideCircle(pos, r, y) {
   collideTerrain(pos, r, y);
   // solid entities (bases, turrets) as circles
@@ -106,15 +108,17 @@ export function collideCircle(pos, r, y) {
       pos.z += dz / d * (rr - d);
     }
   }
-  pos.x = Math.max(-ARENA.hw + r, Math.min(ARENA.hw - r, pos.x));
-  pos.z = Math.max(-ARENA.hd + r, Math.min(ARENA.hd - r, pos.z));
 }
 
-/* jump-jet impulse: with GRAVITY below it peaks 4.84 units up, just clearing
-   the 4-unit step between terrain tiers — so a jump can climb any ledge but
-   never a 10-unit wall */
+/* Jump-jet impulses, two of them, because a pilot and the AI are allowed onto
+   different things. The player's peaks 11.56 units up against GRAVITY, over
+   the 10-unit top of a wall — cover blocks and compound walls are perches to
+   be taken, and the way into a fort is over it as well as through its gate.
+   Mechs keep the old 4.84-unit hop: a tier step, never a wall, which is what
+   still keeps the AI out of the compounds (see JUMP_REACH in ai.js). */
 export const GRAVITY = 50;
-export const JUMP_V = 22;
+export const JUMP_V = 34;
+export const MECH_JUMP_V = 22;
 
 /* keep e.y glued to the ground, or fall once it walks off an edge.
    Returns true while on the ground. */

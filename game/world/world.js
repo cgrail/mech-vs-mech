@@ -149,7 +149,11 @@ function cellAt(x, z) {
 /* walking-surface height at a world position (walls count as their top) */
 export function groundHeightAt(x, z) {
   const cell = cellAt(x, z);
-  if (!cell || cell.t === 'wall') return WALL_H;
+  // past the last tile there is no floor either: the map border is an edge you
+  // can walk off, not an invisible fence (nothing clamps to ARENA any more —
+  // see collideCircle), so a walker that leaves the district falls out of it
+  if (!cell) return VOID_H;
+  if (cell.t === 'wall') return WALL_H;
   if (cell.t === 'void') return VOID_H;   // nothing to stand on, nothing to stop a shot
   if (cell.t === 'ramp') {
     const f = cell.axis === 'x'
@@ -167,7 +171,9 @@ export function collideTerrain(pos, r, y) {
   for (let tr = r0; tr <= r1; tr++) {
     for (let tc = c0; tc <= c1; tc++) {
       const cell = (cells[tr] || [])[tc];
-      const h = !cell || cell.t === 'wall' ? WALL_H
+      // off the grid is a hole, like a "v" tile: it never pushes anything out
+      const h = !cell ? VOID_H
+        : cell.t === 'wall' ? WALL_H
         : cell.t === 'ramp' ? Math.min(cell.h0, cell.h1) : cell.h;
       if (h <= y + STEP) continue;
       const ox = -ARENA.hw + (tc + 0.5) * TILE, oz = -ARENA.hd + (tr + 0.5) * TILE;
@@ -330,23 +336,11 @@ export function createWorld(parent) {
   const wallTex = makeWallTexture();
   const wallMat = new THREE.MeshStandardMaterial({ map: wallTex, roughness: 0.85, metalness: 0.1 });
 
-  // Base plane at the lowest tier — one quad for the whole map, plus a margin
-  // that frames it. A map with void tiles can't have it: the holes have to be
-  // holes, so its lowest tier is built from merged tile rects instead (below).
-  const hasVoid = cells.some((row) => row.some((c) => c.t === 'void'));
-  if (!hasVoid) {
-    const pw = LEVEL.cols * TILE + 40, pd = LEVEL.rows * TILE + 40;
-    const planeTex = groundTex.clone();
-    planeTex.repeat.set(pw / TEX_SCALE, pd / TEX_SCALE);
-    const ground = new THREE.Mesh(
-      new THREE.PlaneGeometry(pw, pd),
-      new THREE.MeshStandardMaterial({ map: planeTex, roughness: 0.95 })
-    );
-    ground.rotation.x = -Math.PI / 2;
-    ground.position.y = LOW;
-    ground.receiveShadow = true;
-    group.add(ground);
-  }
+  /* There is no ground plane under the district and no margin framing it: the
+     lowest tier is merged tile boxes like every other tier, so the map ends
+     exactly where its last tile does. A plane spilling past the border would
+     be ground you fall through, now that walking off the edge is a fall
+     (groundHeightAt), and the holes on a "v" map have to stay holes. */
 
   /* BoxGeometry face order is +x, −x, +y, −y, +z, −z, four verts each — the
      UV rewrites below index into that. `wallSkin` tiles the wall texture in
@@ -377,11 +371,10 @@ export function createWorld(parent) {
     group.add(m);
   }
 
-  // raised flat terrain, one merged box set per height tier (on a map with
-  // holes the lowest tier is drawn too — there is no plane under it)
+  // flat terrain, one merged box set per height tier — the lowest one included
   const tierMats = [sideMat, sideMat, topMat, sideMat, sideMat, sideMat];
   const heights = [...new Set(cells.flat()
-    .filter((c) => c.t === 'flat' && (hasVoid || c.h > LOW)).map((c) => c.h))];
+    .filter((c) => c.t === 'flat').map((c) => c.h))];
   for (const h of heights) {
     for (const rect of greedyRects((c) => c.t === 'flat' && c.h === h)) addBox(rect, h, tierMats);
   }

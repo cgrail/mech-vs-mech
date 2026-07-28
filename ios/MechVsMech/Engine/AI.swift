@@ -21,7 +21,10 @@ private func rotateY(_ v: SIMD3<Double>, _ a: Double) -> SIMD3<Double> {
    into a corner, which is how they used to grind to a halt. */
 private let MECH_R = 2.2       // collision radius the probes have to fit through
 private let PROBE = 12.0       // how far ahead a mech looks for a lane
-private let JUMP_REACH = 4.5   // tallest ledge jump jets clear (JUMP_V vs GRAVITY)
+/* tallest ledge a mech's jets clear (MECH_JUMP_V vs GRAVITY). Deliberately
+   short of a wall's 10 — the player's jets go over one, a mech's never do, so
+   the compounds stay sealed against everything the AI drives. */
+private let JUMP_REACH = 4.5
 
 extension GameEngine {
 
@@ -193,7 +196,7 @@ extension GameEngine {
         if e.onGround {
             let rise = shouldMove ? ledgeAhead(e, yaw: desired) : 0
             if rise > STEP && rise <= JUMP_REACH && e.jumpCool <= 0 {
-                e.vy = JUMP_V
+                e.vy = MECH_JUMP_V
                 e.onGround = false
                 e.jumpCool = 1.4
                 e.detourSide = 0
