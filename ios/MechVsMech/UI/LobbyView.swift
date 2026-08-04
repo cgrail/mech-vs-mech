@@ -32,7 +32,7 @@ struct LobbyView: View {
                 if let banner = lobby.banner { bannerCard(banner) }
                 switch lobby.phase {
                 case .connecting: connectingCard
-                case .callsign: callsignCard
+                case .callsign: nameCard
                 case .rooms: roomsCard
                 case .inRoom: roomCards
                 case .matchBoot, .dead: bootCard
@@ -112,7 +112,7 @@ struct LobbyView: View {
         .overlay(Rectangle().stroke(Skin.gold, lineWidth: 1))
     }
 
-    // MARK: - Connecting / callsign
+    // MARK: - Connecting / pilot name
 
     private var connectingCard: some View {
         SectionCard(icon: "antenna.radiowaves.left.and.right", title: "SERVER") {
@@ -127,25 +127,47 @@ struct LobbyView: View {
         }
     }
 
-    private var callsignCard: some View {
-        SectionCard(icon: "person.crop.square.fill", title: "PILOT CALLSIGN",
+    private var nameCard: some View {
+        SectionCard(icon: "person.crop.square.fill", title: "NAME",
                     note: "OTHER PILOTS SEE THIS") {
             VStack(spacing: 8) {
-                TextField("YOUR CALLSIGN", text: $lobby.name)
-                    .textInputAutocapitalization(.characters)
-                    .autocorrectionDisabled()
-                    .submitLabel(.go)
-                    .font(.system(size: 16, weight: .heavy))
-                    .kerning(2)
-                    .foregroundColor(Skin.goldSoft)
-                    .padding(.horizontal, 12).padding(.vertical, 12)
-                    .frame(maxWidth: .infinity)
-                    .background(Rectangle().fill(LobbySkin.inset))
-                    .overlay(Rectangle().stroke(Skin.border, lineWidth: 1))
-                    .onSubmit { lobby.join() }
+                // field + dice: the dice deal a fresh name, so nobody has to
+                // invent one (three controls is the row's maximum)
+                HStack(spacing: 8) {
+                    TextField("YOUR NAME", text: $lobby.name)
+                        .textInputAutocapitalization(.characters)
+                        .autocorrectionDisabled()
+                        .submitLabel(.go)
+                        .font(.system(size: 16, weight: .heavy))
+                        .kerning(2)
+                        .foregroundColor(Skin.goldSoft)
+                        .padding(.horizontal, 12).padding(.vertical, 12)
+                        .frame(maxWidth: .infinity)
+                        .background(Rectangle().fill(LobbySkin.inset))
+                        .overlay(Rectangle().stroke(Skin.border, lineWidth: 1))
+                        .onSubmit { lobby.join() }
+                    Button {
+                        // never deal the name already in the field — that
+                        // reads as a dead button
+                        var n = randomPilotName()
+                        while n == lobby.name { n = randomPilotName() }
+                        lobby.name = n
+                    } label: {
+                        Image(systemName: "dice.fill")
+                            .font(.system(size: 16, weight: .heavy))
+                            .foregroundColor(Skin.blueText)
+                            .frame(width: 46)
+                            .frame(maxHeight: .infinity)
+                            .background(Rectangle().fill(LobbySkin.inset))
+                            .overlay(Rectangle().stroke(Skin.border, lineWidth: 1))
+                    }
+                    .buttonStyle(CardButtonStyle())
+                    .accessibilityLabel("Random name")
+                }
+                .fixedSize(horizontal: false, vertical: true)
                 // the go button sits with the field as well as in the footer:
                 // the on-screen keyboard covers the pinned one (join() ignores
-                // an empty callsign, so it needs no state of its own)
+                // an empty name, so it needs no state of its own)
                 FlatActionButton(title: "ENTER LOBBY", icon: "arrow.right.to.line") { lobby.join() }
                 Text("UP TO \(LOBBY_TEAM_MAX) PILOTS PER SIDE · ROOMS STAGE THEIR OWN MATCH")
                     .font(.system(size: 9, weight: .bold)).kerning(1)

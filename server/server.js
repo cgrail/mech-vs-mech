@@ -15,7 +15,7 @@
    Lobby protocol (JSON) — matches are staged in rooms, so several
    groups can set up and fight in parallel:
      → join {name, level}            ← joined {id,name,renamed} | error {message}
-                                       (a taken callsign is suffixed, not
+                                       (a taken name is suffixed, not
                                         refused: renamed says so)
                                      ← lobby {rooms:[{id,name,count,owner,level}],
                                          players:[{id,name,room,team}]}
@@ -286,7 +286,7 @@ function roster() {
 
 /* names end up in client DOM/HTML — keep them to a harmless charset */
 const cleanName = (n) => String(n || '').replace(/[^\w .\-]/g, '').trim().slice(0, 16);
-/* A callsign nobody in the lobby is on: "ACE" → "ACE 2" → "ACE 3". Turning
+/* A name nobody in the lobby is on: "ACE" → "ACE 2" → "ACE 3". Turning
    somebody away over a name they can't see the owner of is a dead end — two
    friends who both call themselves ACE would just have to guess again — so a
    clash is settled here and the client is told the name it actually got
@@ -416,7 +416,7 @@ wss.on('connection', (ws, req) => {
       case 'join': {
         if (c || mr) return;
         const wanted = cleanName(msg.name);
-        if (!wanted) { send(ws, { type: 'error', message: 'PICK A CALLSIGN FIRST' }); return; }
+        if (!wanted) { send(ws, { type: 'error', message: 'PICK A NAME FIRST' }); return; }
         const name = uniqueName(wanted);
         const client = {
           id: nextId++, ws, name,

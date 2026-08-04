@@ -582,7 +582,7 @@ body.touch #touchControls { display: flex; }
 #overlay #edBtns button.ghost:disabled { filter: grayscale(1) brightness(.6); cursor: default; }
 
 /* ---------- multiplayer lobby + match screens ----------
-   The same cards as the mission menu: callsign, rooms, and then the room's
+   The same cards as the mission menu: pilot name, rooms, and then the room's
    three decisions — map, mode, team — one per card. */
 .mpHidden { display: none !important; }
 #mpStatus {
@@ -597,9 +597,11 @@ body.touch #touchControls { display: flex; }
   text-transform: uppercase; user-select: text;
 }
 #mpNameInput:focus { border-color: #6f83c9; }
-/* callsign + its own ENTER button: two controls, one row (see CLAUDE.md) */
+/* name + dice + its own ENTER button: three controls, the row's maximum
+   (see CLAUDE.md) */
 .nameRow { display: flex; gap: 8px; align-items: stretch; }
 .nameRow #mpNameInput { flex: 1; }
+.nameRow #mpNameDice { flex: none; font-size: 16px; padding: 8px 12px; }
 .nameRow #mpNameGo { flex: none; white-space: nowrap; }
 #mpList {
   display: flex; flex-direction: column; gap: 8px;

@@ -4,7 +4,7 @@ import Combine
 /* ============================================================
    Multiplayer lobby + match-boot — ports ui/lobby.js.
 
-   Lobby: pick a callsign → join → create/join a room → pick a
+   Lobby: pick a name → join → create/join a room → pick a
    team (max 5/side) → START MATCH once both sides have a pilot.
    The room's creator also picks its map (`setLevel`, offered from
    the server's own list — see LobbyModel.maps), its mode and its
@@ -19,6 +19,17 @@ import Combine
 
 let LOBBY_TEAM_MAX = 5
 let LOBBY_ROOM_MAX = 12   // members per room: a full 5v5 plus a few undecided
+
+/* Default pilot names, so a fresh install can hit ENTER LOBBY without
+   inventing anything (the old empty "CALLSIGN" box was the thing people
+   stalled on) — the server suffixes a clash (VIPER → VIPER 2). Same list in
+   ui/lobby.js; change both or the two builds deal from different decks. */
+private let PILOT_HANDLES = ["VIPER", "GHOST", "HAVOC", "RAPTOR", "TITAN", "FALCON",
+                             "NOVA", "SABER", "WRAITH", "BULLDOG", "COBRA", "VULCAN",
+                             "PHANTOM", "TEMPEST", "JACKAL", "MAVERICK", "OUTLAW", "REAPER"]
+func randomPilotName() -> String {
+    PILOT_HANDLES.randomElement()!
+}
 
 struct RoomInfo: Identifiable {
     let id: Int
@@ -51,7 +62,7 @@ final class LobbyModel: ObservableObject {
     @Published var statusIsError = false
     @Published var banner: String?
 
-    @Published var name = UserDefaults.standard.string(forKey: "mechMpName") ?? ""
+    @Published var name = UserDefaults.standard.string(forKey: "mechMpName") ?? randomPilotName()
     @Published var rooms: [RoomInfo] = []
     @Published var players: [LobbyPlayer] = []
     @Published var myId: Int?
@@ -124,7 +135,7 @@ final class LobbyModel: ObservableObject {
 
     private func handleOpen() {
         if phase == .matchBoot { return }
-        setStatus("CONNECTED — ENTER A CALLSIGN TO JOIN THE LOBBY")
+        setStatus("CONNECTED — PICK A NAME TO JOIN THE LOBBY")
         phase = .callsign
         if autoJoin, !name.trimmingCharacters(in: .whitespaces).isEmpty {
             autoJoin = false
@@ -229,9 +240,9 @@ final class LobbyModel: ObservableObject {
             name = myName
             UserDefaults.standard.set(myName, forKey: "mechMpName")
             phase = .rooms
-            // the server suffixes a callsign somebody else is already on rather
+            // the server suffixes a name somebody else is already on rather
             // than turning the join down — say so, it is the name everyone sees
-            if jBool(obj, "renamed") { showBanner("CALLSIGN TAKEN — YOU ARE \(myName)") }
+            if jBool(obj, "renamed") { showBanner("NAME TAKEN — YOU ARE \(myName)") }
             // the room list that follows `joined` decides whether to walk in
             autoRoom = true
 

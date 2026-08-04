@@ -45,7 +45,7 @@ export const peers = new Map();
 
 if (MP.active) initMatch();
 
-/* floating callsign so team fights stay readable */
+/* floating pilot name so team fights stay readable */
 function makeNameTag(text, team) {
   const cv = document.createElement('canvas');
   cv.width = 256; cv.height = 40;

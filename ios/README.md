@@ -46,7 +46,7 @@ Adding a Swift file anywhere under `MechVsMech/` automatically joins the target
 
 MULTIPLAYER from the mode screen opens the lobby and connects to the web game's
 Node server at `wss://mech.grails.de/ws` (the same lobby the browser uses, so iOS
-and web players share rooms). Flow mirrors the web: enter a callsign → create or
+and web players share rooms). Flow mirrors the web: pick a name → create or
 join a room → pick blue or red (max 5/side) → START MATCH once both sides have a
 pilot → a READY handshake deploys everyone at once.
 

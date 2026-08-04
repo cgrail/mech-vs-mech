@@ -56,7 +56,7 @@ final class Peer {
     }
 }
 
-/* floating callsign so team fights stay readable */
+/* floating pilot name so team fights stay readable */
 private func makeNameTag(_ text: String, team: Team) -> SCNNode {
     let w = 256, h = 40
     UIGraphicsBeginImageContextWithOptions(CGSize(width: w, height: h), false, 1)

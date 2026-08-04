@@ -64,7 +64,11 @@ and is written as the work happens.
   text comes from the server, so a room can never split across two maps.
 - The map picker is the level select's own list, map pictures and all.
 - A lobby holding exactly one room with space in it walks you straight into it.
-- A callsign already taken is suffixed (`ACE` → `ACE 2`), never refused.
+- A name already taken is suffixed (`ACE` → `ACE 2`), never refused.
+- The lobby asks for a **NAME**, not a "callsign" — the label kept getting
+  misread. It comes pre-filled with a dealt name (`VIPER`, `REAPER`…) so a
+  fresh install can head straight in, and a 🎲 button beside the field deals
+  another; typing over it works as before.
 - START MATCH is the only button: every pilot deploys as their match lands.
 - The end screen rolls into the next district after ten seconds; NEXT MAP skips
   the wait, BACK TO LOBBY gets out, and a dead-ended match counts down to the

@@ -309,7 +309,7 @@
       <button id="setDone" class="goBtn">DONE</button>
     </div>
   </div>
-  <!-- The lobby is the same card column: callsign, rooms, then the room's own
+  <!-- The lobby is the same card column: pilot name, rooms, then the room's own
        three decisions in the order they matter to the pilot who just walked in
        (team · mode · map — the last two are the creator's to set anyway).
        #mpRoomBar groups the room cards so one class toggle still shows or hides
@@ -322,11 +322,13 @@
     <div class="screenScroll">
       <div id="mpBanner" class="mpHidden"></div>
       <div id="mpNameRow" class="card mpHidden">
-        <div class="cardHead"><span class="ico">👤</span>PILOT CALLSIGN<span class="note">OTHER PILOTS SEE THIS</span></div>
+        <div class="cardHead"><span class="ico">👤</span>NAME<span class="note">OTHER PILOTS SEE THIS</span></div>
         <!-- the go button sits with the field as well as in the footer: on a
-             phone the on-screen keyboard covers the pinned one -->
+             phone the on-screen keyboard covers the pinned one. The dice deal
+             a fresh name (ui/lobby.js) — three controls, the row's maximum -->
         <div class="cardBody nameRow">
-          <input id="mpNameInput" maxlength="16" placeholder="YOUR CALLSIGN" autocomplete="off" spellcheck="false">
+          <input id="mpNameInput" maxlength="16" placeholder="YOUR NAME" autocomplete="off" spellcheck="false">
+          <button id="mpNameDice" class="ghost" aria-label="Random name" title="Random name">🎲</button>
           <button id="mpNameGo" class="ghost">ENTER ▸</button>
         </div>
       </div>
@@ -386,7 +388,7 @@
       </div>
       <div id="mpList" class="mpHidden"></div>
     </div>
-    <!-- one green action at a time: the callsign card offers ENTER LOBBY, the
+    <!-- one green action at a time: the name card offers ENTER LOBBY, the
          browser CREATE ROOM, a room START MATCH — each shown with its card
          (ui/lobby.js), all of them pinned where the button always is -->
     <div class="screenFoot">

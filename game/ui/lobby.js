@@ -11,7 +11,7 @@ import { mapThumb, thumbBox } from './thumb.js';
 /* ============================================================
    Multiplayer UI — rooms of team matches, up to 5 v 5
 
-   Lobby (from the mode select): pick a callsign → join → create a
+   Lobby (from the mode select): pick a name → join → create a
    room or join one from the list → pick a team (blue or red, max
    5 per side) → once both teams have at least one pilot, anyone
    on a team can START MATCH. Rooms are independent: each stages
@@ -62,7 +62,7 @@ const show = (el, on) => el.classList.toggle('mpHidden', !on);
 /* A card and the green action that finishes it are one decision shown in two
    places: the card is in the scrolling column, its button is pinned in the
    screen's footer (index.html), so they are shown and hidden together. */
-const showCallsign = (on) => { show(nameRow, on); show(joinBtn, on); };
+const showNameCard = (on) => { show(nameRow, on); show(joinBtn, on); };
 const showRooms = (on) => { show(roomsEl, on); show(createBtn, on); };
 
 /* A match starts by reloading into it: the credentials, the room's map and
@@ -406,7 +406,16 @@ let manualClose = false; // BACK pressed: the socket close is expected
 let focusedRoom = null;  // the room the menu cursor was moved into
 let lastState = { players: [], rooms: [] };
 
-nameInput.value = localStorage.getItem('mechMpName') || '';
+/* Default pilot names, so a fresh install can hit ENTER LOBBY without
+   inventing anything (the old empty "CALLSIGN" box was the thing people
+   stalled on) — the server suffixes a clash (VIPER → VIPER 2). Same list in
+   Net/Lobby.swift; change both or the two builds deal from different decks. */
+const HANDLES = ['VIPER', 'GHOST', 'HAVOC', 'RAPTOR', 'TITAN', 'FALCON',
+  'NOVA', 'SABER', 'WRAITH', 'BULLDOG', 'COBRA', 'VULCAN', 'PHANTOM',
+  'TEMPEST', 'JACKAL', 'MAVERICK', 'OUTLAW', 'REAPER'];
+const randomName = () => HANDLES[Math.floor(Math.random() * HANDLES.length)];
+
+nameInput.value = localStorage.getItem('mechMpName') || randomName();
 
 function showMpScreen(open) {
   mpScreen.classList.toggle('hidden', !open);
@@ -430,7 +439,7 @@ function resetLobbyUi() {
   myRoom = null;
   myTeam = null;
   switchMap(homeLevel); // leaving the lobby: fly back to my own map
-  showCallsign(false);
+  showNameCard(false);
   showRooms(false);
   show(roomBar, false); // the team, mode and map cards ride along inside it
   showMapList(false);
@@ -640,8 +649,8 @@ function renderList(state) {
 
 function onOpen() {
   if (MP.active) return;
-  setStatus('CONNECTED — ENTER A CALLSIGN TO JOIN THE LOBBY');
-  showCallsign(true);
+  setStatus('CONNECTED — PICK A NAME TO JOIN THE LOBBY');
+  showNameCard(true);
   if (autoJoin && nameInput.value.trim()) {
     autoJoin = false;
     doJoin();
@@ -660,6 +669,12 @@ if (!MP.active) {
   document.getElementById('mpBack').addEventListener('click', () => showMpScreen(false));
   joinBtn.addEventListener('click', doJoin);
   document.getElementById('mpNameGo').addEventListener('click', doJoin);
+  document.getElementById('mpNameDice').addEventListener('click', () => {
+    // never deal the name already in the field — that reads as a dead button
+    let n;
+    do { n = randomName(); } while (n === nameInput.value);
+    nameInput.value = n;
+  });
   nameInput.addEventListener('keydown', (e) => {
     e.stopPropagation(); // keep game key handling out of the text field
     if (e.key === 'Enter') doJoin();
@@ -710,10 +725,10 @@ if (!MP.active) {
     myName = m.name;
     joined = true;
     localStorage.setItem('mechMpName', m.name);
-    showCallsign(false);
-    // the server suffixes a callsign somebody else is already on rather than
+    showNameCard(false);
+    // the server suffixes a name somebody else is already on rather than
     // turning the join down — say so, since it is the name everyone will see
-    if (m.renamed) infoBanner(`CALLSIGN TAKEN — YOU ARE ${m.name}`);
+    if (m.renamed) infoBanner(`NAME TAKEN — YOU ARE ${m.name}`);
     renderList(lastState); // paint from what we have…
     // …then arm the walk-in, so it judges the server's own room list (which
     // follows `joined` immediately) and not the empty placeholder above
