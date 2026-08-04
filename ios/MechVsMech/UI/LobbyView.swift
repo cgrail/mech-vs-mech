@@ -43,8 +43,8 @@ struct LobbyView: View {
         }
         // a room I don't own has no picker to leave open — and neither does one
         // on a server that never answered /levels
-        .onChange(of: lobby.iOwnRoom) { if !$1 { pickingMap = false } }
-        .onChange(of: lobby.myRoom) { pickingMap = false }
+        .onChange(of: lobby.iOwnRoom) { owns in if !owns { pickingMap = false } }
+        .onChange(of: lobby.myRoom) { _ in pickingMap = false }
     }
 
     // MARK: - The pinned action bar

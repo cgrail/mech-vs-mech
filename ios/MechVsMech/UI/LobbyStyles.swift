@@ -121,7 +121,7 @@ struct LobbyChrome<Content: View, Footer: View>: View {
                             .frame(minHeight: geo.size.height, alignment: .center)
                         }
                         // next runloop, not this one: the rows have to exist first
-                        .onChange(of: scrollTo) { _, id in
+                        .onChange(of: scrollTo) { id in
                             guard let id else { return }
                             DispatchQueue.main.async { proxy.scrollTo(id, anchor: .center) }
                         }
@@ -624,7 +624,7 @@ struct MapThumb: View {
             }
         }
         .onAppear { load() }
-        .onChange(of: text) { load() }
+        .onChange(of: text) { _ in load() }
     }
 
     private func load() {

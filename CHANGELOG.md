@@ -99,6 +99,11 @@ and is written as the work happens.
 - Entering a match no longer stalls the iOS menu — music, map pictures and the
   long district lists are off the main thread.
 
+### iOS app
+
+- Installs on iOS 16 as well as 17 — the deployment target dropped a major
+  version, so a generation more of iPhones and iPads can play.
+
 ### Fixed
 
 - A flag carried by a mech that dies is dropped where it fell.
