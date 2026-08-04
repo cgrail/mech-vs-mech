@@ -53,7 +53,7 @@ Copy, don't merge: numeric levels travel as `?level=N`, which the **web resolves
 - Write it under the **top version section** (`## <version> — current`), in the group it belongs to (Movement, Multiplayer, Districts…), adding a group if none fits. The version is the iOS `MARKETING_VERSION`; when that is bumped, the top section is closed off and a new `— current` one opens above it.
 - One entry per change a **player or a pilot would notice** — gameplay rules, controls, levels, the look, what a menu offers, what the wire carries. Refactors that change nothing observable stay out; the git history already has them. Say what the game does now, not what the diff did.
 - Both builds, one entry: this file has no web and no iOS column, because a change that only reached one of them is a bug (see above).
-- [ios/WHATS-NEW.md](ios/WHATS-NEW.md) is the **player-facing cut** of the same list, written for the App Store when a version ships. Do not maintain it per commit — but if a change contradicts what a *shipped* note claims, say so rather than quietly rewriting released copy.
+- [ios/WHATS-NEW.md](ios/WHATS-NEW.md) is the **player-facing cut** of the same list, written for the App Store when a version ships. Do not maintain it per commit — but if a change contradicts what a *shipped* note claims, say so rather than quietly rewriting released copy. It is **plain ASCII**, because App Store Connect rejects the What's New field ("This field contains one or more invalid characters") on `•` and on emoji: hyphens for bullets, no emoji (name the control instead — "the dice button", not `🎲`), and no typographic dashes, ellipses or quotes either. That is the one file in the repo written that way; the em dashes everywhere else are fine.
 
 ## Architecture
 
