@@ -2,6 +2,7 @@ import { renderer } from '../world/scene.js';
 import { game, touch } from '../core/state.js';
 import { player, fireRocket } from '../entities/player.js';
 import { placeTurretDirect } from './build.js';
+import { nextView, toggleView } from '../core/view.js';
 
 /* ============================================================
    Mobile / touch controls — two schemes, picked on the menu's
@@ -16,7 +17,9 @@ import { placeTurretDirect } from './build.js';
               look behind you), lean (beta) moves and a hard lean
               runs, side tilt (gamma) strafes; any touch fires
 
-   On-screen buttons fire rockets / place turrets in both.
+   On-screen buttons fire rockets, place turrets and swap the
+   camera between the chase and the bird's eye in both — the
+   last one is the keyboard's view key (core/view.js) on a thumb.
 
    Running is the boost the keyboard has on Shift, off the one
    input a thumb has left to give: how *far* the stick is pushed.
@@ -190,5 +193,22 @@ if (isTouchDevice) {
   document.getElementById('btnJump').addEventListener('touchstart', (e) => {
     e.preventDefault();
     if (game.state === 'playing') touch.jump = true; // updatePlayer consumes it
+  }, { passive: false });
+
+  /* the camera view toggle — the keyboard's view key, off the one control a
+     thumb has room for. The button always shows the view a tap would *give*,
+     so it names what it does rather than where you are. */
+  const viewBtn = document.getElementById('btnView');
+  function reflectView() {
+    const v = nextView();
+    viewBtn.querySelector('.ico').textContent = v.icon;
+    viewBtn.querySelector('.lbl').textContent = v.short;
+    viewBtn.setAttribute('aria-label', `${v.label} view`);
+  }
+  reflectView();
+  window.addEventListener('mech:viewchanged', reflectView);
+  viewBtn.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    if (game.state === 'playing') toggleView();
   }, { passive: false });
 }

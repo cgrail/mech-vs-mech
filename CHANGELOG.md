@@ -36,6 +36,20 @@ and is written as the work happens.
   it strafes instead of marching on the spot.
 - A turret is built beside the pilot instead of across their path.
 
+### Camera
+
+- **A bird's-eye view beside the chase camera.** The camera climbs to 58 units
+  over the mech and looks down its own axis — no sky in frame, about twice the
+  district on screen, and the mech still low enough on screen to see what it is
+  walking into. Forward is still up, so nothing about driving changes. `V` on
+  the keyboard (rebindable like every other key), a button above the action
+  buttons on a phone, showing the view a tap would give. The pick is remembered
+  for the next drop, and the camera flies between the two rather than cutting.
+- Fog rides out with the camera: the render fog is a distance from the camera
+  but describes what the *mech* can make out, so both bands slide out by
+  however much further the bird's eye sits. Night from up there is as far-seeing
+  as night over the shoulder.
+
 ### Night mode
 
 - The district is fought at night by default: a `night` look, a sensor lamp on

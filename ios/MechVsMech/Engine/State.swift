@@ -96,6 +96,55 @@ enum ControlScheme: String, CaseIterable {
 }
 
 /* ============================================================
+   Camera views — mirrors game/core/view.js
+
+   One geometry each: where the camera rides relative to the
+   mech and the point ahead of it that it aims at. GameEngine
+   flies whatever is current (updateCamera), the HUD's view
+   button switches it, and Vision.swift reads `fogShift` — the
+   render fog is measured from the *camera*, so climbing into
+   the bird's eye would otherwise fog the district the mech is
+   standing in. A camera, never a rule: the simulation does not
+   read it, so it is as safe in PvP as fog of war is.
+============================================================ */
+struct CamViewSpec {
+    let behind, up: Double     // where the camera sits, relative to the mech
+    let ahead, lookY: Double   // …and the point in front of it that it aims at
+    let label: String
+    let short: String
+    let icon: String
+}
+
+enum CamView: String, CaseIterable {
+    case chase, bird
+
+    var spec: CamViewSpec {
+        switch self {
+        case .chase:
+            return CamViewSpec(behind: 21, up: 26, ahead: 17, lookY: 2,
+                               label: "CHASE", short: "CHASE", icon: "🎥")
+        case .bird:
+            // straight down the mech's own axis, high enough that no sky is in
+            // frame and about twice the district is: the tactical view. The
+            // mech still sits a little below centre, so the ground it is
+            // walking into gets the screen.
+            return CamViewSpec(behind: 12, up: 58, ahead: 9, lookY: 0,
+                               label: "BIRD'S EYE", short: "BIRD", icon: "🚁")
+        }
+    }
+
+    /// the view a tap on the HUD button would give
+    var next: CamView { self == .bird ? .chase : .bird }
+
+    /// how much further from the mech this camera sits than the chase one does:
+    /// the fog bands describe what the mech can make out, so they travel with it
+    var fogShift: Double {
+        func dist(_ v: CamView) -> Double { (v.spec.behind * v.spec.behind + v.spec.up * v.spec.up).squareRoot() }
+        return dist(self) - dist(.chase)
+    }
+}
+
+/* ============================================================
    Touch/mobile input — written by TouchControls (main thread) and
    CoreMotion, read by the engine on the SceneKit render thread.
    Mirrors the `touch` object in core/state.js.

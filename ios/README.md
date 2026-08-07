@@ -25,13 +25,15 @@ Adding a Swift file anywhere under `MechVsMech/` automatically joins the target
   anywhere to fire. Calibrated to your pose at the moment you tap DEPLOY.
 - ⬆️ / 🚀 / 🛰️ buttons jump (free — the web build's Ctrl), fire rockets (🛢️ 20)
   and build a turret beside you (🛢️ 100).
+- The small button above them swaps the camera between the chase view and the
+  bird's eye (the web build's `V` key) and shows the view a tap would give.
 
 ## Project layout
 
 | | mirrors (web) |
 |---|---|
 | `MechVsMech/Engine/Levels.swift` + `Terrain.swift` | `game/world/world.js` |
-| `MechVsMech/Engine/State.swift` | `game/core/state.js` (difficulty tables verbatim) |
+| `MechVsMech/Engine/State.swift` | `game/core/state.js` (difficulty tables verbatim) + `game/core/view.js` (the `CamView` table) |
 | `MechVsMech/Engine/Helpers.swift` | `game/core/helpers.js` |
 | `MechVsMech/Engine/Entities.swift`, `Player.swift`, `Projectiles.swift`, `Particles.swift` | `game/entities/*` |
 | `MechVsMech/Engine/AI.swift`, `Build.swift`, `Audio.swift` | `game/systems/ai.js`, `build.js`, `audio.js` |

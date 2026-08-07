@@ -210,6 +210,14 @@ Two more pieces of the look are shared: the sky is a vertical gradient drawn beh
 
 Nothing manually elevates guns. All shooters (player aim assist in `player.js`, mechs and turrets in `ai.js`) aim at `helpers.aimYOf(target)` and check 3D LOS from their muzzle height. If you add a new weapon, use the same pair or it will shoot over/under targets on other levels.
 
+### The camera is a table, not a hard-coded chase
+
+[game/core/view.js](game/core/view.js) ↔ `CamView` in `Engine/State.swift` holds both views — `chase` and `bird` (the bird's eye: 58 units up, aimed down the mech's own axis, no sky in frame) — as four numbers each: how far *behind* and *up* the camera rides, and the point *ahead* of the mech it aims at. `updateCamera` ([main.js](game/main.js) / `GameEngine.swift`) is one flight that reads whichever is current, so a switch only moves the numbers and the existing easing turns that into a climb rather than a cut. Forward is up the screen in both, so nothing about driving changes with the view.
+
+Three things hang off it. It is switched by the `view` action on the keyboard (`bindings.js`, so it rebinds like everything else) and by `#btnView` / the HUD's view button on a phone, which shows the view a *tap would give* rather than the one you are in. It is remembered in `localStorage.mechView` / `UserDefaults` `mechView`, like every other setting — never the address bar. And `systems/vision.js` reads `fogShift`: the render fog's near/far are distances from the *camera* but describe what the **mech** can make out, so they slide out by however much further the current view sits — without that, climbing into the bird's eye fogs the district the mech is standing in. `applyFogRange` is that band on its own, called by `applyFog` and again on every view change.
+
+A view is a camera, never a rule: the simulation never reads it, which is what makes it safe in PvP the way fog of war is (a local view change, symmetric, on both builds).
+
 ### Entity model
 
 One flat `entities` array (everything with hp); `kind` is `player | mech | turret | base`, `team` is `blue | red`. `registerEntity` adds to the array + scene and attaches the health-bar sprite. Death/damage flows through `projectiles.js` (`damageEntity`/`killEntity`), which also handles aggro retaliation, salvage rewards, and endgame. All red-side stats come from the difficulty tables in [core/state.js](game/core/state.js) — tune there, not with magic numbers in `ai.js`. The player's speed is the one stat that moves during a life: `HURT_SPEED` (`player.js` / `Player.swift`) walks a mech down to 65% of full at zero hp and back up with the self-repair, with the stride rate scaled the same way so it limps rather than marching on the spot. It is one rule for every pilot and **never difficulty-scaled**, which is what keeps it symmetric enough for PvP; it also needs no wire traffic, since a replica is driven by the positions it is sent.

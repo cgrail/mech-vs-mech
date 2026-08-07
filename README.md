@@ -111,11 +111,14 @@ Destroy the red base in the north before the enemy destroys your blue base in th
 | **Ctrl** | Jump jets — clears a ledge onto high ground |
 | **1 / 2** | Machine guns · rockets |
 | **3 / T / B** | Build a turret beside you |
+| **V** | Camera — chase view ⇄ bird's eye |
 | **↑ / ↓** (in the menus) | Move the menu cursor |
 | **← / →** (in the menus) | Change the highlighted setting |
 | **Enter / Space** (in the menus) | Select |
 
 Every one of those keys is a default, not a fixture: **SETTINGS** on the entry screen (or **⌨ KEY BINDINGS** in the mission menu's setup card) lists each control on its own row — press the row, press the key you want, and it is yours from then on, remembered in the browser. Taking a key off another control unbinds it there rather than firing both, and RESET TO DEFAULTS puts the whole layout back. The briefing's control legend and the weapon badges on the HUD name your keys, not the factory ones. The mouse and **Esc** are not in the list — nothing else does their job. (Touch devices have no keyboard to rebind, so the screen isn't offered there; the joystick/gyro choice stays in the setup card.)
+
+The camera has two settings and **V** swaps them: the chase view over the mech's shoulder, or the bird's eye — 58 units up, looking straight down the mech's own axis, with about twice the district on screen. Forward is still up the screen, so nothing about driving changes; the camera climbs rather than cutting, and your pick is remembered for the next drop. On a phone it's the small button above the action buttons, showing the view a tap would give.
 
 On a phone the left thumb is a floating joystick — move and strafe — and the right thumb turns the mech and holds down the machine guns; ⬆️, 🚀 and the turret button do the rest. **Push the stick right forward and the mech runs**: past about 85% of its travel the knob turns gold and you get the same 1.65× sprint the keyboard has on Shift, until you ease off. It's a latch, so a thumb hovering at the line can't stutter between walk and run. On the gyro scheme a hard forward lean does the same thing.
 

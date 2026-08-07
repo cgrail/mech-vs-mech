@@ -252,10 +252,20 @@ extension GameEngine {
        setting — called when a match starts and whenever the option is
        toggled mid-game. All of it lands together, so the switch is one
        change of weather. */
-    func applyFog() {
+    /* The fog band alone. Both numbers are distances from the *camera*, but
+       what they describe is how far the mech can make out — so they slide out
+       by whatever extra distance the current camera view rides at (CamView in
+       State.swift). Without that, climbing into the bird's eye would fog the
+       district the mech is standing in rather than the horizon. */
+    func applyFogRange() {
         let f = fogOfWar ? FOG : CLEAR
-        scene.fogStartDistance = f.near
-        scene.fogEndDistance = f.far
+        let shift = camView.fogShift
+        scene.fogStartDistance = f.near + shift
+        scene.fogEndDistance = f.far + shift
+    }
+
+    func applyFog() {
+        applyFogRange()
         applyLook(night: fogOfWar)
         if fogOfWar {
             let rig = lampRig ?? makeLamp()

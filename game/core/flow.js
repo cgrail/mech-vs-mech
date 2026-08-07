@@ -43,7 +43,7 @@ function controlLegend() {
     return `
       ${k('forward')}${k('strafeL')}${k('back')}${k('strafeR')} move &nbsp; <kbd>Mouse</kbd> aim &nbsp; ${k('boost')} boost &nbsp; ${k('jump')} jump jets<br>
       <kbd>LMB</kbd> / ${k('fire')} fire &nbsp; ${k('weapon1')} machine guns &nbsp; ${k('weapon2')} rockets (<span style="color:#ffd23c">🛢️ 20</span>) &nbsp; ${k('turret')} build turret (<span style="color:#ffd23c">🛢️ 100</span>)<br>
-      ${k('rocket')} / <kbd>RMB</kbd> quick rocket &nbsp; — machine guns are free, rockets &amp; turrets cost salvage<br>
+      ${k('rocket')} / <kbd>RMB</kbd> quick rocket &nbsp; ${k('view')} chase / bird's eye view &nbsp; — machine guns are free, rockets &amp; turrets cost salvage<br>
       <kbd>↑</kbd><kbd>↓</kbd> menu &nbsp; <kbd>←</kbd><kbd>→</kbd> change &nbsp; <kbd>Enter</kbd> select &nbsp; <kbd>Esc</kbd> release mouse`;
   }
   const scheme = touch.scheme === 'gyro'
@@ -54,7 +54,8 @@ function controlLegend() {
        <kbd>👉 Right thumb</kbd> drag to turn · hold to fire machine guns<br>`;
   return `${scheme}<kbd>⬆️</kbd> jump jets — clear a ledge onto high ground<br>
       <kbd>🚀</kbd> rockets (<span style="color:#ffd23c">🛢️ 20</span>) &nbsp;
-      <kbd>${TURRET_ICO}</kbd> build turret beside you (<span style="color:#ffd23c">🛢️ 100</span>)`;
+      <kbd>${TURRET_ICO}</kbd> build turret beside you (<span style="color:#ffd23c">🛢️ 100</span>)<br>
+      <kbd>🚁</kbd> swap the camera between the chase and the bird's eye`;
 }
 const MISSIONS = {
   assault: `<b style="color:#ffd23c">MISSION:</b> Destroy the <b style="color:#ff8a7a">red enemy base</b> at the far end of the

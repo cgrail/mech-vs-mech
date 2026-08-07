@@ -86,6 +86,8 @@ struct HudSnapshot: Equatable {
     var foeCaptures = 0
     var myFlag: FlagState = .home
     var foeFlag: FlagState = .home
+    // which camera is flying, so the view button can show the other one
+    var camView: CamView = .chase
 }
 
 protocol EngineDelegate: AnyObject {
@@ -159,6 +161,10 @@ final class GameEngine {
     /* fog of war (Vision.swift): a local view restriction, set from the menu
        when the match starts. Never sent over the wire. */
     var fogOfWar = false
+    /* chase or bird's eye (the table in State.swift, ports core/view.js) —
+       remembered across launches like the web build's `mechView`, and switched
+       from the HUD's view button mid-match */
+    var camView = CamView(rawValue: UserDefaults.standard.string(forKey: "mechView") ?? "") ?? .chase
     var visionAcc = 0.0
     var visionHiding = false
     /// the mech's sensor lamp, built the first time fog of war is switched on
@@ -291,6 +297,18 @@ final class GameEngine {
     func requestJump() { if phase == .playing { touch.requestJump() } }
     func requestRocket() { enqueue { if self.phase == .playing { self.fireRocket() } } }
     func requestTurret() { enqueue { if self.phase == .playing { self.placeTurretDirect() } } }
+    /* the view button: chase ⇄ bird's eye, remembered for the next launch the
+       way the web build remembers `mechView`. The fog band rides the camera
+       out with it (Vision.swift), so the district ahead stays as readable
+       from up there as it is over the shoulder. */
+    func toggleCamView() {
+        enqueue {
+            guard self.phase == .playing else { return }
+            self.camView = self.camView.next
+            UserDefaults.standard.set(self.camView.rawValue, forKey: "mechView")
+            self.applyFogRange()
+        }
+    }
     func pauseSim()  { enqueue { self.paused = true } }
     func resumeSim() { enqueue { self.paused = false } }
 
@@ -401,23 +419,27 @@ final class GameEngine {
         pushHud()
     }
 
-    /* chase camera — ports updateCamera() in main.js */
+    /* the chase / bird's-eye camera — ports updateCamera() in main.js. Both
+       views are the same flight off the table in State.swift, so switching one
+       for the other moves the numbers and the easing turns that into a climb
+       rather than a cut. */
     private func updateCamera(dt: Double) {
-        let behind = 21.0, up = 26.0
+        let v = camView.spec
         let yaw = player.yaw
-        let cx = player.x - sin(yaw) * behind
-        let cz = player.z - cos(yaw) * behind
+        let cx = player.x - sin(yaw) * v.behind
+        let cz = player.z - cos(yaw) * v.behind
         let k = Float(1 - exp(-8 * dt))
         var pos = cameraNode.position
         pos.x += (Float(cx) - pos.x) * k
-        pos.y += (Float(player.y + up) - pos.y) * k
+        pos.y += (Float(player.y + v.up) - pos.y) * k
         pos.z += (Float(cz) - pos.z) * k
         cameraNode.position = pos
         // aim well ahead of the mech: tilts the view up so more of the field shows.
         // Pass world-up explicitly — SceneKit's 1-arg look(at:) rolls the horizon as
         // the yaw swings; pinning up to (0,1,0) keeps it level like three.js lookAt.
         cameraNode.look(
-            at: SCNVector3(player.x + sin(yaw) * 17, player.y + 2, player.z + cos(yaw) * 17),
+            at: SCNVector3(player.x + sin(yaw) * v.ahead, player.y + v.lookY,
+                           player.z + cos(yaw) * v.ahead),
             up: SCNVector3(0, 1, 0), localFront: SCNVector3(0, 0, -1))
     }
 
@@ -433,6 +455,7 @@ final class GameEngine {
         hud.foeBaseFrac = max(0, foeBase.hp / foeBase.maxHp)
         hud.canRocket = stats.salvage >= Costs.rocket
         hud.canTurret = stats.salvage >= Costs.turret
+        hud.camView = camView
         hud.ctf = mode == .ctf
         if hud.ctf {
             hud.myCaptures = stats.captures[myTeam] ?? 0

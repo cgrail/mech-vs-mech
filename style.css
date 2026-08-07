@@ -241,6 +241,17 @@ body.touch #touchControls { display: flex; }
 }
 #touchControls button:active { background: rgba(60, 74, 120, .85); border-color: #8ab4ff; }
 #touchControls .cost { font-size: 11px; color: #ffd23c; margin-top: 2px; }
+/* the camera view toggle is not a combat action: it rides above the three that
+   are, a size down, so a thumb reaching for rockets never finds it */
+#btnView { width: 58px; height: 58px; font-size: 24px; align-self: flex-end; }
+#btnView .lbl { font-size: 9px; letter-spacing: 1px; color: #8ab4ff; margin-top: 2px; }
+/* a landscape phone is short: four buttons only fit the column if it tightens */
+@media (max-height: 560px) {
+  #touchControls { gap: 10px; }
+  #touchControls button { width: 62px; height: 62px; font-size: 26px; }
+  #btnView { width: 48px; height: 48px; font-size: 20px; }
+  #btnView .lbl { display: none; }
+}
 
 /* floating joystick — display only, touches are tracked on the canvas */
 #joystick {

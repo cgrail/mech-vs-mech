@@ -40,6 +40,7 @@ export const ACTIONS = [
   { id: 'weapon1', label: 'MACHINE GUNS', def: ['Digit1', 'Numpad1'] },
   { id: 'weapon2', label: 'ROCKETS', def: ['Digit2', 'Numpad2'] },
   { id: 'turret', label: 'BUILD TURRET', def: ['Digit3', 'Numpad3', 'KeyT', 'KeyB'] },
+  { id: 'view', label: 'CAMERA VIEW', def: ['KeyV'] },
 ];
 
 const STORE = 'mechKeys';

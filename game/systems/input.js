@@ -3,6 +3,7 @@ import { game, touch } from '../core/state.js';
 import { placeTurretDirect } from './build.js';
 import { player, fireRocket, selectWeapon } from '../entities/player.js';
 import { keys, actionOf } from './bindings.js';
+import { toggleView } from '../core/view.js';
 
 /* ============================================================
    Input
@@ -26,6 +27,7 @@ document.addEventListener('keydown', (e) => {
   else if (act === 'weapon1') selectWeapon(1);
   else if (act === 'weapon2') selectWeapon(2);
   else if (act === 'turret') { if (placeTurretDirect()) selectWeapon(1); }
+  else if (act === 'view') toggleView();   // chase ⇄ bird's eye (core/view.js)
 });
 document.addEventListener('keyup', (e) => { keys[e.code] = false; });
 document.addEventListener('contextmenu', (e) => e.preventDefault());

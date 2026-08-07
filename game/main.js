@@ -16,6 +16,7 @@ import { remoteUpdate } from './systems/remote.js';
 import './systems/input.js';
 import './systems/mobile.js';
 import { BOOT } from './core/boot.js';
+import { camView } from './core/view.js';
 import { startGame } from './core/flow.js';   // …which also builds the menus
 import './ui/lobby.js';
 import './ui/editor.js';
@@ -32,20 +33,25 @@ if (BOOT.screen === 'play') startGame();
 
 /* ============================================================
    Camera
+
+   Both views are the same flight, off the table in core/view.js:
+   the camera rides behind and above the mech and aims at a point
+   ahead of it. Switching view moves the numbers, and the easing
+   below is what turns that into a climb rather than a cut.
 ============================================================ */
 const camTarget = new THREE.Vector3();
 function updateCamera(dt) {
   const p = player.group.position;
   const yaw = player.yaw;
-  const behind = 21, up = 26;
-  const cx = p.x - Math.sin(yaw) * behind;
-  const cz = p.z - Math.cos(yaw) * behind;
+  const v = camView();
+  const cx = p.x - Math.sin(yaw) * v.behind;
+  const cz = p.z - Math.cos(yaw) * v.behind;
   const k = 1 - Math.exp(-8 * dt);
   camera.position.x += (cx - camera.position.x) * k;
-  camera.position.y += (player.y + up - camera.position.y) * k;
+  camera.position.y += (player.y + v.up - camera.position.y) * k;
   camera.position.z += (cz - camera.position.z) * k;
   // aim well ahead of the mech: tilts the view up so more of the field shows
-  camTarget.set(p.x + Math.sin(yaw) * 17, player.y + 2, p.z + Math.cos(yaw) * 17);
+  camTarget.set(p.x + Math.sin(yaw) * v.ahead, player.y + v.lookY, p.z + Math.cos(yaw) * v.ahead);
   camera.lookAt(camTarget);
 }
 

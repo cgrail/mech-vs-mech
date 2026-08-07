@@ -105,6 +105,15 @@ struct HUDView: View {
                         .foregroundColor(Color(hex: 0xffd23c))
                         .shadow(color: .black, radius: 3)
                         .allowsHitTesting(false)
+                    // chase ⇄ bird's eye. Not a combat action, so it rides
+                    // above the three that are, a size down — a thumb reaching
+                    // for rockets never finds it. Its face is the view a tap
+                    // would give (CamView in Engine/State.swift), the same way
+                    // the web build's #btnView reads.
+                    actionButton(icon: model.hud.camView.next.spec.icon, cost: nil, enabled: true,
+                                 caption: model.hud.camView.next.spec.short, size: 46) {
+                        model.engine.toggleCamView()
+                    }
                     actionButton(icon: "⬆️", cost: nil, enabled: true) {
                         model.engine.requestJump()
                     }
@@ -231,13 +240,14 @@ struct HUDView: View {
     }
 
     private func actionButton(icon: String, cost: Int?, enabled: Bool, badge: Int? = nil,
+                              caption: String? = nil, size: CGFloat = 58,
                               action: @escaping () -> Void) -> some View {
         Button(action: action) {
             VStack(spacing: 1) {
                 ZStack(alignment: .topTrailing) {
                     Text(icon)
-                        .font(.system(size: 26))
-                        .frame(width: 58, height: 58)
+                        .font(.system(size: size * 0.45))
+                        .frame(width: size, height: size)
                         .background(Circle().fill(Color.black.opacity(0.45)))
                         .overlay(Circle().stroke(Color.white.opacity(0.35), lineWidth: 1.5))
                     if let badge {
@@ -252,6 +262,12 @@ struct HUDView: View {
                     Text("🛢️\(cost)")
                         .font(.system(size: 10, weight: .bold, design: .rounded))
                         .foregroundColor(Color(hex: 0xffd23c))
+                        .shadow(color: .black, radius: 2)
+                }
+                if let caption {   // …and what a free one does, when its icon alone won't say
+                    Text(caption)
+                        .font(.system(size: 9, weight: .bold, design: .rounded)).kerning(1)
+                        .foregroundColor(Color(hex: 0x8ab4ff))
                         .shadow(color: .black, radius: 2)
                 }
             }

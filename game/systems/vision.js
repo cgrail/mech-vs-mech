@@ -3,6 +3,7 @@ import { scene, setNight } from '../world/scene.js';
 import { entities } from '../entities/entities.js';
 import { player } from '../entities/player.js';
 import { game } from '../core/state.js';
+import { fogShift } from '../core/view.js';
 import { losBlocked, aimYOf } from '../core/helpers.js';
 
 /* ============================================================
@@ -207,14 +208,25 @@ function rideMech(always) {
   rig.rotation.y = player.yaw;
 }
 
+/* The fog band alone. Both numbers are distances from the *camera*, but what
+   they describe is how far the mech can make out — so they slide out by
+   whatever extra distance the current camera view rides at (core/view.js).
+   Without that, climbing into the bird's eye would fog the district the mech
+   is standing in rather than the horizon. */
+function applyFogRange() {
+  const f = game.fogOfWar ? FOG : CLEAR;
+  const shift = fogShift();
+  scene.fog.near = f.near + shift;
+  scene.fog.far = f.far + shift;
+}
+window.addEventListener('mech:viewchanged', applyFogRange);
+
 /* the play fog, the district's lighting and the lamp for the current
    setting — called when a game starts and whenever the option is toggled.
    All of it lands together, so the switch is one change of weather. */
 export function applyFog() {
   const on = !!game.fogOfWar;
-  const f = on ? FOG : CLEAR;
-  scene.fog.near = f.near;
-  scene.fog.far = f.far;
+  applyFogRange();
   setNight(on);
   if (on) {
     scene.add(lamp());
