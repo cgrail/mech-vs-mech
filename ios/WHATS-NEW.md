@@ -1,3 +1,23 @@
+# What's New - 1.3.1
+
+App Store release notes for MECH VS MECH 1.3.1, covering everything since 1.3.
+Plain text below the line; paste it into App Store Connect as-is.
+
+Keep it plain ASCII. App Store Connect rejects the What's New field with "This
+field contains one or more invalid characters" on bullets and emoji, so no
+"*"-style bullets, no emoji, and no typographic dashes, ellipses or quotes
+either - hyphens, three periods and straight quotes only.
+
+---
+
+A second camera: pull the view up off your mech's shoulder and fight the district from above.
+
+BIRD'S EYE VIEW
+- A tactical camera that rides high over your mech and looks straight down its own axis. No sky in frame and about twice as much district on screen: you see the wave forming, the flank nobody is holding, and the courtyard before you jet into it.
+- Forward is still up the screen, so nothing about driving changes. The camera climbs and settles back rather than cutting, so you never lose track of which mech is yours.
+- The view button sits above the rocket and turret buttons, a size down, so a thumb reaching for a weapon never finds it. Its face shows the view a tap would give - BIRD from the ground, CHASE from up high - and your pick is waiting for you on the next drop.
+- Night fights lose nothing up there. Your sensor range travels with the camera, so climbing does not fog over the ground your mech is standing on.
+
 # What's New - 1.3
 
 App Store release notes for MECH VS MECH 1.3, covering everything since 1.2.
